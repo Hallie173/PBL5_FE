@@ -1,34 +1,58 @@
-import React from "react";
+import React, { useState } from "react";
 import "./Articles.css";
 
-const articles = [
+const articlesData = [
     {
-        category: "Destinations",
-        title: "The Ultimate Guide to Santorini",
-        description: "Everything you need to know about visiting the most iconic Greek island.",
-        author: "Mike Chen",
-        date: "March 10, 2025",
-        image: "https://source.unsplash.com/400x300/?santorini,travel",
+        category: "Travel Tips",
+        title: "Maldives on a Budget",
+        description: "How to experience luxury paradise without breaking the bank.",
+        author: "Emma Davis",
+        date: "March 3, 2025",
+        image: "https://source.unsplash.com/400x300/?maldives,travel",
     },
     {
-        category: "Food & Dining",
-        title: "Best Street Food in Tokyo",
-        description: "A culinary journey through Tokyo’s most delicious street food spots.",
-        author: "Lisa Wong",
-        date: "March 8, 2025",
-        image: "https://source.unsplash.com/400x300/?sushi,food",
+        category: "Culture",
+        title: "Exploring Marrakech’s Medina",
+        description: "Navigate the enchanting maze of Morocco’s most famous marketplace.",
+        author: "Ahmed Hassan",
+        date: "March 1, 2025",
+        image: "https://source.unsplash.com/400x300/?morocco,market",
     },
     {
         category: "Adventure",
-        title: "Hiking the Inca Trail",
-        description: "Essential tips for conquering the famous trek to Machu Picchu.",
-        author: "Tom Wilson",
-        date: "March 5, 2025",
-        image: "https://source.unsplash.com/400x300/?hiking,mountains",
+        title: "Chasing Northern Lights",
+        description: "Complete guide to viewing the Aurora Borealis in Iceland.",
+        author: "Nina Berg",
+        date: "February 28, 2025",
+        image: "https://source.unsplash.com/400x300/?aurora,northernlights",
     },
+    // Thêm nhiều bài viết khác nếu cần...
 ];
 
 function Articles() {
+    const [articles, setArticles] = useState(articlesData);
+    const [page, setPage] = useState(1);
+    const articlesPerPage = 3;
+    const totalPages = 6;
+
+    const handleLoadMore = () => {
+        const newArticles = [
+            {
+                category: "Nature",
+                title: "Discovering the Amazon Rainforest",
+                description: "A journey into the heart of the world's largest rainforest.",
+                author: "Carlos Mendez",
+                date: "February 20, 2025",
+                image: "https://source.unsplash.com/400x300/?amazon,rainforest",
+            },
+        ];
+        setArticles([...articles, ...newArticles]);
+    };
+
+    const handlePageChange = (newPage) => {
+        setPage(newPage);
+    };
+
     return (
         <div className="articles-container">
             <div className="featured-article">
@@ -55,10 +79,10 @@ function Articles() {
                 <button>Culture</button>
                 <button>Adventure</button>
             </div>
-
             <div className="article-list">
-                {articles.map((article, index) => (
+                {articles.slice(0, articlesPerPage).map((article, index) => (
                     <div className="article-card" key={index}>
+                        <img src={article.image} alt={article.title} />
                         <div className="article-content">
                             <span className="category">{article.category}</span>
                             <h3>{article.title}</h3>
@@ -70,6 +94,22 @@ function Articles() {
                         </div>
                     </div>
                 ))}
+            </div>
+
+            <button className="load-more-btn" onClick={handleLoadMore}>Load More Articles</button>
+
+            <div className="pagination">
+                {[...Array(totalPages)].map((_, index) => (
+                    <button
+                        key={index}
+                        className={page === index + 1 ? "page-btn active" : "page-btn"}
+                        onClick={() => handlePageChange(index + 1)}
+                    >
+                        {index + 1}
+                    </button>
+                ))}
+                <button className="page-btn">...</button>
+                <button className="page-btn">→</button>
             </div>
         </div>
     );
