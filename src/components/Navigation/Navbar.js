@@ -2,6 +2,7 @@ import React from "react";
 import "./Navbar.css";
 import { FaGlobe } from "react-icons/fa"; // Import icon trái đất
 import weblogo from "../../views/webLogo.png";
+
 function Navbar() {
     return (
         <nav className="navbar">

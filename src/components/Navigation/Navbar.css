@@ -7,19 +7,19 @@
     padding: 10px 20px;
     background-color: white;
     border-bottom: 2px solid #ddd;
+    width: 100%;
     height: 60px;
 }
 
 .navbar-left {
     display: flex;
+    justify-content: space-around;
     align-items: center;
     width: 70%;
     height: 100%;
 }
 
 .logo {
-    font-weight: bold;
-    color: #2d7a61;
     display: flex;
     align-items: center;
     width: 25%;
@@ -35,6 +35,7 @@
     display: flex;
     list-style: none;
     margin-left: 20px;
+    margin-right: 20px;
     padding: 0;
 }
 

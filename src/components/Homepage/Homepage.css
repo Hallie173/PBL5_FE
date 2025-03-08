@@ -1,0 +1,101 @@
+.homepage {
+    padding: 20px;
+}
+
+/* Phần tìm kiếm */
+.search-container {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.search-title {
+    font-size: 32px;
+    font-weight: bold;
+}
+
+.search-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: white;
+    border-radius: 30px;
+    border: 1px solid #ddd;
+    padding: 10px;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.search-icon {
+    margin-right: 10px;
+    color: gray;
+}
+
+.search-box input {
+    border: none;
+    outline: none;
+    flex: 1;
+    padding: 5px;
+}
+
+.search-button {
+    background: #2d7a61;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+/* Ảnh nổi bật */
+.featured-container {
+    position: relative;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.featured-image {
+    width: 100%;
+    border-radius: 10px;
+}
+
+.featured-overlay {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    color: white;
+}
+
+.featured-button {
+    background: black;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Recently viewed */
+.recently-viewed {
+    margin-top: 30px;
+}
+
+.recently-viewed h2 {
+    font-size: 24px;
+    margin-bottom: 15px;
+}
+
+.recently-grid {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+}
+
+.recent-item {
+    text-align: center;
+}
+
+.recent-item img {
+    width: 150px;
+    height: 150px;
+    border-radius: 10px;
+}

@@ -56,7 +56,6 @@ function Articles() {
     return (
         <div className="articles-container">
             <div className="featured-article">
-
                 <div className="featured-content">
                     <span className="featured-badge">Featured</span>
                     <h2>10 Most Beautiful Hidden Gems in Europe</h2>

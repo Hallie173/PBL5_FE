@@ -22,16 +22,15 @@
 }
 
 .logo {
-    font-size: 22px;
-    font-weight: bold;
-    color: #3d8b6a;
+    margin: auto;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.logo-icon {
-    margin-right: 8px;
+.logo .footer-logo {
+    width: 150px;
+    height: auto;
 }
 
 .footer-section h3 {

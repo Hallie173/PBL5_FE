@@ -1,15 +1,16 @@
 import React from "react";
 import "./Footer.css";
 import { FaFacebookF, FaTwitter, FaInstagram, FaPinterestP } from "react-icons/fa";
+import weblogo from "../../views/webLogo.png";
 
 function Footer() {
     return (
         <footer className="footer">
             <div className="footer-container">
                 <div className="footer-section">
-                    <h2 className="logo">
-                        <span className="logo-icon">📍</span> TripGuide
-                    </h2>
+                    <span className="logo">
+                        <img src={weblogo} className="footer-logo" />
+                    </span>
                     <p>Your trusted companion for travel inspiration and guides.</p>
                 </div>
                 <div className="footer-section">
