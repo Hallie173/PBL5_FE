@@ -7,23 +7,28 @@
     padding: 10px 20px;
     background-color: white;
     border-bottom: 2px solid #ddd;
+    height: 60px;
 }
 
 .navbar-left {
     display: flex;
     align-items: center;
+    width: 70%;
+    height: 100%;
 }
 
 .logo {
-    font-size: 20px;
     font-weight: bold;
     color: #2d7a61;
     display: flex;
     align-items: center;
+    width: 25%;
 }
 
 .location-icon {
     margin-right: 5px;
+    width: 125px;
+    height: auto;
 }
 
 .nav-links {

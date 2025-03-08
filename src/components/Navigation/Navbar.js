@@ -1,13 +1,13 @@
 import React from "react";
 import "./Navbar.css";
 import { FaGlobe } from "react-icons/fa"; // Import icon trái đất
-
+import weblogo from "../../views/webLogo.png";
 function Navbar() {
     return (
         <nav className="navbar">
             <div className="navbar-left">
                 <span className="logo">
-                    <span className="location-icon">📍</span> TripGuide
+                    <img src={weblogo} className="location-icon" />
                 </span>
                 <ul className="nav-links">
                     <li>Articles</li>
