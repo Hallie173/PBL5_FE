@@ -1,0 +1,56 @@
+.restaurant-info,
+.hours,
+.reviews,
+.nearby {
+    padding: 20px;
+    margin-bottom: 30px;
+    border-bottom: 1px solid #ddd;
+}
+
+.open-status {
+    color: green;
+    font-weight: bold;
+}
+
+.see-all {
+    color: blue;
+    cursor: pointer;
+}
+
+.features li {
+    list-style: none;
+    padding: 5px 0;
+}
+
+.map-placeholder {
+    width: 100%;
+    height: 200px;
+    background: #ccc;
+    text-align: center;
+    line-height: 200px;
+}
+
+.review-actions button {
+    margin: 5px;
+    padding: 10px;
+    border: 1px solid black;
+    background: white;
+    cursor: pointer;
+}
+
+.review-actions button:hover {
+    background: black;
+    color: white;
+}
+
+.nearby-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.nearby-item {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}

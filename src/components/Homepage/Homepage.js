@@ -1,6 +1,11 @@
 import React from "react";
 import "./Homepage.css";
 import { FaSearch } from "react-icons/fa";
+import trendcast from "../../views/trendcast.png";
+import golemcafe from "../../views/golemcafe.png";
+import marblemountains from "../../views/marblemountains.png";
+import danangmuseum from "../../views/danangmuseum.png";
+import dragonbridge from "../../views/dragonbridge.png";
 
 function Homepage() {
     return (
@@ -18,7 +23,7 @@ function Homepage() {
             {/* Phần ảnh lớn */}
             <div className="featured-container">
                 <img
-                    src="https://source.unsplash.com/900x500/?snorkeling,mountains"
+                    src={trendcast}
                     alt="Featured"
                     className="featured-image"
                 />
@@ -34,19 +39,19 @@ function Homepage() {
                 <h2>Recently viewed</h2>
                 <div className="recently-grid">
                     <div className="recent-item">
-                        <img src="https://source.unsplash.com/200x200/?cafe" alt="Cong Ca Phe" />
-                        <p>Cong Ca Phe</p>
+                        <img src={golemcafe} alt="Golem Cafe" />
+                        <p>Golem Cafe</p>
                     </div>
                     <div className="recent-item">
-                        <img src="https://source.unsplash.com/200x200/?mountains" alt="Marble Mountains" />
+                        <img src={marblemountains} alt="Marble Mountains" />
                         <p>The Marble Mountains</p>
                     </div>
                     <div className="recent-item">
-                        <img src="https://source.unsplash.com/200x200/?museum" alt="Da Nang Museum" />
+                        <img src={danangmuseum} alt="Da Nang Museum" />
                         <p>Bao Tang Da Nang - Da Nang Museum</p>
                     </div>
                     <div className="recent-item">
-                        <img src="https://source.unsplash.com/200x200/?bridge" alt="Dragon Bridge" />
+                        <img src={dragonbridge} alt="Dragon Bridge" />
                         <p>Dragon Bridge</p>
                     </div>
                 </div>

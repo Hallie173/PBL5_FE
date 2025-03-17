@@ -5,19 +5,53 @@ import Navbar from "../components/Navigation/Navbar";
 import Articles from "../components/Articles/Articles";
 import Footer from "../components/Footer/Footer";
 import Homepage from '../components/Homepage/Homepage';
+import RestaurantInfo from "../components/Food/RestaurantInfo";
+import Restaurant from "../components/Food/Restaurant";
+import Hours from "../components/Food/Hours";
+import Nearby from "../components/Food/Nearby";
+import Reviews from "../components/Food/Reviews";
 
 function App() {
   return (
     <div className="App">
-      <Navbar />
       <Router>
         <Routes>
-          <Route path="/tripguide/articles" element={<Articles />} />
-          <Route path="/tripguide/homepage" element={<Homepage />} />
+          <Route
+            path="/tripguide/articles"
+            element={
+              <>
+                <Navbar />
+                <Articles />
+                <Footer />
+              </>
+            }
+          />
+          <Route
+            path="/tripguide/homepage"
+            element={
+              <>
+                <Navbar />
+                <Homepage />
+                <Footer />
+              </>
+            }
+          />
+          <Route
+            path="/tripguide/foodpage"
+            element={
+              <>
+                <Navbar />
+                <Restaurant />
+                <RestaurantInfo />
+                <Hours />
+                <Reviews />
+                <Nearby />
+                <Footer />
+              </>
+            }
+          />
         </Routes>
       </Router>
-
-      <Footer />
     </div>
   );
 }
