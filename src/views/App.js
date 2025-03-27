@@ -17,6 +17,16 @@ function App() {
       <Router>
         <Routes>
           <Route
+            path="/"
+            element={
+              <>
+                <Navbar />
+                <Homepage />
+                <Footer />
+              </>
+            }
+          />
+          <Route
             path="/tripguide/articles"
             element={
               <>

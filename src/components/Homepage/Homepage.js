@@ -34,6 +34,8 @@ function Homepage() {
                 </div>
             </div>
 
+            <hr />
+
             {/* Recently Viewed */}
             <div className="recently-viewed">
                 <h2>Recently viewed</h2>

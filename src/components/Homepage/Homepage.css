@@ -75,6 +75,10 @@
     cursor: pointer;
 }
 
+.homepage hr {
+    margin: 50px auto 50px auto;
+}
+
 /* Recently viewed */
 .recently-viewed {
     margin-top: 30px;
