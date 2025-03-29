@@ -1,21 +1,29 @@
-import React, { useState, useContext, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import './App.scss';
+import React from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import Navbar from "../components/Navigation/Navbar";
-import Articles from "../components/Articles/Articles";
 import Footer from "../components/Footer/Footer";
-import Homepage from '../components/Homepage/Homepage';
-import RestaurantInfo from "../components/Food/RestaurantInfo";
-import Restaurant from "../components/Food/Restaurant";
-import Hours from "../components/Food/Hours";
-import Nearby from "../components/Food/Nearby";
-import Reviews from "../components/Food/Reviews";
+import Articles from "../Pages/Articles/Articles";
+import Homepage from "../Pages/Homepage/Homepage";
+import Dashboard from "../Pages/Admin/Dashboard/Dashboard";
+import AdminLayout from "../components/AdminLayout/AdminLayout";
+import Restaurant from "../Pages/Food/Restaurant";
+import RestaurantInfo from "../Pages/Food/RestaurantInfo";
+import Hours from "../Pages/Food/Hours";
+import Reviews from "../Pages/Food/Reviews";
+import Nearby from "../Pages/Food/Nearby";
+import Users from "../Pages/Admin/Users/Users";
 
 function App() {
   return (
     <div className="App">
       <Router>
         <Routes>
+          {/* Route articles */}
           <Route
             path="/tripguide/articles"
             element={
@@ -26,6 +34,8 @@ function App() {
               </>
             }
           />
+
+          {/* Route homepage */}
           <Route
             path="/tripguide/homepage"
             element={
@@ -36,6 +46,8 @@ function App() {
               </>
             }
           />
+
+          {/* Route foodpage */}
           <Route
             path="/tripguide/foodpage"
             element={
@@ -50,6 +62,13 @@ function App() {
               </>
             }
           />
+
+          {/* Route admin */}
+          <Route path="/tripguide/admin" element={<AdminLayout />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="users" element={<Users />} />
+          </Route>
         </Routes>
       </Router>
     </div>
