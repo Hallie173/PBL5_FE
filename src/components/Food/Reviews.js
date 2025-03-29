@@ -10,7 +10,7 @@ const Reviews = () => {
                 <button>Upload a photo</button>
                 <button>Ask a question</button>
             </div>
-
+            
             <h3>Reviews</h3>
             <div className="review-summary">
                 <p><b>4.0</b> ⭐⭐⭐⭐☆</p>

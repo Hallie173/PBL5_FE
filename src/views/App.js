@@ -10,6 +10,7 @@ import Restaurant from "../components/Food/Restaurant";
 import Hours from "../components/Food/Hours";
 import Nearby from "../components/Food/Nearby";
 import Reviews from "../components/Food/Reviews";
+import MyTrips from "../components/Mytrips/Mytrips";
 
 function App() {
   return (
@@ -42,6 +43,16 @@ function App() {
               <>
                 <Navbar />
                 <Homepage />
+                <Footer />
+              </>
+            }
+          />
+          <Route
+            path="/tripguide/mytrip"
+            element={
+              <>
+                <Navbar />
+                <MyTrips />
                 <Footer />
               </>
             }
