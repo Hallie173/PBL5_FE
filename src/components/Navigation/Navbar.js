@@ -3,6 +3,7 @@ import "./Navbar.css";
 import { FaGlobe } from "react-icons/fa"; // Import icon trái đất
 import weblogo from "../../views/webLogo.png";
 import { Link } from "react-router-dom";
+import avatar from "../../assets/images/avatar.png";
 
 function Navbar() {
     return (
@@ -24,7 +25,7 @@ function Navbar() {
                 <FaGlobe className="icon" />
                 <span className="currency">USD</span>
                 <img
-                    src="https://via.placeholder.com/30"
+                    src={avatar}
                     alt="Profile"
                     className="profile-pic"
                 />
