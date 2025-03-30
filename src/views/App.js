@@ -17,6 +17,7 @@ import Hours from "../Pages/Food/Hours";
 import Reviews from "../Pages/Food/Reviews";
 import Nearby from "../Pages/Food/Nearby";
 import Users from "../Pages/Admin/Users/Users";
+import Cities from "../Pages/Admin/Cities/Citites";
 
 function App() {
   return (
@@ -68,6 +69,8 @@ function App() {
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="users" element={<Users />} />
+            <Route path="cities" element={<Cities />} />
+
           </Route>
         </Routes>
       </Router>

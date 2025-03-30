@@ -1,28 +1,32 @@
-// Pages/Admin/Users/components/AvatarUpload.js
 import React from "react";
 import { Box, Avatar, Typography, Button } from "@mui/material";
-import { FaUserCircle, FaCloudUploadAlt } from "react-icons/fa";
+import { FaImage, FaCloudUploadAlt } from "react-icons/fa";
 
-const AvatarUpload = ({
-  avatarPreview,
+const ImageUpload = ({
+  imagePreview,
   errors,
   fileInputRef,
-  onAvatarUpload,
-  onRemoveAvatar,
-  currentAvatar,
+  onImageUpload,
+  onRemoveImage,
+  currentImage,
 }) => {
   return (
-    <Box display="flex" flexDirection="column" alignItems="center" mb={3}>
+    <Box
+      display="flex"
+      flexDirection="column"
+      alignItems="center"
+      mb={3}
+      mt={3}
+    >
       <Box
         position="relative"
         mb={2}
-        mt={2}
         sx={{
           width: 180,
           height: 180,
           border: "3px dashed",
-          borderColor: errors.avatar ? "error.main" : "grey.300",
-          borderRadius: "50%",
+          borderColor: errors.image ? "error.main" : "grey.300",
+          borderRadius: "4px", // Khác biệt chính: bo góc vuông thay vì hình tròn
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
@@ -31,28 +35,41 @@ const AvatarUpload = ({
           "&:hover": { borderColor: "primary.main" },
         }}
       >
-        {avatarPreview || currentAvatar ? (
+        {imagePreview || currentImage ? (
           <Avatar
-            src={avatarPreview || currentAvatar}
-            alt="Avatar Preview"
-            sx={{ width: 170, height: 170, border: "4px solid white" }}
+            src={imagePreview || currentImage}
+            alt="Image Preview"
+            sx={{
+              width: "100%",
+              height: "100%",
+              borderRadius: "4px",
+              objectFit: "cover",
+            }}
+            variant="rounded"
           />
         ) : (
-          <Box display="flex" flexDirection="column" alignItems="center" color="grey.500">
-            <FaUserCircle size={100} />
-            <Typography variant="body2" mt={1}>No Avatar</Typography>
+          <Box
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+            color="grey.500"
+          >
+            <FaImage size={100} />
+            <Typography variant="body2" mt={1}>
+              No Image
+            </Typography>
           </Box>
         )}
         <input
           ref={fileInputRef}
           accept="image/*"
           style={{ display: "none" }}
-          id="avatar-upload"
+          id="image-upload"
           type="file"
-          onChange={onAvatarUpload}
+          onChange={onImageUpload}
         />
         <label
-          htmlFor="avatar-upload"
+          htmlFor="image-upload"
           className="hover:opacity-100"
           style={{
             position: "absolute",
@@ -72,28 +89,28 @@ const AvatarUpload = ({
         >
           <Box textAlign="center">
             <FaCloudUploadAlt size={50} />
-            <Typography variant="body2">Upload Avatar</Typography>
+            <Typography variant="body2">Upload Image</Typography>
           </Box>
         </label>
       </Box>
-      {errors.avatar && (
+      {errors.image && (
         <Typography color="error" variant="body2" textAlign="center" mb={1}>
-          {errors.avatar}
+          {errors.image}
         </Typography>
       )}
-      {(avatarPreview || currentAvatar) && (
+      {(imagePreview || currentImage) && (
         <Button
           color="secondary"
           variant="outlined"
           size="small"
-          onClick={onRemoveAvatar}
+          onClick={onRemoveImage}
           sx={{ mb: 2 }}
         >
-          Remove Avatar
+          Remove Image
         </Button>
       )}
     </Box>
   );
 };
 
-export default AvatarUpload;
+export default ImageUpload;

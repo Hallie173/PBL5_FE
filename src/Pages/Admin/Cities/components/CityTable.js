@@ -1,4 +1,3 @@
-// Pages/Admin/Users/components/UserTable.js
 import React, { useState } from "react";
 import {
   Table,
@@ -17,7 +16,7 @@ import {
 } from "@mui/material";
 import { FaEdit, FaTrash } from "react-icons/fa";
 
-const UserTable = ({ users, onEdit, onDelete }) => {
+const CityTable = ({ cities, onEdit, onDelete }) => {
   // State cho pagination
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -30,20 +29,20 @@ const UserTable = ({ users, onEdit, onDelete }) => {
   // Xử lý thay đổi số dòng mỗi trang
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0); // Reset về trang đầu tiên khi thay đổi số dòng mỗi trang
+    setPage(0);
   };
 
   // Tính toán dữ liệu hiển thị theo trang hiện tại
-  const paginatedUsers = users.slice(
+  const paginatedCities = cities.slice(
     page * rowsPerPage,
     page * rowsPerPage + rowsPerPage
   );
 
-  // Kiểm tra nếu không có users
-  if (users.length === 0) {
+  // Kiểm tra nếu không có cities
+  if (cities.length === 0) {
     return (
       <Box sx={{ p: 3, textAlign: "center" }}>
-        <Typography variant="body1">No users found</Typography>
+        <Typography variant="body1">No cities found</Typography>
       </Box>
     );
   }
@@ -73,67 +72,50 @@ const UserTable = ({ users, onEdit, onDelete }) => {
                 },
               }}
             >
-              <TableCell align="center">Avatar</TableCell>
-              <TableCell>Username</TableCell>
-              <TableCell>Full Name</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell align="center">Role</TableCell>
+              <TableCell align="center">Image</TableCell>
+              <TableCell>Name</TableCell>
+              <TableCell>Description</TableCell>
               <TableCell align="center">Created At</TableCell>
               <TableCell align="center">Actions</TableCell>
             </TableRow>
           </TableHead>
 
-          {/* Phần TableBody với dữ liệu đã phân trang */}
           <TableBody>
-            {paginatedUsers.map((user) => (
+            {paginatedCities.map((city) => (
               <TableRow
-                key={user.user_id}
+                key={city.city_id}
                 sx={{
                   "&:last-child td": { borderBottom: 0 },
                   "&:hover": { backgroundColor: "rgba(25, 118, 210, 0.04)" },
                 }}
               >
-                {/* Các ô dữ liệu giữ nguyên */}
                 <TableCell align="center">
                   <Avatar
-                    src={user.avatar_url}
-                    alt={user.full_name}
+                    src={city.image_url}
+                    alt={city.name}
                     sx={{
                       width: 56,
                       height: 56,
                       margin: "0 auto",
                       boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
                     }}
+                    variant="rounded"
                   />
                 </TableCell>
-                <TableCell sx={{ fontWeight: 500 }}>{user.username}</TableCell>
-                <TableCell>{user.full_name}</TableCell>
-                <TableCell>{user.email}</TableCell>
-                <TableCell align="center">
-                  <span
-                    style={{
-                      backgroundColor:
-                        user.role === "admin"
-                          ? "rgba(25, 118, 210, 0.1)"
-                          : "rgba(76, 175, 80, 0.1)",
-                      color: user.role === "admin" ? "#1976d2" : "#4caf50",
-                      padding: "4px 12px",
-                      borderRadius: "12px",
-                      fontSize: "0.8rem",
-                      fontWeight: 600,
-                    }}
-                  >
-                    {user.role}
-                  </span>
+                <TableCell sx={{ fontWeight: 500 }}>{city.name}</TableCell>
+                <TableCell>
+                  {city.description?.length > 50
+                    ? `${city.description.substring(0, 50)}...`
+                    : city.description || '-'}
                 </TableCell>
                 <TableCell align="center" sx={{ color: "text.secondary" }}>
-                  {new Date(user.created_at).toLocaleDateString()}
+                  {new Date(city.created_at).toLocaleDateString()}
                 </TableCell>
                 <TableCell align="center">
-                  <Tooltip title="Edit User" arrow>
+                  <Tooltip title="Edit City" arrow>
                     <IconButton
                       color="primary"
-                      onClick={() => onEdit(user)}
+                      onClick={() => onEdit(city)}
                       sx={{
                         "&:hover": {
                           backgroundColor: "rgba(25, 118, 210, 0.1)",
@@ -143,10 +125,10 @@ const UserTable = ({ users, onEdit, onDelete }) => {
                       <FaEdit />
                     </IconButton>
                   </Tooltip>
-                  <Tooltip title="Delete User" arrow>
+                  <Tooltip title="Delete City" arrow>
                     <IconButton
                       color="error"
-                      onClick={() => onDelete(user.user_id)}
+                      onClick={() => onDelete(city.city_id)}
                       sx={{
                         ml: 1,
                         "&:hover": {
@@ -164,11 +146,10 @@ const UserTable = ({ users, onEdit, onDelete }) => {
         </Table>
       </TableContainer>
 
-      {/* Thêm TablePagination ở cuối bảng */}
       <TablePagination
         rowsPerPageOptions={[5, 10, 25]}
         component="div"
-        count={users.length}
+        count={cities.length}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}
@@ -188,4 +169,4 @@ const UserTable = ({ users, onEdit, onDelete }) => {
   );
 };
 
-export default UserTable;
+export default CityTable;

@@ -1,6 +1,6 @@
 // src/Pages/Admin/Dashboard/Dashboard.js
 import React from "react";
-import { FiUsers, FiMap, FiCalendar } from "react-icons/fi";
+import { FiUsers, FiMap, FiCalendar, FiArrowUpRight } from "react-icons/fi";
 import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -12,26 +12,48 @@ import {
   Legend,
 } from "chart.js";
 
-// Đăng ký các thành phần cần thiết cho Chart.js
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
-// Dữ liệu thẻ thống kê
 const STAT_CARDS = [
-  { icon: FiUsers, label: "Total Users", value: 150, color: "bg-indigo-600" },
-  { icon: FiMap, label: "Total Locations", value: 45, color: "bg-yellow-600" },
-  { icon: FiCalendar, label: "Total Itineraries", value: 203, color: "bg-red-600" },
+  {
+    icon: FiUsers,
+    label: "Total Users",
+    value: "2.8K",
+    trend: "12.5%",
+    color: "from-purple-600 to-blue-500",
+  },
+  {
+    icon: FiMap,
+    label: "Locations",
+    value: "145",
+    trend: "3.2%",
+    color: "from-amber-600 to-orange-500",
+  },
+  {
+    icon: FiCalendar,
+    label: "Itineraries",
+    value: "563",
+    trend: "8.1%",
+    color: "from-pink-600 to-rose-500",
+  },
 ];
 
-// Dữ liệu cho biểu đồ lượng truy cập web
 const chartData = {
   labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
   datasets: [
     {
       label: "Web Visits",
-      data: [1200, 1900, 3000, 2500, 4000, 3500], // Số lượt truy cập giả định
-      backgroundColor: "rgba(34, 197, 94, 0.7)", // Màu xanh lá (green-500)
-      borderColor: "rgba(34, 197, 94, 1)",
-      borderWidth: 1,
+      data: [6500, 5900, 8000, 8100, 5600, 5500],
+      backgroundColor: "#4F46E5",
+      borderRadius: 12,
+      borderSkipped: false,
     },
   ],
 };
@@ -39,93 +61,159 @@ const chartData = {
 const chartOptions = {
   responsive: true,
   plugins: {
-    legend: { position: "top" },
-    title: { display: true, text: "Monthly Web Visits" },
+    legend: { display: false },
+    title: { display: false },
+    tooltip: {
+      backgroundColor: "#1E293B",
+      titleFont: { size: 16 },
+      bodyFont: { size: 14 },
+      padding: 12,
+    },
   },
   scales: {
     y: {
-      beginAtZero: true,
-      title: { display: true, text: "Number of Visits" },
+      grid: { color: "#E2E8F0" },
+      ticks: { color: "#64748B", font: { weight: 500 } },
+      title: { display: false },
     },
     x: {
-      title: { display: true, text: "Months" },
+      grid: { display: false },
+      ticks: { color: "#64748B", font: { weight: 500 } },
     },
   },
 };
 
-// Thành phần StatCard
-const StatCard = ({ icon: Icon, label, value, color }) => (
-  <div className="bg-white shadow-lg rounded-xl p-5 flex items-center transform hover:scale-105 transition-transform duration-200">
-    <div className={`${color} p-3 rounded-full mr-4`}>
-      <Icon className="h-6 w-6 text-white" />
-    </div>
-    <div>
-      <p className="text-sm text-gray-600">{label}</p>
-      <p className="text-2xl font-bold text-gray-800">{value}</p>
-    </div>
-  </div>
-);
-
-// Thành phần RecentActivity
-const RecentActivity = () => (
-  <div className="bg-white shadow-lg rounded-xl p-6 mt-8">
-    <h2 className="text-lg font-semibold text-gray-800 mb-4">Recent Activity</h2>
-    <ul className="space-y-4">
-      <li className="flex items-center">
-        <img
-          className="h-10 w-10 rounded-full mr-3"
-          src="https://via.placeholder.com/40"
-          alt="User"
-        />
-        <div className="flex-1">
-          <div className="flex justify-between items-center">
-            <h3 className="text-sm font-medium text-gray-800">John Doe</h3>
-            <p className="text-xs text-gray-500">2h ago</p>
+const StatCard = ({ icon: Icon, label, value, trend, color }) => (
+  <div className="group relative bg-gradient-to-br ${color} p-0.5 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+    <div className="bg-white rounded-xl p-6 hover:bg-gray-50 transition-colors">
+      <div className="flex justify-between items-start">
+        {/* Phần nội dung chính */}
+        <div>
+          <p className="text-sm text-gray-600 mb-2">{label}</p>
+          <p className="text-3xl font-bold text-gray-900 mb-4">{value}</p>
+          <div className="flex items-center">
+            <FiArrowUpRight className="h-5 w-5 text-green-600 mr-2" />
+            <div className="flex items-center">
+              <span className="text-sm font-medium text-green-600">
+                {trend}
+              </span>
+              <span className="text-xs text-gray-500 ml-1.5 block">
+                vs last month
+              </span>
+            </div>
           </div>
-          <p className="text-sm text-gray-600">
-            Created a new itinerary: "Summer Vacation 2023"
-          </p>
         </div>
-      </li>
-    </ul>
+
+        <div className={`bg-gradient-to-br ${color} p-4 rounded-xl shadow-md`}>
+          <Icon className="h-8 w-8 text-white transform transition-transform group-hover:scale-110" />
+        </div>
+      </div>
+    </div>
   </div>
 );
 
-// Thành phần Chart
-const StatsChart = () => (
-  <div className="bg-white shadow-lg rounded-xl p-6 mt-8 max-w-3xl mx-auto">
-    <Bar data={chartData} options={chartOptions} />
-  </div>
-);
+const RecentActivity = () => {
+  const activities = [
+    {
+      user: "John Doe",
+      action: "created itinerary",
+      title: "Summer Vacation 2023",
+      time: "2h ago",
+      avatar: "https://randomuser.me/api/portraits/men/1.jpg",
+    },
+    {
+      user: "Jane Smith",
+      action: "updated location",
+      title: "Paris, France",
+      time: "4h ago",
+      avatar: "https://randomuser.me/api/portraits/women/2.jpg",
+    },
+    {
+      user: "Mike Johnson",
+      action: "deleted review",
+      title: "Hotel Review #123",
+      time: "1d ago",
+      avatar: "https://randomuser.me/api/portraits/men/3.jpg",
+    },
+  ];
+
+  return (
+    <div className="bg-white rounded-xl shadow-lg p-6">
+      <h2 className="text-lg font-semibold text-gray-900 mb-6">
+        Recent Activity
+      </h2>
+      <div className="space-y-6">
+        {activities.map((activity, index) => (
+          <div
+            key={index}
+            className="flex items-start group hover:bg-gray-50 p-3 rounded-lg transition-colors"
+          >
+            <img
+              className="h-10 w-10 rounded-full ring-2 ring-white"
+              src={activity.avatar}
+              alt={activity.user}
+            />
+            <div className="ml-4 flex-1">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-medium text-gray-900">
+                  {activity.user}
+                </h3>
+                <p className="text-xs text-gray-500">{activity.time}</p>
+              </div>
+              <p className="text-sm text-gray-600 mt-1">
+                {activity.action}{" "}
+                <span className="font-medium text-indigo-600">
+                  {activity.title}
+                </span>
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <h1 className="text-2xl font-bold text-gray-800">Admin Dashboard</h1>
+      <header className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <h1 className="text-2xl font-bold text-gray-900">
+            Dashboard Overview
+          </h1>
+          <p className="text-gray-600 mt-2">Analytics and recent activities</p>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-6">
-        {/* Stat Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <main className="max-w-7xl mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           {STAT_CARDS.map((card, index) => (
-            <StatCard
-              key={index}
-              icon={card.icon}
-              label={card.label}
-              value={card.value}
-              color={card.color}
-            />
+            <StatCard key={index} {...card} />
           ))}
         </div>
 
-        <StatsChart />
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+          <div className="xl:col-span-2">
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Website Traffic
+                </h3>
+                <span className="text-sm text-indigo-600 font-medium">
+                  Last 6 months
+                </span>
+              </div>
+              <div className="h-80">
+                <Bar data={chartData} options={chartOptions} />
+              </div>
+            </div>
+          </div>
 
-        <RecentActivity />
+          <div className="xl:col-span-1">
+            <RecentActivity />
+          </div>
+        </div>
       </main>
     </div>
   );
