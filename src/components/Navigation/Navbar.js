@@ -23,7 +23,7 @@ function Navbar() {
             </div>
             <div className="navbar-right">
                 <FaGlobe className="icon" />
-                <span className="currency">USD</span>
+                <span className="currency">US</span>
                 <img
                     src={avatar}
                     alt="Profile"
