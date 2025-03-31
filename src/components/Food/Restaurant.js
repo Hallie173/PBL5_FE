@@ -11,7 +11,6 @@ import cozy from "../../assets/images/cozy.png";
 import wink from "../../assets/images/wink.png";
 import big3 from "../../assets/images/3big.png";
 import tuongtheater from "../../assets/images/tuongtheater.png";
-import vancocktail from "../../assets/images/vancocktail.png";
 
 const Restaurant = () => {
     return (
