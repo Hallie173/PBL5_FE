@@ -14,6 +14,7 @@ import big3 from "../../assets/images/3big.png";
 import tuongtheater from "../../assets/images/tuongtheater.png";
 import vancocktail from "../../assets/images/vancocktail.png";
 import { useParams } from "react-router-dom";
+import MapComponent from "../GoogleMap/GoogleMap";
 
 const Restaurant = () => {
     const { id: locationId } = useParams(); // Lấy locationId từ URL // Ưu tiên prop, nếu không có thì lấy từ URL
@@ -57,7 +58,7 @@ const Restaurant = () => {
     if (loading) return <p>Loading...</p>;
     if (error) return <p>Error: {error}</p>;
     if (!location) return <p>No location found</p>;
-
+    
     const renderStars = (rating) => {
         const fullStars = Math.floor(rating); // Số sao đầy
         const halfStar = rating % 1 !== 0; // Kiểm tra có nửa sao không
@@ -127,7 +128,10 @@ const Restaurant = () => {
                     <p className="location">📍 {location.address}</p>
                     <p className="contact">🌐 Website   | 📞 +84 90 531 26 42</p>
                     <h2>Location</h2>
-                    <div className="map-placeholder">[Map will be displayed here]</div>
+                    {/* <div className="map-placeholder">[Map will be displayed here]</div> */}
+                    <div>
+                        <MapComponent address={location.address} />
+                    </div>
                 </div>
                 <div className="hours-info">
                     <h2>Hours</h2>

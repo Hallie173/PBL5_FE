@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./Homepage.css";
 import { FaSearch } from "react-icons/fa";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -14,7 +15,30 @@ import madamelan from "../../assets/images/madamelan.png";
 import quancomhuengon from "../../assets/images/quancomhuengon.png";
 
 
-function Homepage() {
+const Homepage = () => {
+    const [searchText, setSearchText] = useState("");
+    const navigate = useNavigate();
+
+    const handleSearch = async () => {
+        if (!searchText.trim()) return;
+        try {
+            const response = await fetch(`http://localhost:8081/location/search?name=${encodeURIComponent(searchText)}`);
+            const data = await response.json();
+            console.log(data.location_id);
+
+
+            if (Array.isArray(data) && data.length > 0) {
+                const firstLocation = data[0];
+                navigate(`/tripguide/foodpage/${firstLocation.location_id}`);
+            } else {
+                alert("Không tìm thấy địa điểm!");
+            }
+        } catch (error) {
+            console.error("Lỗi khi gọi API:", error);
+            alert("Có lỗi xảy ra, vui lòng thử lại!");
+        }
+    };
+
     return (
         <div className="homepage">
             {/* Phần tìm kiếm */}
@@ -22,8 +46,8 @@ function Homepage() {
                 <h1 className="search-title">Where to?</h1>
                 <div className="search-box">
                     <FaSearch className="search-icon" />
-                    <input type="text" placeholder="Places to go, things to do, hotels..." />
-                    <button className="search-button">Search</button>
+                    <input type="text" placeholder="Places to go, things to do, hotels..." value = {searchText} onChange={(e) => setSearchText(e.target.value)} />
+                    <button className="search-button" onClick={handleSearch}>Search</button>
                 </div>
             </div>
 
