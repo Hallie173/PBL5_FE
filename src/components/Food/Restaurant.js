@@ -65,7 +65,7 @@ const Restaurant = () => {
         return (
             <>
                 {"★".repeat(fullStars)}
-                {halfStar && "⯨"} {/* Nửa sao */}
+                {halfStar && "⯨"}
                 {"☆".repeat(emptyStars)}
             </>
         );
@@ -150,7 +150,7 @@ const Restaurant = () => {
                 <h2 id="restaurant-reviews">Reviews</h2>
                 <div className="reviews-div">
                     <div className="review-summary">
-                        <p><b>4.0</b> ⭐⭐⭐⭐☆</p>
+                        <span className="rate-star">{renderStars(location.average_rating)}</span>
                         <div className="reviews-score">
                             <p>75 Excellent</p>
                             <p>66 Very Good</p>
