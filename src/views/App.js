@@ -54,7 +54,7 @@ function App() {
             }
           />
           <Route
-            path="/tripguide/foodpage"
+            path="/tripguide/foodpage/:id"
             element={
               <>
                 <Navbar />
