@@ -109,7 +109,7 @@ function Homepage() {
             {/* You Might Like These */}
             <div className="you-might-like">
                 <h2>You might like these</h2>
-                <p>More restaurants in Da Nang</p>
+                <p className="like-recommend">More restaurants in Da Nang</p>
                 <div className="picture-grid">
                     <div className="picture-item">
                         <div className="item-content">
