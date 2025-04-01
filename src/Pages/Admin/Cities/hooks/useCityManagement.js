@@ -1,156 +1,145 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 
 export const useCityManagement = (initialCities) => {
-  const [cities, setCities] = useState(initialCities);
-  const [modalMode, setModalMode] = useState(null);
-  const [currentCity, setCurrentCity] = useState(null);
-  const [errors, setErrors] = useState({});
-  const [imagePreview, setImagePreview] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [cities, setCities] = useState(initialCities || []);
+  const [modalState, setModalState] = useState({
+    mode: null,
+    isOpen: false,
+    currentCity: null,
+  });
+  const [imagePreviews, setImagePreviews] = useState([]);
   const fileInputRef = useRef(null);
 
-  const validateForm = (city) => {
-    const newErrors = {};
-    if (!city.name || city.name.trim() === "")
-      newErrors.name = "City name is required";
-    else if (city.name.length > 100)
-      newErrors.name = "City name must be less than 100 characters";
-    
-    const isDuplicateName = cities.some(
-      (c) => 
-        c.name.toLowerCase() === city.name.toLowerCase() && 
-        c.city_id !== city.city_id
-    );
-    if (isDuplicateName) newErrors.name = "City name already exists";
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  const MAX_FILES = 5;
+  const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+  const VALID_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 
-  const handleImageUpload = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-    const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
-    const maxSize = 5 * 1024 * 1024;
-    setErrors((prev) => ({ ...prev, image: undefined }));
-    
-    if (!validTypes.includes(file.type)) {
-      setErrors((prev) => ({
-        ...prev,
-        image: "Invalid file type. Allowed: JPEG, PNG, GIF, WebP",
-      }));
+  // Memoize handlers to prevent unnecessary re-renders
+  const handleImageUpload = useCallback((event) => {
+    const files = Array.from(event.target.files || []);
+    if (!files.length) return;
+
+    if (files.length > MAX_FILES) {
+      alert(`Maximum ${MAX_FILES} images allowed`);
       return;
     }
-    
-    if (file.size > maxSize) {
-      setErrors((prev) => ({ ...prev, image: "File too large. Max 5MB" }));
-      return;
-    }
-    
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result);
-      setCurrentCity((prev) => ({ ...prev, image_url: reader.result }));
-    };
-    reader.readAsDataURL(file);
-  };
 
-  const handleRemoveImage = () => {
-    setImagePreview(null);
-    setCurrentCity((prev) => ({ ...prev, image_url: "" }));
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
-
-  const handleAdd = () => {
-    setCurrentCity({
-      name: "",
-      description: "",
-      image_url: "",
-      created_at: new Date().toISOString(),
+    const validFiles = files.filter((file) => {
+      if (!VALID_TYPES.includes(file.type)) {
+        alert(`Invalid file type: ${file.name}. Allowed: JPEG, PNG, GIF, WebP`);
+        return false;
+      }
+      if (file.size > MAX_SIZE) {
+        alert(`File too large: ${file.name}. Max 5MB`);
+        return false;
+      }
+      return true;
     });
-    setModalMode("add");
-    setIsModalOpen(true);
-    setImagePreview(null);
-    setErrors({});
-  };
 
-  const handleEdit = (city) => {
-    setCurrentCity({ ...city });
-    setModalMode("edit");
-    setIsModalOpen(true);
-    setImagePreview(city.image_url);
-    setErrors({});
-  };
-
-  const saveCity = () => {
-    if (!validateForm(currentCity)) return;
-
-    if (modalMode === "add") {
-      const newCity = {
-        ...currentCity,
-        city_id: Math.max(...cities.map((c) => c.city_id), 0) + 1,
-        created_at: new Date().toISOString(),
-        image_url: imagePreview || ""
-      };
-      setCities([...cities, newCity]);
-    } else {
-      setCities(
-        cities.map((c) =>
-          c.city_id === currentCity.city_id
-            ? { 
-                ...currentCity, 
-                updated_at: new Date().toISOString(),
-                image_url: imagePreview || currentCity.image_url
-              }
-            : c
-        )
-      );
-    }
-    handleClose();
-  };
-
-  const handleDelete = (city_id) => {
-    const cityToDelete = cities.find((c) => c.city_id === city_id);
-    if (
-      window.confirm(
-        `Are you sure you want to delete ${cityToDelete.name}?`
+    Promise.all(
+      validFiles.map((file) =>
+        new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(file);
+        })
       )
-    ) {
-      setCities(cities.filter((c) => c.city_id !== city_id));
-    }
-  };
+    )
+      .then((results) => {
+        setImagePreviews((prev) => [...prev, ...results].slice(0, MAX_FILES));
+      })
+      .catch((error) => console.error("Image upload failed:", error));
+  }, []);
 
-  const handleClose = () => {
-    setIsModalOpen(false);
+  const handleRemoveImage = useCallback((index) => {
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const handleAdd = useCallback(() => {
+    setModalState({
+      mode: "add",
+      isOpen: true,
+      currentCity: {
+        name: "",
+        description: "",
+        images: [],
+        created_at: new Date().toISOString(),
+      },
+    });
+    setImagePreviews([]);
+  }, []);
+
+  const handleEdit = useCallback((city) => {
+    setModalState({
+      mode: "edit",
+      isOpen: true,
+      currentCity: { ...city },
+    });
+    setImagePreviews(city.images || []);
+  }, []);
+
+  const saveCity = useCallback(
+    (values) => {
+      const cityData = {
+        ...values,
+        images: imagePreviews.length ? imagePreviews : values.images || [],
+      };
+
+      setCities((prevCities) => {
+        if (modalState.mode === "add") {
+          const newCityId =
+            prevCities.length > 0
+              ? Math.max(...prevCities.map((c) => c.city_id)) + 1
+              : 1;
+          return [
+            ...prevCities,
+            {
+              ...cityData,
+              city_id: newCityId,
+              created_at: new Date().toISOString(),
+            },
+          ];
+        }
+        return prevCities.map((c) =>
+          c.city_id === modalState.currentCity?.city_id
+            ? { ...cityData, updated_at: new Date().toISOString() }
+            : c
+        );
+      });
+      handleClose();
+    },
+    [modalState.mode, modalState.currentCity, imagePreviews]
+  );
+
+  const handleDelete = useCallback((city_id) => {
+    const cityToDelete = cities.find((c) => c.city_id === city_id);
+    if (!cityToDelete) return;
+
+    if (window.confirm(`Are you sure you want to delete ${cityToDelete.name}?`)) {
+      setCities((prev) => prev.filter((c) => c.city_id !== city_id));
+    }
+  }, [cities]);
+
+  const handleClose = useCallback(() => {
+    setModalState((prev) => ({ ...prev, isOpen: false }));
     setTimeout(() => {
-      setModalMode(null);
-      setCurrentCity(null);
-      setErrors({});
-      setImagePreview(null);
+      setModalState({ mode: null, isOpen: false, currentCity: null });
+      setImagePreviews([]);
     }, 300);
-  };
-
-  const handleChange = (field, value) => {
-    setCurrentCity((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
-    }
-  };
+  }, []);
 
   return {
     cities,
-    modalMode,
-    currentCity,
-    errors,
-    imagePreview,
+    modalMode: modalState.mode,
+    currentCity: modalState.currentCity,
+    imagePreviews,
     fileInputRef,
-    isModalOpen,
+    isModalOpen: modalState.isOpen,
     handleAdd,
     handleEdit,
     handleDelete,
     saveCity,
     handleClose,
-    handleChange,
     handleImageUpload,
     handleRemoveImage,
   };

@@ -13,7 +13,8 @@ import {
   FiActivity,
   FiLogOut,
 } from "react-icons/fi";
-import { MdOutlineLocationOn } from "react-icons/md";
+import { BiLandscape } from "react-icons/bi";
+import { IoRestaurantOutline } from "react-icons/io5";
 
 export default function Sidebar({ expanded, setExpanded }) {
   const [activeItem, setActiveItem] = useState("Dashboard");
@@ -45,7 +46,8 @@ export default function Sidebar({ expanded, setExpanded }) {
     { name: "Dashboard", icon: FiHome },
     { name: "Users", icon: FiUsers },
     { name: "Cities", icon: FiGlobe },
-    { name: "Locations", icon: MdOutlineLocationOn },
+    { name: "Attractions", icon: BiLandscape },
+    { name: "Restaurants", icon: IoRestaurantOutline },
     { name: "Itineraries", icon: FiCalendar },
     { name: "Articles", icon: FiFileText },
     { name: "Reviews", icon: FiStar },
