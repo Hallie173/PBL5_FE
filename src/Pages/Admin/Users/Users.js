@@ -12,7 +12,6 @@ export default function UserManagement() {
     users,
     modalMode,
     currentUser,
-    errors,
     avatarPreview,
     fileInputRef,
     handleAdd,
@@ -22,7 +21,6 @@ export default function UserManagement() {
     saveNewUser,
     updateUser,
     handleClose,
-    handleChange,
     handleAvatarUpload,
     handleRemoveAvatar,
   } = useUserManagement(initialUsers);
@@ -44,16 +42,13 @@ export default function UserManagement() {
         <UserTable users={users} onEdit={handleEdit} onDelete={handleDelete} />
       </div>
       <UserModal
-        isModalOpen={isModalOpen} // Truyền prop mới
-        open={isModalOpen} // Có thể giữ lại để tương thích hoặc bỏ
+        isModalOpen={isModalOpen}
         mode={modalMode}
         user={currentUser}
-        errors={errors}
         avatarPreview={avatarPreview}
         fileInputRef={fileInputRef}
         onClose={handleClose}
         onSave={modalMode === "edit" ? updateUser : saveNewUser}
-        onChange={handleChange}
         onAvatarUpload={handleAvatarUpload}
         onRemoveAvatar={handleRemoveAvatar}
       />

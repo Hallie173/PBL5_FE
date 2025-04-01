@@ -14,6 +14,8 @@ import AdminLayout from "../components/AdminLayout/AdminLayout";
 import Restaurant from "../Pages/Food/Restaurant";
 import Users from "../Pages/Admin/Users/Users";
 import Cities from "../Pages/Admin/Cities/Citites";
+import MyTrips from "../components/Mytrips/Mytrips";
+import Attractions from "../Pages/Admin/Attractions/Attractions";
 
 function App() {
   return (
@@ -82,6 +84,7 @@ function App() {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="users" element={<Users />} />
             <Route path="cities" element={<Cities />} />
+            <Route path="attractions" element={<Attractions />} />
 
           </Route>
         </Routes>

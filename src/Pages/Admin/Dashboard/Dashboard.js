@@ -1,6 +1,10 @@
 // src/Pages/Admin/Dashboard/Dashboard.js
 import React from "react";
-import { FiUsers, FiMap, FiCalendar, FiArrowUpRight } from "react-icons/fi";
+import { FiUsers, FiCalendar, FiArrowUpRight } from "react-icons/fi";
+import { BiLandscape } from "react-icons/bi";
+import { IoRestaurantOutline } from "react-icons/io5";
+import { MdOutlineArticle, MdOutlineRateReview  } from "react-icons/md";
+
 import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -30,8 +34,8 @@ const STAT_CARDS = [
     color: "from-purple-600 to-blue-500",
   },
   {
-    icon: FiMap,
-    label: "Locations",
+    icon: BiLandscape,
+    label: "Attractions",
     value: "145",
     trend: "3.2%",
     color: "from-amber-600 to-orange-500",
@@ -43,6 +47,27 @@ const STAT_CARDS = [
     trend: "8.1%",
     color: "from-pink-600 to-rose-500",
   },
+  {
+    icon: IoRestaurantOutline,
+    label: "Restaurants",
+    value: "32",
+    trend: "5.4%",
+    color: "from-green-600 to-teal-500",
+  },
+  {
+    icon: MdOutlineArticle,
+    label: "Articles",
+    value: "2.8K",
+    trend: "12.5%",
+    color: "from-yellow-600 to-green-500",
+  },
+  {
+    icon: MdOutlineRateReview,
+    label: "Reviews",
+    value: "1.2K",
+    trend: "3.2%",
+    color: "from-blue-600 to-cyan-500",
+  }
 ];
 
 const chartData = {
