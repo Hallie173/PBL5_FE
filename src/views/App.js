@@ -14,6 +14,7 @@ import AdminLayout from "../components/AdminLayout/AdminLayout";
 import Restaurant from "../Pages/Food/Restaurant";
 import Users from "../Pages/Admin/Users/Users";
 import Cities from "../Pages/Admin/Cities/Citites";
+import MyTrips from "../components/Mytrips/Mytrips";
 
 function App() {
   return (
