@@ -13,7 +13,7 @@ import burgerbros from "../../assets/images/burgerbros.png";
 import banhxeobaduong from "../../assets/images/banhxeobaduong.png";
 import madamelan from "../../assets/images/madamelan.png";
 import quancomhuengon from "../../assets/images/quancomhuengon.png";
-
+import BASE_URL from "../../constants/BASE_URL"; // Import BASE_URL
 
 const Homepage = () => {
     const [searchText, setSearchText] = useState("");
@@ -22,16 +22,18 @@ const Homepage = () => {
     const handleSearch = async () => {
         if (!searchText.trim()) return;
         try {
-            const response = await fetch(`http://localhost:8081/location/search?name=${encodeURIComponent(searchText)}`);
+            const response = await fetch(`${BASE_URL}/restaurants/search?q=${encodeURIComponent(searchText)}`);
             const data = await response.json();
-            console.log(data.location_id);
 
+            if (!response.ok) {
+                throw new Error(data.message || "Lỗi khi tìm kiếm nhà hàng");
+            }
 
-            if (Array.isArray(data) && data.length > 0) {
-                const firstLocation = data[0];
-                navigate(`/tripguide/foodpage/${firstLocation.location_id}`);
+            if (data.data && Array.isArray(data.data) && data.data.length > 0) {
+                const firstRestaurant = data.data[0];
+                navigate(`/tripguide/foodpage/${firstRestaurant.restaurant_id}`);
             } else {
-                alert("Không tìm thấy địa điểm!");
+                alert("Không tìm thấy nhà hàng!");
             }
         } catch (error) {
             console.error("Lỗi khi gọi API:", error);
@@ -46,18 +48,19 @@ const Homepage = () => {
                 <h1 className="search-title">Where to?</h1>
                 <div className="search-box">
                     <FaSearch className="search-icon" />
-                    <input type="text" placeholder="Places to go, things to do, hotels..." value = {searchText} onChange={(e) => setSearchText(e.target.value)} />
+                    <input 
+                        type="text" 
+                        placeholder="Places to go, things to do, hotels..." 
+                        value={searchText} 
+                        onChange={(e) => setSearchText(e.target.value)} 
+                    />
                     <button className="search-button" onClick={handleSearch}>Search</button>
                 </div>
             </div>
 
             {/* Phần ảnh lớn */}
             <div className="featured-container">
-                <img
-                    src={trendcast}
-                    alt="Featured"
-                    className="featured-image"
-                />
+                <img src={trendcast} alt="Featured" className="featured-image" />
                 <div className="featured-overlay">
                     <h2>The 2025 Tripadvisor Trendcast</h2>
                     <p>Forecasting the future of travel—now.</p>
@@ -76,24 +79,19 @@ const Homepage = () => {
                             <img src={golemcafe} alt="Golem Cafe" />
                             <div className="save-overlay">
                                 <button className="save-button-overlay">
-                                    <FontAwesomeIcon
-                                        icon={faHeart}
-                                        className="heart-icon-recent"
-                                    ></FontAwesomeIcon>
+                                    <FontAwesomeIcon icon={faHeart} className="heart-icon-recent" />
                                 </button>
                             </div>
                         </div>
                         <p>Golem Cafe</p>
                     </div>
+                    {/* Các item khác giữ nguyên */}
                     <div className="picture-item">
                         <div className="item-content">
                             <img src={marblemountains} alt="Marble Mountains" />
                             <div className="save-overlay">
                                 <button className="save-button-overlay">
-                                    <FontAwesomeIcon
-                                        icon={faHeart}
-                                        className="heart-icon-recent"
-                                    ></FontAwesomeIcon>
+                                    <FontAwesomeIcon icon={faHeart} className="heart-icon-recent" />
                                 </button>
                             </div>
                         </div>
@@ -104,10 +102,7 @@ const Homepage = () => {
                             <img src={danangmuseum} alt="Da Nang Museum" />
                             <div className="save-overlay">
                                 <button className="save-button-overlay">
-                                    <FontAwesomeIcon
-                                        icon={faHeart}
-                                        className="heart-icon-recent"
-                                    ></FontAwesomeIcon>
+                                    <FontAwesomeIcon icon={faHeart} className="heart-icon-recent" />
                                 </button>
                             </div>
                         </div>
@@ -118,10 +113,7 @@ const Homepage = () => {
                             <img src={dragonbridge} alt="Dragon Bridge" />
                             <div className="save-overlay">
                                 <button className="save-button-overlay">
-                                    <FontAwesomeIcon
-                                        icon={faHeart}
-                                        className="heart-icon-recent"
-                                    ></FontAwesomeIcon>
+                                    <FontAwesomeIcon icon={faHeart} className="heart-icon-recent" />
                                 </button>
                             </div>
                         </div>
@@ -140,24 +132,19 @@ const Homepage = () => {
                             <img src={burgerbros} alt="Burger Bros" />
                             <div className="save-overlay">
                                 <button className="save-button-overlay">
-                                    <FontAwesomeIcon
-                                        icon={faHeart}
-                                        className="heart-icon-recent"
-                                    ></FontAwesomeIcon>
+                                    <FontAwesomeIcon icon={faHeart} className="heart-icon-recent" />
                                 </button>
                             </div>
                         </div>
                         <p>Burger Bros</p>
                     </div>
+                    {/* Các item khác giữ nguyên */}
                     <div className="picture-item">
                         <div className="item-content">
                             <img src={banhxeobaduong} alt="Banh Xeo Ba Duong" />
                             <div className="save-overlay">
                                 <button className="save-button-overlay">
-                                    <FontAwesomeIcon
-                                        icon={faHeart}
-                                        className="heart-icon-recent"
-                                    ></FontAwesomeIcon>
+                                    <FontAwesomeIcon icon={faHeart} className="heart-icon-recent" />
                                 </button>
                             </div>
                         </div>
@@ -168,10 +155,7 @@ const Homepage = () => {
                             <img src={madamelan} alt="Madame Lân" />
                             <div className="save-overlay">
                                 <button className="save-button-overlay">
-                                    <FontAwesomeIcon
-                                        icon={faHeart}
-                                        className="heart-icon-recent"
-                                    ></FontAwesomeIcon>
+                                    <FontAwesomeIcon icon={faHeart} className="heart-icon-recent" />
                                 </button>
                             </div>
                         </div>
@@ -182,10 +166,7 @@ const Homepage = () => {
                             <img src={quancomhuengon} alt="Quan Com Hue Ngon" />
                             <div className="save-overlay">
                                 <button className="save-button-overlay">
-                                    <FontAwesomeIcon
-                                        icon={faHeart}
-                                        className="heart-icon-recent"
-                                    ></FontAwesomeIcon>
+                                    <FontAwesomeIcon icon={faHeart} className="heart-icon-recent" />
                                 </button>
                             </div>
                         </div>
@@ -193,7 +174,6 @@ const Homepage = () => {
                     </div>
                 </div>
             </div>
-
         </div>
     );
 }

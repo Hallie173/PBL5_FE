@@ -16,6 +16,7 @@ import Users from "../Pages/Admin/Users/Users";
 import Cities from "../Pages/Admin/Cities/Citites";
 import MyTrips from "../components/Mytrips/Mytrips";
 import Attractions from "../Pages/Admin/Attractions/Attractions";
+import Restaurants from "../Pages/Admin/Restaurants/Restaurants";
 
 function App() {
   return (
@@ -84,7 +85,8 @@ function App() {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="users" element={<Users />} />
             <Route path="cities" element={<Cities />} />
-            <Route path="attractions" element={<Attractions />} />
+            <Route path="attractions" element={<Attractions />} />\
+            <Route path="restaurants" element={<Restaurants />} />
 
           </Route>
         </Routes>

@@ -173,11 +173,8 @@ const Attractions = () => {
           p: 3,
           mb: 4,
           borderRadius: 3,
-          background: `linear-gradient(135deg, ${alpha(
-            theme.palette.primary.main,
-            0.1
-          )}, ${alpha(theme.palette.primary.light, 0.2)})`,
-          border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+
+          border: `1px solid ${theme.palette.divider}`,
         }}
       >
         <Box

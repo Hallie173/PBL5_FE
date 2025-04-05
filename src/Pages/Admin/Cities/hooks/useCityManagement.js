@@ -10,8 +10,8 @@ export const useCityManagement = (initialCities) => {
   const [imagePreviews, setImagePreviews] = useState([]);
   const fileInputRef = useRef(null);
 
-  const MAX_FILES = 5;
-  const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+  const MAX_FILES = 10; // Đã cập nhật từ 5 lên 10
+  const MAX_SIZE = 10 * 1024 * 1024; // Đã cập nhật từ 5MB lên 10MB
   const VALID_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 
   // Memoize handlers to prevent unnecessary re-renders
@@ -30,7 +30,7 @@ export const useCityManagement = (initialCities) => {
         return false;
       }
       if (file.size > MAX_SIZE) {
-        alert(`File too large: ${file.name}. Max 5MB`);
+        alert(`File too large: ${file.name}. Max 10MB`);
         return false;
       }
       return true;
