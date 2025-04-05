@@ -15,6 +15,7 @@ import {
 } from "react-icons/fi";
 import { BiLandscape } from "react-icons/bi";
 import { IoRestaurantOutline } from "react-icons/io5";
+import webLogo from "../../views/webLogo.png";
 
 export default function Sidebar({ expanded, setExpanded }) {
   const [activeItem, setActiveItem] = useState("Dashboard");
@@ -87,15 +88,12 @@ export default function Sidebar({ expanded, setExpanded }) {
           {/* Logo */}
           <a href="#" className="flex items-center mb-8 ps-2 justify-center">
             <div className="flex items-center">
-              <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-lg">T</span>
-              </div>
               <span
                 className={`ml-3 text-xl font-bold text-gray-800 transition-opacity duration-300 ${
                   !expanded ? "opacity-0 w-0 hidden" : "opacity-100"
                 }`}
               >
-                TravelApp
+                <img src={webLogo} />
               </span>
             </div>
           </a>

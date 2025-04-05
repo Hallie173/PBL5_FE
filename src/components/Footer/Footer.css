@@ -16,7 +16,10 @@
 }
 
 .footer-section {
-    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
     min-width: 200px;
     margin: 10px;
 }
@@ -28,8 +31,8 @@
     justify-content: center;
 }
 
-.logo .footer-logo {
-    width: 150px;
+.footer-logo {
+    max-width: 150px;
     height: auto;
 }
 
@@ -73,7 +76,7 @@
     color: #3d8b6a;
 }
 
-hr {
+.footer hr {
     margin: 20px auto;
     width: 80%;
     border: 0.5px solid #ddd;
