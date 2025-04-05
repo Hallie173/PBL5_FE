@@ -192,6 +192,46 @@ const CityDetail = () => {
                     </div>
                 </div>
             </div>
+            <div className="itineraries">
+                <h2>Our Recommended Plan for Your Trip</h2>
+                <div className="recommended-plan">
+                    <div className="itinerary-card">
+                        <div className="tags">
+                            <span className="tag">Friends</span>
+                            <span className="tag">Natural Wonders</span>
+                            <span className="tag">Night Markets</span>
+                        </div>
+                        <h3>4 days in Da Nang for <br /> friend groups</h3>
+                        <div className="powered-by">
+                            <span role="img" aria-label="ai">🤖</span> Powered by AI
+                        </div>
+                    </div>
+
+                    <div className="itinerary-card">
+                        <div className="tags">
+                            <span className="tag">Couples</span>
+                            <span className="tag">Wine & Beer</span>
+                            <span className="tag">History</span>
+                        </div>
+                        <h3>5 days in Da Nang for <br /> couples</h3>
+                        <div className="powered-by">
+                            <span role="img" aria-label="ai">🤖</span> Powered by AI
+                        </div>
+                    </div>
+
+                    <div className="itinerary-card">
+                        <div className="tags">
+                            <span className="tag">Family</span>
+                            <span className="tag">Natural Wonders</span>
+                            <span className="tag">Outdoors</span>
+                        </div>
+                        <h3>7 days in Da Nang for <br /> families</h3>
+                        <div className="powered-by">
+                            <span role="img" aria-label="ai">🤖</span> Powered by AI
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     )
 }
