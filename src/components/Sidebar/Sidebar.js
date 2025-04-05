@@ -66,8 +66,9 @@ export default function Sidebar({ expanded, setExpanded }) {
           setExpanded(!expanded);
           setShowUserDropdown(false);
         }}
-        className={`fixed top-5 ${expanded ? "left-56" : "left-14"
-          } z-50 p-2 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300 shadow-md transition-all duration-300 transform hover:scale-105`}
+        className={`fixed top-5 ${
+          expanded ? "left-56" : "left-14"
+        } z-50 p-2 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300 shadow-md transition-all duration-300 transform hover:scale-105`}
         aria-label="Toggle menu"
       >
         {expanded ? (
@@ -88,8 +89,9 @@ export default function Sidebar({ expanded, setExpanded }) {
           <a href="#" className="flex items-center mb-8 ps-2 justify-center">
             <div className="flex items-center">
               <span
-                className={`ml-3 text-xl font-bold text-gray-800 transition-opacity duration-300 ${!expanded ? "opacity-0 w-0 hidden" : "opacity-100"
-                  }`}
+                className={`ml-3 text-xl font-bold text-gray-800 transition-opacity duration-300 ${
+                  !expanded ? "opacity-0 w-0 hidden" : "opacity-100"
+                }`}
               >
                 <img src={webLogo} />
               </span>
@@ -106,21 +108,24 @@ export default function Sidebar({ expanded, setExpanded }) {
                     to={`/tripguide/admin/${item.name.toLowerCase()}`}
                     className={`flex items-center p-3 rounded-lg text-gray-700 
                       transition-all duration-200 group
-                      ${isActive
-                        ? "bg-blue-50 text-blue-600"
-                        : "hover:bg-gray-100 hover:text-gray-900"
+                      ${
+                        isActive
+                          ? "bg-blue-50 text-blue-600"
+                          : "hover:bg-gray-100 hover:text-gray-900"
                       }
                       ${expanded ? "" : "justify-center"}`}
                   >
                     <Icon
-                      className={`w-6 h-6 transition-colors duration-200 ${isActive
-                        ? "text-blue-600"
-                        : "text-gray-500 group-hover:text-gray-800"
-                        }`}
+                      className={`w-6 h-6 transition-colors duration-200 ${
+                        isActive
+                          ? "text-blue-600"
+                          : "text-gray-500 group-hover:text-gray-800"
+                      }`}
                     />
                     <span
-                      className={`ms-3 whitespace-nowrap transition-all duration-300 ${!expanded ? "opacity-0 w-0 hidden" : "opacity-100"
-                        }`}
+                      className={`ms-3 whitespace-nowrap transition-all duration-300 ${
+                        !expanded ? "opacity-0 w-0 hidden" : "opacity-100"
+                      }`}
                     >
                       {item.name}
                     </span>
@@ -136,18 +141,21 @@ export default function Sidebar({ expanded, setExpanded }) {
             onClick={() => {
               if (expanded) setShowUserDropdown(!showUserDropdown);
             }}
-            className={`flex items-center ${expanded ? "" : "justify-center"
-              } p-3 rounded-lg hover:bg-gray-100 transition-all duration-200 cursor-pointer`}
+            className={`flex items-center ${
+              expanded ? "" : "justify-center"
+            } p-3 rounded-lg hover:bg-gray-100 transition-all duration-200 cursor-pointer`}
           >
             <img
               src="https://img.freepik.com/premium-vector/user-icons-includes-user-icons-people-icons-symbols-premiumquality-graphic-design-elements_981536-526.jpg"
               alt="Avatar"
-              className={`object-cover ${expanded ? "w-10 h-10" : "w-8 h-8"
-                } rounded-full border-2 border-gray-300`}
+              className={`object-cover ${
+                expanded ? "w-10 h-10" : "w-8 h-8"
+              } rounded-full border-2 border-gray-300`}
             />
             <div
-              className={`ml-3 transition-all duration-300 ${!expanded ? "opacity-0 w-0 hidden" : "opacity-100"
-                }`}
+              className={`ml-3 transition-all duration-300 ${
+                !expanded ? "opacity-0 w-0 hidden" : "opacity-100"
+              }`}
             >
               <p className="text-sm font-medium text-gray-800">John Doe</p>
               <p className="text-xs text-gray-500">Admin</p>

@@ -18,6 +18,7 @@ import MyTrips from "../components/Mytrips/Mytrips";
 import Attractions from "../Pages/Admin/Attractions/Attractions";
 import CityDetail from "../Pages/City Detail/CityDetail";
 import Profile from "../Pages/Profile/Profile";
+import Restaurants from "../Pages/Admin/Restaurants/Restaurants";
 
 function App() {
   return (
@@ -106,6 +107,7 @@ function App() {
             <Route path="users" element={<Users />} />
             <Route path="cities" element={<Cities />} />
             <Route path="attractions" element={<Attractions />} />
+            <Route path="restaurants" element={<Restaurants />} />
 
           </Route>
         </Routes>

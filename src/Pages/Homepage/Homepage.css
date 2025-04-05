@@ -1,17 +1,20 @@
 .homepage {
     padding: 20px;
+    margin: 0 auto;
 }
 
 /* Phần tìm kiếm */
 .search-container {
     text-align: center;
     margin-bottom: 30px;
+    padding: 20px 0;
 }
 
 .search-title {
     font-size: 32px;
     font-weight: bold;
     margin-bottom: 20px;
+    color: #333;
 }
 
 .search-box {
@@ -21,9 +24,10 @@
     background: white;
     border-radius: 30px;
     border: 1px solid #ddd;
-    padding: 10px;
-    max-width: 500px;
+    padding: 10px 20px;
+    max-width: 600px;
     margin: 0 auto;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .search-icon {
@@ -35,16 +39,23 @@
     border: none;
     outline: none;
     flex: 1;
-    padding: 5px;
+    padding: 8px;
+    font-size: 16px;
 }
 
 .search-button {
     background: #2d7a61;
     color: white;
     border: none;
-    padding: 8px 15px;
-    border-radius: 20px;
+    padding: 8px 20px;
+    border-radius: 25px;
     cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+}
+
+.search-button:hover {
+    background: #1e5c48;
 }
 
 /* Ảnh nổi bật */
@@ -52,20 +63,29 @@
     position: relative;
     max-width: 1000px;
     margin: 0 auto;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .featured-image {
     width: 100%;
     border-radius: 10px;
+    display: block;
 }
 
 .featured-overlay {
     position: absolute;
-    bottom: 20px;
-    left: 20px;
+    bottom: 30px;
+    left: 30px;
     text-align: left;
     font-size: 20px;
     color: white;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.featured-overlay h2 {
+    font-size: 28px;
+    margin-bottom: 10px;
 }
 
 .featured-button {
@@ -73,12 +93,21 @@
     color: white;
     border: none;
     padding: 8px 15px;
+    margin-top: 15px;
     border-radius: 5px;
     cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+}
+
+.featured-button:hover {
+    background: #333;
 }
 
 .homepage hr {
     margin: 50px auto 50px auto;
+    width: 80%;
+    height: 1px;
 }
 
 /* Recently viewed */
@@ -104,6 +133,14 @@
 .item-content {
     position: relative;
     display: inline-block;
+    overflow: hidden;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+}
+
+.item-content:hover {
+    transform: translateY(-5px);
 }
 
 .picture-item {
@@ -114,17 +151,25 @@
     max-width: 300px;
     width: 100%;
     aspect-ratio: 100/75;
-    border-radius: 10px;
+    border-radius: 12px;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+}
+
+.item-content:hover img {
+    transform: scale(1.05);
 }
 
 .picture-item p {
-    max-width: 250px;
+    max-width: 300px;
+    width: 100%;
     text-overflow: ellipsis;
     white-space: normal;
     text-align: left;
     font-size: 20px;
     font-weight: bold;
-    margin: 7px 0;
+    margin: 7px auto;
 }
 
 .you-might-like {
@@ -143,6 +188,12 @@
     font-style: italic;
     text-align: left;
     margin: 10px auto 20px auto;
+    margin-top: 10px;
+    font-weight: bold;
+    color: #333;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .save-overlay {
@@ -150,22 +201,32 @@
     top: 10px;
     right: 10px;
     color: white;
+    z-index: 5;
 }
 
 .save-button-overlay {
     width: 30px;
     height: 30px;
     padding: 5px;
-    border: 1px solid black;
     border-radius: 50%;
     display: flex;
+    justify-content: center;
     align-items: center;
     background: white;
+    border: none;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.save-button-overlay:hover {
+    transform: scale(1.1);
 }
 
 .save-button-overlay .heart-icon-recent {
     margin: auto;
-    color: black;
+    font-size: 18px;
+    color: #666;
 }
 
 .save-button-overlay.saved .heart-icon-recent {

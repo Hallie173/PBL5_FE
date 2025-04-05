@@ -1,6 +1,6 @@
-import React from "react";
-import { Box, Button, Paper, Typography, useTheme } from "@mui/material";
-import { FaPlus } from "react-icons/fa";
+import React, { useState } from "react";
+import { Box, Button, Paper, Typography, useTheme, TextField, InputAdornment } from "@mui/material";
+import { FaPlus, FaSearch } from "react-icons/fa";
 import CityList from "./components/CityList";
 import CityModal from "./components/CityModal";
 import { useCityManagement } from "./hooks/useCityManagement";
@@ -23,6 +23,14 @@ export default function CityManagement() {
     handleImageUpload,
     handleRemoveImage,
   } = useCityManagement(initCities);
+  
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  // Filter cities based on search query
+  const filteredCities = cities.filter(city => 
+    city.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    city.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <Box
@@ -92,6 +100,42 @@ export default function CityManagement() {
         </Box>
       </Paper>
 
+      {/* Search Box */}
+      <Paper
+        elevation={0}
+        sx={{
+          borderRadius: 3,
+          mb: 4,
+          p: 3,
+          border: `1px solid ${theme.palette.divider}`,
+        }}
+      >
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder="Search cities by name or description..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <FaSearch color={theme.palette.text.secondary} />
+              </InputAdornment>
+            ),
+            sx: {
+              borderRadius: 2,
+              bgcolor: "background.paper",
+              '&:hover': {
+                boxShadow: '0 0 0 2px rgba(25, 118, 210, 0.2)',
+              },
+              '&.Mui-focused': {
+                boxShadow: '0 0 0 2px rgba(25, 118, 210, 0.3)',
+              },
+            }
+          }}
+        />
+      </Paper>
+
       <Paper
         elevation={0}
         sx={{
@@ -100,7 +144,7 @@ export default function CityManagement() {
           overflow: "hidden",
         }}
       >
-        <CityList cities={cities} onEdit={handleEdit} onDelete={handleDelete} />
+        <CityList cities={filteredCities} onEdit={handleEdit} onDelete={handleDelete} />
       </Paper>
 
       <CityModal
