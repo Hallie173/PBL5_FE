@@ -14,7 +14,8 @@ import danang2 from "../../assets/images/danang2.png";
 import danang3 from "../../assets/images/danang3.png";
 import danang4 from "../../assets/images/danang4.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faHeart } from '@fortawesome/free-regular-svg-icons';
+import { faHeart as regularHeart } from '@fortawesome/free-regular-svg-icons';
+import { faHeart as solidHeart } from '@fortawesome/free-solid-svg-icons';
 
 const images = [danang1, danang2, danang3, danang4];
 
@@ -27,6 +28,12 @@ const CityDetail = () => {
         }, 4000);
         return () => clearInterval(interval);
     }, []);
+
+    const [saved, setSaved] = useState(false);
+    const toggleSave = () => {
+        setSaved(!saved);
+    }
+
     return (
         <div className="city-detail-container">
             <nav className="city-breadcrumb">
@@ -51,12 +58,14 @@ const CityDetail = () => {
             <div className="name-and-action">
                 <h1>Da Nang, Viet Nam</h1>
                 <div className="city-save-action">
-                    <button className="save-city">
+                    <button
+                        className={`save-city ${saved ? "saved" : ""}`}
+                        onClick={toggleSave}>
                         <FontAwesomeIcon
-                            icon={faHeart}
-                            className="heart-icon"
+                            icon={saved ? solidHeart : regularHeart}
+                            className="save-city-icon"
                         ></FontAwesomeIcon>
-                        Save
+                        {saved ? "Saved" : "Save"}
                     </button>
                 </div>
             </div>
@@ -77,9 +86,11 @@ const CityDetail = () => {
                         <div className="item-content">
                             <img src={haivanpass} alt="Hai Van Pass" />
                             <div className="save-overlay">
-                                <button className="save-button-overlay">
+                                <button
+                                    className={`save-button-overlay ${saved ? "saved" : ""}`}
+                                    onClick={toggleSave}>
                                     <FontAwesomeIcon
-                                        icon={faHeart}
+                                        icon={saved ? solidHeart : regularHeart}
                                         className="heart-icon-recent"
                                     ></FontAwesomeIcon>
                                 </button>
@@ -96,99 +107,148 @@ const CityDetail = () => {
                         <div className="item-content">
                             <img src={marblemountains} alt="Marble Mountains" />
                             <div className="save-overlay">
-                                <button className="save-button-overlay">
+                                <button
+                                    className={`save-button-overlay ${saved ? "saved" : ""}`}
+                                    onClick={toggleSave}>
                                     <FontAwesomeIcon
-                                        icon={faHeart}
+                                        icon={saved ? solidHeart : regularHeart}
                                         className="heart-icon-recent"
                                     ></FontAwesomeIcon>
                                 </button>
                             </div>
                         </div>
                         <p>The Marble Mountains</p>
+                        <div className="rating">
+                            <span className="rate-star">*****</span>
+                            <span className="rate-reviews">177 reviews</span>
+                            <span className="rate-rank">(...)</span>
+                        </div>
                     </div>
                     <div className="picture-item">
                         <div className="item-content">
                             <img src={ladybuddha} alt="Lady Buddha" />
                             <div className="save-overlay">
-                                <button className="save-button-overlay">
+                                <button
+                                    className={`save-button-overlay ${saved ? "saved" : ""}`}
+                                    onClick={toggleSave}>
                                     <FontAwesomeIcon
-                                        icon={faHeart}
+                                        icon={saved ? solidHeart : regularHeart}
                                         className="heart-icon-recent"
                                     ></FontAwesomeIcon>
                                 </button>
                             </div>
                         </div>
                         <p>Lady Buddha</p>
+                        <div className="rating">
+                            <span className="rate-star">*****</span>
+                            <span className="rate-reviews">177 reviews</span>
+                            <span className="rate-rank">(...)</span>
+                        </div>
                     </div>
                     <div className="picture-item">
                         <div className="item-content">
                             <img src={dragonbridge} alt="Dragon Bridge" />
                             <div className="save-overlay">
-                                <button className="save-button-overlay">
+                                <button
+                                    className={`save-button-overlay ${saved ? "saved" : ""}`}
+                                    onClick={toggleSave}>
                                     <FontAwesomeIcon
-                                        icon={faHeart}
+                                        icon={saved ? solidHeart : regularHeart}
                                         className="heart-icon-recent"
                                     ></FontAwesomeIcon>
                                 </button>
                             </div>
                         </div>
                         <p>Dragon Bridge</p>
+                        <div className="rating">
+                            <span className="rate-star">*****</span>
+                            <span className="rate-reviews">177 reviews</span>
+                            <span className="rate-rank">(...)</span>
+                        </div>
                     </div>
                     <div className="picture-item">
                         <div className="item-content">
                             <img src={goldenbridge} alt="Golden Bridge" />
                             <div className="save-overlay">
-                                <button className="save-button-overlay">
+                                <button
+                                    className={`save-button-overlay ${saved ? "saved" : ""}`}
+                                    onClick={toggleSave}>
                                     <FontAwesomeIcon
-                                        icon={faHeart}
+                                        icon={saved ? solidHeart : regularHeart}
                                         className="heart-icon-recent"
                                     ></FontAwesomeIcon>
                                 </button>
                             </div>
                         </div>
                         <p>Golden Bridge</p>
+                        <div className="rating">
+                            <span className="rate-star">*****</span>
+                            <span className="rate-reviews">177 reviews</span>
+                            <span className="rate-rank">(...)</span>
+                        </div>
                     </div>
                     <div className="picture-item">
                         <div className="item-content">
                             <img src={tiensa} alt="Tien Sa" />
                             <div className="save-overlay">
-                                <button className="save-button-overlay">
+                                <button
+                                    className={`save-button-overlay ${saved ? "saved" : ""}`}
+                                    onClick={toggleSave}>
                                     <FontAwesomeIcon
-                                        icon={faHeart}
+                                        icon={saved ? solidHeart : regularHeart}
                                         className="heart-icon-recent"
                                     ></FontAwesomeIcon>
                                 </button>
                             </div>
                         </div>
                         <p>Tien Sa</p>
+                        <div className="rating">
+                            <span className="rate-star">*****</span>
+                            <span className="rate-reviews">177 reviews</span>
+                            <span className="rate-rank">(...)</span>
+                        </div>
                     </div>
                     <div className="picture-item">
                         <div className="item-content">
                             <img src={trakieu} alt="Marian Shrine of the Lady of Tra Kieu" />
                             <div className="save-overlay">
-                                <button className="save-button-overlay">
+                                <button
+                                    className={`save-button-overlay ${saved ? "saved" : ""}`}
+                                    onClick={toggleSave}>
                                     <FontAwesomeIcon
-                                        icon={faHeart}
+                                        icon={saved ? solidHeart : regularHeart}
                                         className="heart-icon-recent"
                                     ></FontAwesomeIcon>
                                 </button>
                             </div>
                         </div>
                         <p>The Lady of Tra Kieu's Marian Shrine</p>
+                        <div className="rating">
+                            <span className="rate-star">*****</span>
+                            <span className="rate-reviews">177 reviews</span>
+                            <span className="rate-rank">(...)</span>
+                        </div>
                     </div>
                     <div className="picture-item">
                         <div className="item-content">
                             <img src={asiapark} alt="Asia Park" />
                             <div className="save-overlay">
-                                <button className="save-button-overlay">
+                                <button
+                                    className={`save-button-overlay ${saved ? "saved" : ""}`}
+                                    onClick={toggleSave}>
                                     <FontAwesomeIcon
-                                        icon={faHeart}
+                                        icon={saved ? solidHeart : regularHeart}
                                         className="heart-icon-recent"
                                     ></FontAwesomeIcon>
                                 </button>
                             </div>
                         </div>
                         <p>Asia Park</p>
+                        <div className="rating">
+                            <span className="rate-star">*****</span>
+                            <span className="rate-reviews">177 reviews</span>
+                            <span className="rate-rank">(...)</span>
+                        </div>
                     </div>
                 </div>
             </div>

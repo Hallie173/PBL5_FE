@@ -84,6 +84,14 @@
     padding: 10px 20px;
 }
 
+.save-city-icon {
+    margin-right: 5px;
+}
+
+.save-city.saved .save-city-icon {
+    color: red;
+}
+
 .name-and-action h1 {
     font-size: 35px;
     font-weight: bold;

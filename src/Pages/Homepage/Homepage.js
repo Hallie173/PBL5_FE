@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import "./Homepage.css";
 import { FaSearch } from "react-icons/fa";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faHeart } from '@fortawesome/free-regular-svg-icons';
+import { faHeart as solidHeart } from '@fortawesome/free-solid-svg-icons';
+import { faHeart as regularHeart } from '@fortawesome/free-regular-svg-icons';
 import trendcast from "../../views/trendcast.png";
 import golemcafe from "../../assets/images/golemcafe.png";
 import marblemountains from "../../assets/images/marblemountains.png";
@@ -13,7 +14,6 @@ import burgerbros from "../../assets/images/burgerbros.png";
 import banhxeobaduong from "../../assets/images/banhxeobaduong.png";
 import madamelan from "../../assets/images/madamelan.png";
 import quancomhuengon from "../../assets/images/quancomhuengon.png";
-
 
 const Homepage = () => {
     const [searchText, setSearchText] = useState("");
@@ -38,6 +38,11 @@ const Homepage = () => {
             alert("Có lỗi xảy ra, vui lòng thử lại!");
         }
     };
+
+    const [saved, setSaved] = useState(false);
+    const toggleSave = () => {
+        setSaved(!saved);
+    }
 
     return (
         <div className="homepage">
@@ -75,9 +80,11 @@ const Homepage = () => {
                         <div className="item-content">
                             <img src={golemcafe} alt="Golem Cafe" />
                             <div className="save-overlay">
-                                <button className="save-button-overlay">
+                                <button
+                                    className={`save-button-overlay ${saved ? "saved" : ""}`}
+                                    onClick={toggleSave}>
                                     <FontAwesomeIcon
-                                        icon={faHeart}
+                                        icon={saved ? solidHeart : regularHeart}
                                         className="heart-icon-recent"
                                     ></FontAwesomeIcon>
                                 </button>
@@ -89,9 +96,11 @@ const Homepage = () => {
                         <div className="item-content">
                             <img src={marblemountains} alt="Marble Mountains" />
                             <div className="save-overlay">
-                                <button className="save-button-overlay">
+                                <button
+                                    className={`save-button-overlay ${saved ? "saved" : ""}`}
+                                    onClick={toggleSave}>
                                     <FontAwesomeIcon
-                                        icon={faHeart}
+                                        icon={saved ? solidHeart : regularHeart}
                                         className="heart-icon-recent"
                                     ></FontAwesomeIcon>
                                 </button>
@@ -103,9 +112,11 @@ const Homepage = () => {
                         <div className="item-content">
                             <img src={danangmuseum} alt="Da Nang Museum" />
                             <div className="save-overlay">
-                                <button className="save-button-overlay">
+                                <button
+                                    className={`save-button-overlay ${saved ? "saved" : ""}`}
+                                    onClick={toggleSave}>
                                     <FontAwesomeIcon
-                                        icon={faHeart}
+                                        icon={saved ? solidHeart : regularHeart}
                                         className="heart-icon-recent"
                                     ></FontAwesomeIcon>
                                 </button>
@@ -117,9 +128,11 @@ const Homepage = () => {
                         <div className="item-content">
                             <img src={dragonbridge} alt="Dragon Bridge" />
                             <div className="save-overlay">
-                                <button className="save-button-overlay">
+                                <button
+                                    className={`save-button-overlay ${saved ? "saved" : ""}`}
+                                    onClick={toggleSave}>
                                     <FontAwesomeIcon
-                                        icon={faHeart}
+                                        icon={saved ? solidHeart : regularHeart}
                                         className="heart-icon-recent"
                                     ></FontAwesomeIcon>
                                 </button>
@@ -139,9 +152,11 @@ const Homepage = () => {
                         <div className="item-content">
                             <img src={burgerbros} alt="Burger Bros" />
                             <div className="save-overlay">
-                                <button className="save-button-overlay">
+                                <button
+                                    className={`save-button-overlay ${saved ? "saved" : ""}`}
+                                    onClick={toggleSave}>
                                     <FontAwesomeIcon
-                                        icon={faHeart}
+                                        icon={saved ? solidHeart : regularHeart}
                                         className="heart-icon-recent"
                                     ></FontAwesomeIcon>
                                 </button>
@@ -153,9 +168,11 @@ const Homepage = () => {
                         <div className="item-content">
                             <img src={banhxeobaduong} alt="Banh Xeo Ba Duong" />
                             <div className="save-overlay">
-                                <button className="save-button-overlay">
+                                <button
+                                    className={`save-button-overlay ${saved ? "saved" : ""}`}
+                                    onClick={toggleSave}>
                                     <FontAwesomeIcon
-                                        icon={faHeart}
+                                        icon={saved ? solidHeart : regularHeart}
                                         className="heart-icon-recent"
                                     ></FontAwesomeIcon>
                                 </button>
@@ -167,9 +184,11 @@ const Homepage = () => {
                         <div className="item-content">
                             <img src={madamelan} alt="Madame Lân" />
                             <div className="save-overlay">
-                                <button className="save-button-overlay">
+                                <button
+                                    className={`save-button-overlay ${saved ? "saved" : ""}`}
+                                    onClick={toggleSave}>
                                     <FontAwesomeIcon
-                                        icon={faHeart}
+                                        icon={saved ? solidHeart : regularHeart}
                                         className="heart-icon-recent"
                                     ></FontAwesomeIcon>
                                 </button>
@@ -181,9 +200,11 @@ const Homepage = () => {
                         <div className="item-content">
                             <img src={quancomhuengon} alt="Quan Com Hue Ngon" />
                             <div className="save-overlay">
-                                <button className="save-button-overlay">
+                                <button
+                                    className={`save-button-overlay ${saved ? "saved" : ""}`}
+                                    onClick={toggleSave}>
                                     <FontAwesomeIcon
-                                        icon={faHeart}
+                                        icon={saved ? solidHeart : regularHeart}
                                         className="heart-icon-recent"
                                     ></FontAwesomeIcon>
                                 </button>

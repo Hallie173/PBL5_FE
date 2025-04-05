@@ -163,4 +163,9 @@
 
 .save-button-overlay .heart-icon-recent {
     margin: auto;
+    color: black;
+}
+
+.save-button-overlay.saved .heart-icon-recent {
+    color: red;
 }
