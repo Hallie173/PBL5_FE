@@ -19,6 +19,17 @@ import { faHeart as solidHeart } from '@fortawesome/free-solid-svg-icons';
 
 const images = [danang1, danang2, danang3, danang4];
 
+const initialPlaces = [
+    { id: 1, name: "Hai Van Pass", image: haivanpass, saved: false },
+    { id: 2, name: "The Marble Mountains", image: marblemountains, saved: false },
+    { id: 3, name: "Lady Buddha", image: ladybuddha, saved: false },
+    { id: 4, name: "Dragon Bridge", image: dragonbridge, saved: false },
+    { id: 5, name: "Golden Bridge", image: goldenbridge, saved: false },
+    { id: 6, name: "Tien Sa", image: tiensa, saved: false },
+    { id: 7, name: "The Lady of Tra Kieu's Marian Shrine", image: trakieu, saved: false },
+    { id: 8, name: "Asia Park", image: asiapark, saved: false }
+];
+
 const CityDetail = () => {
     const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -29,8 +40,17 @@ const CityDetail = () => {
         return () => clearInterval(interval);
     }, []);
 
+    const [places, setPlaces] = useState(initialPlaces);
+
+    const toggleSave = (id) => {
+        const updatedPlaces = places.map((place) =>
+            place.id === id ? { ...place, saved: !place.saved } : place
+        );
+        setPlaces(updatedPlaces);
+    };
+
     const [saved, setSaved] = useState(false);
-    const toggleSave = () => {
+    const toggleSaveCity = () => {
         setSaved(!saved);
     }
 
@@ -60,7 +80,7 @@ const CityDetail = () => {
                 <div className="city-save-action">
                     <button
                         className={`save-city ${saved ? "saved" : ""}`}
-                        onClick={toggleSave}>
+                        onClick={toggleSaveCity}>
                         <FontAwesomeIcon
                             icon={saved ? solidHeart : regularHeart}
                             className="save-city-icon"
@@ -82,174 +102,29 @@ const CityDetail = () => {
                     <button className="see-all">See all</button>
                 </div>
                 <div className="picture-grid">
-                    <div className="picture-item">
-                        <div className="item-content">
-                            <img src={haivanpass} alt="Hai Van Pass" />
-                            <div className="save-overlay">
-                                <button
-                                    className={`save-button-overlay ${saved ? "saved" : ""}`}
-                                    onClick={toggleSave}>
-                                    <FontAwesomeIcon
-                                        icon={saved ? solidHeart : regularHeart}
-                                        className="heart-icon-recent"
-                                    ></FontAwesomeIcon>
-                                </button>
+                    {places.map((place) => (
+                        <div className="picture-item" key={place.id}>
+                            <div className="item-content">
+                                <img src={place.image} alt={place.name} />
+                                <div className="save-overlay">
+                                    <button
+                                        className={`save-button-overlay ${place.saved ? "saved" : ""}`}
+                                        onClick={() => toggleSave(place.id)}>
+                                        <FontAwesomeIcon
+                                            icon={place.saved ? solidHeart : regularHeart}
+                                            className="heart-icon-recent"
+                                        />
+                                    </button>
+                                </div>
+                            </div>
+                            <p>{place.name}</p>
+                            <div className="rating">
+                                <span className="rate-star">*****</span>
+                                <span className="rate-reviews">177 reviews</span>
+                                <span className="rate-rank"></span>
                             </div>
                         </div>
-                        <p>Hai Van Pass</p>
-                        <div className="rating">
-                            <span className="rate-star">*****</span>
-                            <span className="rate-reviews">177 reviews</span>
-                            <span className="rate-rank">(...)</span>
-                        </div>
-                    </div>
-                    <div className="picture-item">
-                        <div className="item-content">
-                            <img src={marblemountains} alt="Marble Mountains" />
-                            <div className="save-overlay">
-                                <button
-                                    className={`save-button-overlay ${saved ? "saved" : ""}`}
-                                    onClick={toggleSave}>
-                                    <FontAwesomeIcon
-                                        icon={saved ? solidHeart : regularHeart}
-                                        className="heart-icon-recent"
-                                    ></FontAwesomeIcon>
-                                </button>
-                            </div>
-                        </div>
-                        <p>The Marble Mountains</p>
-                        <div className="rating">
-                            <span className="rate-star">*****</span>
-                            <span className="rate-reviews">177 reviews</span>
-                            <span className="rate-rank">(...)</span>
-                        </div>
-                    </div>
-                    <div className="picture-item">
-                        <div className="item-content">
-                            <img src={ladybuddha} alt="Lady Buddha" />
-                            <div className="save-overlay">
-                                <button
-                                    className={`save-button-overlay ${saved ? "saved" : ""}`}
-                                    onClick={toggleSave}>
-                                    <FontAwesomeIcon
-                                        icon={saved ? solidHeart : regularHeart}
-                                        className="heart-icon-recent"
-                                    ></FontAwesomeIcon>
-                                </button>
-                            </div>
-                        </div>
-                        <p>Lady Buddha</p>
-                        <div className="rating">
-                            <span className="rate-star">*****</span>
-                            <span className="rate-reviews">177 reviews</span>
-                            <span className="rate-rank">(...)</span>
-                        </div>
-                    </div>
-                    <div className="picture-item">
-                        <div className="item-content">
-                            <img src={dragonbridge} alt="Dragon Bridge" />
-                            <div className="save-overlay">
-                                <button
-                                    className={`save-button-overlay ${saved ? "saved" : ""}`}
-                                    onClick={toggleSave}>
-                                    <FontAwesomeIcon
-                                        icon={saved ? solidHeart : regularHeart}
-                                        className="heart-icon-recent"
-                                    ></FontAwesomeIcon>
-                                </button>
-                            </div>
-                        </div>
-                        <p>Dragon Bridge</p>
-                        <div className="rating">
-                            <span className="rate-star">*****</span>
-                            <span className="rate-reviews">177 reviews</span>
-                            <span className="rate-rank">(...)</span>
-                        </div>
-                    </div>
-                    <div className="picture-item">
-                        <div className="item-content">
-                            <img src={goldenbridge} alt="Golden Bridge" />
-                            <div className="save-overlay">
-                                <button
-                                    className={`save-button-overlay ${saved ? "saved" : ""}`}
-                                    onClick={toggleSave}>
-                                    <FontAwesomeIcon
-                                        icon={saved ? solidHeart : regularHeart}
-                                        className="heart-icon-recent"
-                                    ></FontAwesomeIcon>
-                                </button>
-                            </div>
-                        </div>
-                        <p>Golden Bridge</p>
-                        <div className="rating">
-                            <span className="rate-star">*****</span>
-                            <span className="rate-reviews">177 reviews</span>
-                            <span className="rate-rank">(...)</span>
-                        </div>
-                    </div>
-                    <div className="picture-item">
-                        <div className="item-content">
-                            <img src={tiensa} alt="Tien Sa" />
-                            <div className="save-overlay">
-                                <button
-                                    className={`save-button-overlay ${saved ? "saved" : ""}`}
-                                    onClick={toggleSave}>
-                                    <FontAwesomeIcon
-                                        icon={saved ? solidHeart : regularHeart}
-                                        className="heart-icon-recent"
-                                    ></FontAwesomeIcon>
-                                </button>
-                            </div>
-                        </div>
-                        <p>Tien Sa</p>
-                        <div className="rating">
-                            <span className="rate-star">*****</span>
-                            <span className="rate-reviews">177 reviews</span>
-                            <span className="rate-rank">(...)</span>
-                        </div>
-                    </div>
-                    <div className="picture-item">
-                        <div className="item-content">
-                            <img src={trakieu} alt="Marian Shrine of the Lady of Tra Kieu" />
-                            <div className="save-overlay">
-                                <button
-                                    className={`save-button-overlay ${saved ? "saved" : ""}`}
-                                    onClick={toggleSave}>
-                                    <FontAwesomeIcon
-                                        icon={saved ? solidHeart : regularHeart}
-                                        className="heart-icon-recent"
-                                    ></FontAwesomeIcon>
-                                </button>
-                            </div>
-                        </div>
-                        <p>The Lady of Tra Kieu's Marian Shrine</p>
-                        <div className="rating">
-                            <span className="rate-star">*****</span>
-                            <span className="rate-reviews">177 reviews</span>
-                            <span className="rate-rank">(...)</span>
-                        </div>
-                    </div>
-                    <div className="picture-item">
-                        <div className="item-content">
-                            <img src={asiapark} alt="Asia Park" />
-                            <div className="save-overlay">
-                                <button
-                                    className={`save-button-overlay ${saved ? "saved" : ""}`}
-                                    onClick={toggleSave}>
-                                    <FontAwesomeIcon
-                                        icon={saved ? solidHeart : regularHeart}
-                                        className="heart-icon-recent"
-                                    ></FontAwesomeIcon>
-                                </button>
-                            </div>
-                        </div>
-                        <p>Asia Park</p>
-                        <div className="rating">
-                            <span className="rate-star">*****</span>
-                            <span className="rate-reviews">177 reviews</span>
-                            <span className="rate-rank">(...)</span>
-                        </div>
-                    </div>
+                    ))}
                 </div>
             </div>
             <div className="itineraries">

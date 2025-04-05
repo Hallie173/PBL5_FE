@@ -17,6 +17,7 @@ import Cities from "../Pages/Admin/Cities/Citites";
 import MyTrips from "../components/Mytrips/Mytrips";
 import Attractions from "../Pages/Admin/Attractions/Attractions";
 import CityDetail from "../Pages/City Detail/CityDetail";
+import Profile from "../Pages/Profile/Profile";
 
 function App() {
   return (
@@ -69,7 +70,7 @@ function App() {
             }
           />
           <Route
-            path="/tripguide/foodpage"
+            path="/tripguide/foodpage/:id"
             element={
               <>
                 <Navbar />
@@ -84,6 +85,16 @@ function App() {
               <>
                 <Navbar />
                 <CityDetail />
+                <Footer />
+              </>
+            }
+          />
+          <Route
+            path="/tripguide/user-profile"
+            element={
+              <>
+                <Navbar />
+                <Profile />
                 <Footer />
               </>
             }

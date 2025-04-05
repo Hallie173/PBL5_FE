@@ -64,6 +64,7 @@
     bottom: 20px;
     left: 20px;
     text-align: left;
+    font-size: 20px;
     color: white;
 }
 
@@ -120,9 +121,10 @@
     max-width: 250px;
     text-overflow: ellipsis;
     white-space: normal;
-    text-align: center;
+    text-align: left;
+    font-size: 20px;
     font-weight: bold;
-    margin: 7px auto;
+    margin: 7px 0;
 }
 
 .you-might-like {
@@ -154,7 +156,7 @@
     width: 30px;
     height: 30px;
     padding: 5px;
-    border: 2px solid black;
+    border: 1px solid black;
     border-radius: 50%;
     display: flex;
     align-items: center;
