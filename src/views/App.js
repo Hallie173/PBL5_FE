@@ -16,6 +16,7 @@ import Users from "../Pages/Admin/Users/Users";
 import Cities from "../Pages/Admin/Cities/Citites";
 import MyTrips from "../components/Mytrips/Mytrips";
 import Attractions from "../Pages/Admin/Attractions/Attractions";
+import CityDetail from "../Pages/City Detail/CityDetail";
 
 function App() {
   return (
@@ -68,7 +69,7 @@ function App() {
             }
           />
           <Route
-            path="/tripguide/foodpage/:id"
+            path="/tripguide/foodpage"
             element={
               <>
                 <Navbar />
@@ -77,7 +78,16 @@ function App() {
               </>
             }
           />
-
+          <Route
+            path="/tripguide/citydetail"
+            element={
+              <>
+                <Navbar />
+                <CityDetail />
+                <Footer />
+              </>
+            }
+          />
           {/* Route admin */}
           <Route path="/tripguide/admin" element={<AdminLayout />}>
             <Route index element={<Navigate to="dashboard" replace />} />

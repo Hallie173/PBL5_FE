@@ -43,10 +43,10 @@ const Homepage = () => {
         <div className="homepage">
             {/* Phần tìm kiếm */}
             <div className="search-container">
-                <h1 className="search-title">Where to?</h1>
+                <h1 className="search-title">Ready for a perfect trip?</h1>
                 <div className="search-box">
                     <FaSearch className="search-icon" />
-                    <input type="text" placeholder="Places to go, things to do, hotels..." value = {searchText} onChange={(e) => setSearchText(e.target.value)} />
+                    <input type="text" placeholder="Places to go, things to do, hotels..." value={searchText} onChange={(e) => setSearchText(e.target.value)} />
                     <button className="search-button" onClick={handleSearch}>Search</button>
                 </div>
             </div>
