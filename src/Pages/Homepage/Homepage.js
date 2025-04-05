@@ -19,13 +19,36 @@ const Homepage = () => {
     const [searchText, setSearchText] = useState("");
     const navigate = useNavigate();
 
+    // Define location data for better maintainability
+    const recentlyViewedItems = [
+        { id: 1, name: "Golem Cafe", image: golemcafe },
+        { id: 2, name: "The Marble Mountains", image: marblemountains },
+        { id: 3, name: "Bao Tang Da Nang - Da Nang Museum", image: danangmuseum },
+        { id: 4, name: "Dragon Bridge", image: dragonbridge }
+    ];
+
+    const recommendedItems = [
+        { id: 5, name: "Burger Bros", image: burgerbros },
+        { id: 6, name: "Banh Xeo Ba Duong", image: banhxeobaduong },
+        { id: 7, name: "Madame Lân", image: madamelan },
+        { id: 8, name: "Quan Com Hue Ngon", image: quancomhuengon }
+    ];
+
+    // Track saved state for each item individually
+    const [savedItems, setSavedItems] = useState({});
+
+    const toggleSave = (itemId) => {
+        setSavedItems(prev => ({
+            ...prev,
+            [itemId]: !prev[itemId]
+        }));
+    };
+
     const handleSearch = async () => {
         if (!searchText.trim()) return;
         try {
             const response = await fetch(`http://localhost:8081/location/search?name=${encodeURIComponent(searchText)}`);
             const data = await response.json();
-            console.log(data.location_id);
-
 
             if (Array.isArray(data) && data.length > 0) {
                 const firstLocation = data[0];
@@ -39,24 +62,51 @@ const Homepage = () => {
         }
     };
 
-    const [saved, setSaved] = useState(false);
-    const toggleSave = () => {
-        setSaved(!saved);
-    }
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+        }
+    };
+
+    // Location Item component for DRY code
+    const LocationItem = ({ item }) => (
+        <div className="picture-item">
+            <div className="item-content">
+                <img src={item.image} alt={item.name} />
+                <div className="save-overlay">
+                    <button
+                        className={`save-button-overlay ${savedItems[item.id] ? "saved" : ""}`}
+                        onClick={() => toggleSave(item.id)}>
+                        <FontAwesomeIcon
+                            icon={savedItems[item.id] ? solidHeart : regularHeart}
+                            className="heart-icon-recent"
+                        />
+                    </button>
+                </div>
+            </div>
+            <p>{item.name}</p>
+        </div>
+    );
 
     return (
         <div className="homepage">
-            {/* Phần tìm kiếm */}
+            {/* Search Section */}
             <div className="search-container">
                 <h1 className="search-title">Ready for a perfect trip?</h1>
                 <div className="search-box">
                     <FaSearch className="search-icon" />
-                    <input type="text" placeholder="Places to go, things to do, hotels..." value={searchText} onChange={(e) => setSearchText(e.target.value)} />
+                    <input 
+                        type="text" 
+                        placeholder="Places to go, things to do, hotels..." 
+                        value={searchText} 
+                        onChange={(e) => setSearchText(e.target.value)}
+                        onKeyPress={handleKeyPress}
+                    />
                     <button className="search-button" onClick={handleSearch}>Search</button>
                 </div>
             </div>
 
-            {/* Phần ảnh lớn */}
+            {/* Featured Image */}
             <div className="featured-container">
                 <img
                     src={trendcast}
@@ -72,151 +122,28 @@ const Homepage = () => {
 
             <hr />
 
-            {/* Recently Viewed */}
+            {/* Recently Viewed Section */}
             <div className="recently-viewed">
                 <h2>Recently viewed</h2>
                 <div className="picture-grid">
-                    <div className="picture-item">
-                        <div className="item-content">
-                            <img src={golemcafe} alt="Golem Cafe" />
-                            <div className="save-overlay">
-                                <button
-                                    className={`save-button-overlay ${saved ? "saved" : ""}`}
-                                    onClick={toggleSave}>
-                                    <FontAwesomeIcon
-                                        icon={saved ? solidHeart : regularHeart}
-                                        className="heart-icon-recent"
-                                    ></FontAwesomeIcon>
-                                </button>
-                            </div>
-                        </div>
-                        <p>Golem Cafe</p>
-                    </div>
-                    <div className="picture-item">
-                        <div className="item-content">
-                            <img src={marblemountains} alt="Marble Mountains" />
-                            <div className="save-overlay">
-                                <button
-                                    className={`save-button-overlay ${saved ? "saved" : ""}`}
-                                    onClick={toggleSave}>
-                                    <FontAwesomeIcon
-                                        icon={saved ? solidHeart : regularHeart}
-                                        className="heart-icon-recent"
-                                    ></FontAwesomeIcon>
-                                </button>
-                            </div>
-                        </div>
-                        <p>The Marble Mountains</p>
-                    </div>
-                    <div className="picture-item">
-                        <div className="item-content">
-                            <img src={danangmuseum} alt="Da Nang Museum" />
-                            <div className="save-overlay">
-                                <button
-                                    className={`save-button-overlay ${saved ? "saved" : ""}`}
-                                    onClick={toggleSave}>
-                                    <FontAwesomeIcon
-                                        icon={saved ? solidHeart : regularHeart}
-                                        className="heart-icon-recent"
-                                    ></FontAwesomeIcon>
-                                </button>
-                            </div>
-                        </div>
-                        <p>Bao Tang Da Nang - Da Nang Museum</p>
-                    </div>
-                    <div className="picture-item">
-                        <div className="item-content">
-                            <img src={dragonbridge} alt="Dragon Bridge" />
-                            <div className="save-overlay">
-                                <button
-                                    className={`save-button-overlay ${saved ? "saved" : ""}`}
-                                    onClick={toggleSave}>
-                                    <FontAwesomeIcon
-                                        icon={saved ? solidHeart : regularHeart}
-                                        className="heart-icon-recent"
-                                    ></FontAwesomeIcon>
-                                </button>
-                            </div>
-                        </div>
-                        <p>Dragon Bridge</p>
-                    </div>
+                    {recentlyViewedItems.map(item => (
+                        <LocationItem key={item.id} item={item} />
+                    ))}
                 </div>
             </div>
 
-            {/* You Might Like These */}
+            {/* Recommended Section */}
             <div className="you-might-like">
                 <h2>You might like these</h2>
                 <p className="like-recommend">More restaurants in Da Nang</p>
                 <div className="picture-grid">
-                    <div className="picture-item">
-                        <div className="item-content">
-                            <img src={burgerbros} alt="Burger Bros" />
-                            <div className="save-overlay">
-                                <button
-                                    className={`save-button-overlay ${saved ? "saved" : ""}`}
-                                    onClick={toggleSave}>
-                                    <FontAwesomeIcon
-                                        icon={saved ? solidHeart : regularHeart}
-                                        className="heart-icon-recent"
-                                    ></FontAwesomeIcon>
-                                </button>
-                            </div>
-                        </div>
-                        <p>Burger Bros</p>
-                    </div>
-                    <div className="picture-item">
-                        <div className="item-content">
-                            <img src={banhxeobaduong} alt="Banh Xeo Ba Duong" />
-                            <div className="save-overlay">
-                                <button
-                                    className={`save-button-overlay ${saved ? "saved" : ""}`}
-                                    onClick={toggleSave}>
-                                    <FontAwesomeIcon
-                                        icon={saved ? solidHeart : regularHeart}
-                                        className="heart-icon-recent"
-                                    ></FontAwesomeIcon>
-                                </button>
-                            </div>
-                        </div>
-                        <p>Banh Xeo Ba Duong</p>
-                    </div>
-                    <div className="picture-item">
-                        <div className="item-content">
-                            <img src={madamelan} alt="Madame Lân" />
-                            <div className="save-overlay">
-                                <button
-                                    className={`save-button-overlay ${saved ? "saved" : ""}`}
-                                    onClick={toggleSave}>
-                                    <FontAwesomeIcon
-                                        icon={saved ? solidHeart : regularHeart}
-                                        className="heart-icon-recent"
-                                    ></FontAwesomeIcon>
-                                </button>
-                            </div>
-                        </div>
-                        <p>Madame Lân</p>
-                    </div>
-                    <div className="picture-item">
-                        <div className="item-content">
-                            <img src={quancomhuengon} alt="Quan Com Hue Ngon" />
-                            <div className="save-overlay">
-                                <button
-                                    className={`save-button-overlay ${saved ? "saved" : ""}`}
-                                    onClick={toggleSave}>
-                                    <FontAwesomeIcon
-                                        icon={saved ? solidHeart : regularHeart}
-                                        className="heart-icon-recent"
-                                    ></FontAwesomeIcon>
-                                </button>
-                            </div>
-                        </div>
-                        <p>Quan Com Hue Ngon</p>
-                    </div>
+                    {recommendedItems.map(item => (
+                        <LocationItem key={item.id} item={item} />
+                    ))}
                 </div>
             </div>
-
         </div>
     );
-}
+};
 
 export default Homepage;
