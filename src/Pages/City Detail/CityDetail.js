@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "./CityDetail.css";
+import "./CityDetail.scss";
 import dragonbridge from "../../assets/images/Cities/dragonbridge.png";
 import haivanpass from "../../assets/images/Cities/haivanpass.png";
 import ladybuddha from "../../assets/images/Cities/ladybuddha.png";

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "./Restaurant.css";
+import "./Restaurant.scss";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSquareShareNodes, faPen } from '@fortawesome/free-solid-svg-icons';
 import { faHeart } from '@fortawesome/free-regular-svg-icons';

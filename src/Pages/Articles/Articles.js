@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "./Articles.css";
+import "./Articles.scss";
 import maldives from "../../assets/images/Cities/maldives.png";
 import marrakech from "../../assets/images/Cities/marrakech.png";
 import winterlondon from "../../assets/images/Cities/winterlondon.png";

@@ -10,7 +10,7 @@ import {
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import weblogo from "../../views/webLogo.png";
-import "./Footer.css"; // Import file CSS riêng
+import "./Footer.scss";
 
 function Footer() {
   return (
