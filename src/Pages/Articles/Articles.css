@@ -10,14 +10,29 @@
 /* Featured Article */
 .featured-article {
     position: relative;
-    background: url('https://source.unsplash.com/1200x600/?mountains,sunset') no-repeat center center/cover;
     color: white;
-    padding: 50px;
-    border-radius: 10px;
+    width: 80%;
+    aspect-ratio: 3/1;
+    margin: 20px auto 50px auto;
+    border-radius: 20px;
+}
+
+.featured-image {
+    width: 100%;
+    position: relative;
+}
+
+.featured-image img {
+    border-radius: 20px;
 }
 
 .featured-content {
     max-width: 600px;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    margin-left: 20px;
+    margin-bottom: 20px;
 }
 
 .featured-badge {
@@ -25,14 +40,27 @@
     color: white;
     padding: 5px 10px;
     border-radius: 5px;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: bold;
+}
+
+.featured-content h2 {
+    text-shadow: 2px 2px 3px #333;
+    margin: 10px 0 0 0;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.featured-content p {
+    text-shadow: 2px 2px 3px #333;
+    margin: 10px 0 0 0;
 }
 
 .author-info {
     display: flex;
     align-items: center;
     margin-top: 15px;
+    text-shadow: 2px 2px 1px #333;
 }
 
 .author-name {
@@ -69,38 +97,60 @@
 /* Article List */
 .article-list {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 25px;
+    width: 100%;
+    margin-top: 30px;
+    margin-bottom: 50px;
 }
 
 .article-card {
-    background: white;
-    border-radius: 10px;
+    max-width: 300px;
+    height: 100%;
+    border: 1px solid #ddd;
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+    background-color: #fff;
+    cursor: pointer;
+}
+
+.article-card:hover {
+    transform: translateY(-5px);
 }
 
 .article-card img {
     width: 100%;
-    height: 200px;
+    height: 180px;
     object-fit: cover;
 }
 
 .article-content {
-    padding: 15px;
+    padding: 16px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
-.category {
-    color: #0f9d58;
-    font-weight: bold;
-    font-size: 14px;
+.article-content h3 {
+    margin: 8px 0;
+    font-size: 18px;
 }
 
 .article-footer {
     display: flex;
     justify-content: space-between;
     font-size: 14px;
-    color: gray;
+    color: #777;
+    margin-top: 12px;
+}
+
+.category {
+    color: #0f9d58;
+    font-weight: bold;
+    font-size: 14px;
 }
 
 /* Load More Button */
@@ -118,24 +168,22 @@
 }
 
 /* Pagination */
-.pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    margin-top: 20px;
+.pagination-btn {
+    @apply relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50;
 }
 
-.page-btn {
-    background: none;
-    border: 1px solid #ddd;
-    padding: 8px 12px;
-    border-radius: 5px;
-    cursor: pointer;
+.pagination-page {
+    @apply relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 ring-1 ring-gray-300 hover:bg-gray-50;
 }
 
-.page-btn.active {
-    background-color: #0f9d58;
-    color: white;
-    border: none;
+.pagination-page-active {
+    @apply bg-green-600 text-white ring-green-600 font-semibold;
+}
+
+.pagination-arrow {
+    @apply relative inline-flex items-center px-2 py-2 text-gray-400 ring-1 ring-gray-300 hover:bg-gray-50 disabled:opacity-50;
+}
+
+.pagination-container {
+    margin: 50px auto;
 }

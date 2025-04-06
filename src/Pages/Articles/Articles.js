@@ -1,70 +1,113 @@
 import React, { useState } from "react";
 import "./Articles.css";
+import maldives from "../../assets/images/Cities/maldives.png";
+import marrakech from "../../assets/images/Cities/marrakech.png";
+import winterlondon from "../../assets/images/Cities/winterlondon.png";
+import amazonrainforest from "../../assets/images/Cities/amazonrainforest.png";
+import romanticeurope from "../../assets/images/Cities/romanticeurope.png";
 
-const articlesData = [
-    {
-        category: "Travel Tips",
-        title: "Maldives on a Budget",
-        description: "How to experience luxury paradise without breaking the bank.",
-        author: "Emma Davis",
-        date: "March 3, 2025",
-        image: "https://source.unsplash.com/400x300/?maldives,travel",
-    },
-    {
-        category: "Culture",
-        title: "Exploring Marrakech’s Medina",
-        description: "Navigate the enchanting maze of Morocco’s most famous marketplace.",
-        author: "Ahmed Hassan",
-        date: "March 1, 2025",
-        image: "https://source.unsplash.com/400x300/?morocco,market",
-    },
-    {
-        category: "Adventure",
-        title: "Chasing Northern Lights",
-        description: "Complete guide to viewing the Aurora Borealis in Iceland.",
-        author: "Nina Berg",
-        date: "February 28, 2025",
-        image: "https://source.unsplash.com/400x300/?aurora,northernlights",
-    },
-    // Thêm nhiều bài viết khác nếu cần...
-];
+// Giả lập nhiều bài viết để thử phân trang
+const articlesData = Array.from({ length: 24 }, (_, i) => ({
+    category: "Sample Category",
+    title: `Article Title ${i + 1}`,
+    description: `Sample description for article ${i + 1}`,
+    author: `Author ${i + 1}`,
+    date: `April ${i + 1}, 2025`,
+    image: [maldives, marrakech, winterlondon, amazonrainforest][i % 4],
+}));
 
-function Articles() {
-    const [articles, setArticles] = useState(articlesData);
-    const [page, setPage] = useState(1);
-    const articlesPerPage = 3;
-    const totalPages = 6;
+const Pagination = ({ page, totalPages, handlePageChange }) => {
+    const pagesPerGroup = 6;
+    const totalGroups = Math.ceil(totalPages / pagesPerGroup);
+    const currentGroup = Math.floor((page - 1) / pagesPerGroup);
+    const [visibleGroup, setVisibleGroup] = useState(currentGroup);
 
-    const handleLoadMore = () => {
-        const newArticles = [
-            {
-                category: "Nature",
-                title: "Discovering the Amazon Rainforest",
-                description: "A journey into the heart of the world's largest rainforest.",
-                author: "Carlos Mendez",
-                date: "February 20, 2025",
-                image: "https://source.unsplash.com/400x300/?amazon,rainforest",
-            },
-        ];
-        setArticles([...articles, ...newArticles]);
+    const startPage = visibleGroup * pagesPerGroup + 1;
+    const endPage = Math.min(startPage + pagesPerGroup - 1, totalPages);
+
+    const showNextGroup = () => {
+        if (visibleGroup < totalGroups - 1) {
+            setVisibleGroup(visibleGroup + 1);
+        }
     };
 
+    const showPrevGroup = () => {
+        if (visibleGroup > 0) {
+            setVisibleGroup(visibleGroup - 1);
+        }
+    };
+
+    return (
+        <div className="pagination-container flex justify-center mt-4 gap-2 flex-wrap">
+            <button
+                onClick={() => handlePageChange(page - 1)}
+                disabled={page === 1}
+                className="pagination-arrow rounded-l-md"
+            >
+                ←
+            </button>
+
+            {visibleGroup > 0 && (
+                <button onClick={showPrevGroup} className="pagination-page">
+                    ...
+                </button>
+            )}
+
+            {[...Array(endPage - startPage + 1)].map((_, index) => {
+                const pageNumber = startPage + index;
+                return (
+                    <button
+                        key={pageNumber}
+                        onClick={() => handlePageChange(pageNumber)}
+                        className={`pagination-page ${page === pageNumber ? "pagination-page-active" : ""}`}
+                    >
+                        {pageNumber}
+                    </button>
+                );
+            })}
+
+            {visibleGroup < totalGroups - 1 && (
+                <button onClick={showNextGroup} className="pagination-page">
+                    ...
+                </button>
+            )}
+
+            <button
+                onClick={() => handlePageChange(page + 1)}
+                disabled={page === totalPages}
+                className="pagination-arrow rounded-r-md"
+            >
+                →
+            </button>
+        </div>
+    );
+};
+
+function Articles() {
+    const [page, setPage] = useState(1);
+    const articlesPerPage = 8;
+    const totalPages = Math.ceil(articlesData.length / articlesPerPage);
+
     const handlePageChange = (newPage) => {
-        setPage(newPage);
+        if (newPage >= 1 && newPage <= totalPages) {
+            setPage(newPage);
+        }
     };
 
     return (
         <div className="articles-container">
             <div className="featured-article">
+                <div className="featured-image">
+                    <img src={romanticeurope} alt="Featured" />
+                </div>
                 <div className="featured-content">
                     <span className="featured-badge">Featured</span>
-                    <h2>10 Most Beautiful Hidden Gems in Europe</h2>
-                    <p>Discover unexplored destinations that will take your breath away</p>
+                    <h2>Five ultra-romantic European trips for couples</h2>
+                    <p>From island hopping in Greece to hiking in Scotland</p>
                     <div className="author-info">
-
                         <div>
-                            <p className="author-name">Sarah Johnson</p>
-                            <p className="date">March 15, 2025</p>
+                            <p className="author-name">Sarah Khan</p>
+                            <p className="date">August 27, 2022</p>
                         </div>
                     </div>
                 </div>
@@ -78,38 +121,33 @@ function Articles() {
                 <button>Culture</button>
                 <button>Adventure</button>
             </div>
+
             <div className="article-list">
-                {articles.slice(0, articlesPerPage).map((article, index) => (
-                    <div className="article-card" key={index}>
-                        <img src={article.image} alt={article.title} />
-                        <div className="article-content">
-                            <span className="category">{article.category}</span>
-                            <h3>{article.title}</h3>
-                            <p>{article.description}</p>
-                            <div className="article-footer">
-                                <span className="author">{article.author}</span>
-                                <span className="date">{article.date}</span>
+                {articlesData
+                    .slice((page - 1) * articlesPerPage, page * articlesPerPage)
+                    .map((article, index) => (
+                        <div className="article-card" key={index}>
+                            <img src={article.image} alt={article.title} />
+                            <div className="article-content">
+                                <div className="upper-content">
+                                    <span className="category">{article.category}</span>
+                                    <h3>{article.title}</h3>
+                                    <p>{article.description}</p>
+                                </div>
+                                <div className="article-footer">
+                                    <span className="author">{article.author}</span>
+                                    <span className="date">{article.date}</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    ))}
             </div>
 
-            <button className="load-more-btn" onClick={handleLoadMore}>Load More Articles</button>
-
-            <div className="pagination">
-                {[...Array(totalPages)].map((_, index) => (
-                    <button
-                        key={index}
-                        className={page === index + 1 ? "page-btn active" : "page-btn"}
-                        onClick={() => handlePageChange(index + 1)}
-                    >
-                        {index + 1}
-                    </button>
-                ))}
-                <button className="page-btn">...</button>
-                <button className="page-btn">→</button>
-            </div>
+            <Pagination
+                page={page}
+                totalPages={totalPages}
+                handlePageChange={handlePageChange}
+            />
         </div>
     );
 }

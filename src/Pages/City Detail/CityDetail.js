@@ -308,7 +308,7 @@ const CityDetail = () => {
             </div>
 
             <div className="travel-advice-container">
-                <h2 className="title">Da Nang travel advice</h2>
+                <h2 className="title"><span className="city-name">Da Nang</span> travel advice</h2>
                 <p className="subtitle">
                     These questions and answers were created by AI, using the most common questions travelers ask in the forums.
                 </p>

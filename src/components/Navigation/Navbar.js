@@ -105,11 +105,10 @@ function Navbar() {
                   <Link
                     key={item.name}
                     to={item.path}
-                    className={`flex items-center px-3 py-2 text-sm font-medium ${
-                      isActive(item.path)
-                        ? "text-green-600 border-b-2 border-green-600"
-                        : "text-gray-700 hover:text-green-600"
-                    }`}
+                    className={`flex items-center px-3 py-2 text-sm font-medium ${isActive(item.path)
+                      ? "text-green-600 border-b-2 border-green-600"
+                      : "text-gray-700 hover:text-green-600"
+                      }`}
                   >
                     {item.icon}
                     {item.name}
@@ -186,35 +185,31 @@ function Navbar() {
                         john.traveler@example.com
                       </p>
                     </div>
-                    <a
-                      href="#"
+                    <Link to="/tripguide/user-profile"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center"
                     >
                       <CgProfile className="inline-block mr-2 text-gray-500" />
                       Profile
-                    </a>
-                    <a
-                      href="#"
+                    </Link>
+                    <Link to="/tripguide/mytrip"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center"
                     >
                       <FaMapMarkedAlt className="inline-block mr-2 text-gray-500" />
                       My Trips
-                    </a>
-                    <a
-                      href="#"
+                    </Link>
+                    <Link to="/tripguide/saved-places"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center"
                     >
                       <FaMapMarkerAlt className="inline-block mr-2 text-gray-500" />
                       Saved Places
-                    </a>
+                    </Link>
                     <div className="border-t border-gray-100 mt-1"></div>
-                    <a
-                      href="#"
+                    <Link
                       className="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center transition-colors"
                     >
                       <LuLogOut className="inline-block mr-2" />
                       Logout
-                    </a>
+                    </Link>
                   </div>
                 )}
               </div>

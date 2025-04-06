@@ -37,6 +37,16 @@ function App() {
             }
           />
           <Route
+            path="/tripguide/user-profile"
+            element={
+              <>
+                <Navbar />
+                <Profile />
+                <Footer />
+              </>
+            }
+          />
+          <Route
             path="/tripguide/articles"
             element={
               <>
