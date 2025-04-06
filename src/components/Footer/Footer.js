@@ -11,6 +11,7 @@ import weblogo from "../../views/webLogo.png";
 function Footer() {
   return (
     <footer className="footer">
+      <hr />
       <div className="footer-container">
         <div className="footer-section">
           <span className="logo">

@@ -6,14 +6,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHeart as solidHeart } from '@fortawesome/free-solid-svg-icons';
 import { faHeart as regularHeart } from '@fortawesome/free-regular-svg-icons';
 import trendcast from "../../views/trendcast.png";
-import golemcafe from "../../assets/images/golemcafe.png";
-import marblemountains from "../../assets/images/marblemountains.png";
-import danangmuseum from "../../assets/images/danangmuseum.png";
-import dragonbridge from "../../assets/images/dragonbridge.png";
-import burgerbros from "../../assets/images/burgerbros.png";
-import banhxeobaduong from "../../assets/images/banhxeobaduong.png";
-import madamelan from "../../assets/images/madamelan.png";
-import quancomhuengon from "../../assets/images/quancomhuengon.png";
+import golemcafe from "../../assets/images/FoodDrink/golemcafe.png";
+import marblemountains from "../../assets/images/Cities/marblemountains.png";
+import danangmuseum from "../../assets/images/Cities/danangmuseum.png";
+import dragonbridge from "../../assets/images/Cities/dragonbridge.png";
+import burgerbros from "../../assets/images/FoodDrink/burgerbros.png";
+import banhxeobaduong from "../../assets/images/FoodDrink/banhxeobaduong.png";
+import madamelan from "../../assets/images/FoodDrink/madamelan.png";
+import quancomhuengon from "../../assets/images/FoodDrink/quancomhuengon.png";
 
 const initialPlaces = [
     { id: 1, name: "Golem Cafe", image: golemcafe, saved: false },

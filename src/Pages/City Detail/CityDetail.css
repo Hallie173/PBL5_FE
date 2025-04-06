@@ -104,27 +104,33 @@
     margin-top: 10px;
 }
 
-.where-to-go {
+.where-to-go,
+.where-to-stay,
+.food-and-drink {
     margin: 50px auto;
 }
 
-.where-to-go-firstline {
+.where-to-go-firstline,
+.where-to-stay-firstline,
+.food-and-drink-firstline {
     display: flex;
     justify-content: space-between;
 }
 
-.where-to-go-firstline .see-all {
+.see-all {
     text-align: right;
     font-weight: bold;
     text-decoration: underline;
     font-size: 20px;
 }
 
-.where-to-go-firstline .see-all:hover {
+.see-all:hover {
     color: #2d7a61;
 }
 
-.where-to-go h2 {
+.where-to-go h2,
+.where-to-stay h2,
+.food-and-drink h2 {
     font-size: 25px;
     font-weight: bold;
     margin: 15px 0;
@@ -204,4 +210,49 @@ h3 {
     display: flex;
     align-items: center;
     gap: 5px;
+}
+
+.travel-advice-container {
+    width: 100%;
+    margin: 60px auto;
+    padding: 0;
+}
+
+.title {
+    font-size: 25px;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    color: #555;
+    margin-bottom: 20px;
+}
+
+.faq-list {
+    border-top: 1px solid #ddd;
+}
+
+.faq-item {
+    border-bottom: 1px solid #eee;
+}
+
+.faq-question {
+    cursor: pointer;
+    padding: 15px 0;
+    display: flex;
+    justify-content: space-between;
+    font-weight: 500;
+    font-size: 16px;
+}
+
+.faq-toggle-icon {
+    font-size: 18px;
+    color: #888;
+}
+
+.faq-answer {
+    padding: 10px 0 20px;
+    color: #444;
+    line-height: 1.5;
 }
