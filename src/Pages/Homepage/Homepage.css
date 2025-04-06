@@ -1,234 +1,283 @@
 .homepage {
-    padding: 20px;
-    margin: 0 auto;
+  padding: 40px 20px;
+  margin: 0 auto;
+  max-width: 1200px;
+  width: 100%;
+  color: #333;
 }
 
-/* Phần tìm kiếm */
+/* Search Section */
 .search-container {
-    text-align: center;
-    margin-bottom: 30px;
-    padding: 20px 0;
+  text-align: center;
+  margin-bottom: 50px;
+  padding: 10px 0 30px;
 }
 
 .search-title {
-    font-size: 32px;
-    font-weight: bold;
-    margin-bottom: 20px;
-    color: #333;
+  font-size: 2.5rem;
+  font-weight: 600;
+  margin-bottom: 25px;
+  color: #222;
 }
 
 .search-box {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: white;
-    border-radius: 30px;
-    border: 1px solid #ddd;
-    padding: 10px 20px;
-    max-width: 600px;
-    margin: 0 auto;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: white;
+  border-radius: 50px;
+  border: none;
+  padding: 5px 8px 5px 25px;
+  max-width: 650px;
+  width: 90%;
+  margin: 0 auto;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.search-box:focus-within {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
 }
 
 .search-icon {
-    margin-right: 10px;
-    color: gray;
+  font-size: 1.2rem;
+  margin-right: 15px;
+  color: #2d7a61;
 }
 
 .search-box input {
-    border: none;
-    outline: none;
-    flex: 1;
-    padding: 8px;
-    font-size: 16px;
+  border: none;
+  outline: none;
+  flex: 1;
+  padding: 15px 0;
+  font-size: 1rem;
+  background: transparent;
 }
 
 .search-button {
-    background: #2d7a61;
-    color: white;
-    border: none;
-    padding: 8px 20px;
-    border-radius: 25px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.2s ease;
+  background: #2d7a61;
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 50px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
 }
 
 .search-button:hover {
-    background: #1e5c48;
+  background: #1e5c48;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(45, 122, 97, 0.3);
 }
 
-/* Ảnh nổi bật */
+/* Featured Image */
 .featured-container {
-    position: relative;
-    max-width: 1000px;
-    margin: 0 auto;
-    overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  position: relative;
+  max-width: 1100px;
+  width: 95%;
+  margin: 0 auto 60px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  transition: transform 0.3s ease;
+}
+
+.featured-container:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
 }
 
 .featured-image {
-    width: 100%;
-    border-radius: 10px;
-    display: block;
+  width: 100%;
+  display: block;
+  transition: transform 2s ease;
+}
+
+.featured-container:hover .featured-image {
+  transform: scale(1.03);
 }
 
 .featured-overlay {
-    position: absolute;
-    bottom: 30px;
-    left: 30px;
-    text-align: left;
-    font-size: 20px;
-    color: white;
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 40px 40px;
+  background: linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.8) 0%,
+    rgba(0, 0, 0, 0.4) 60%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  color: white;
+  border-radius: 0 0 16px 16px;
 }
 
 .featured-overlay h2 {
-    font-size: 28px;
-    margin-bottom: 10px;
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.featured-overlay p {
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+  opacity: 0.9;
 }
 
 .featured-button {
-    background: black;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    margin-top: 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.2s ease;
+  background: white;
+  color: #222;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 50px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
 }
 
 .featured-button:hover {
-    background: #333;
+  background: #f0f0f0;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
 .homepage hr {
-    margin: 50px auto 50px auto;
-    width: 80%;
-    height: 1px;
+  margin: 30px auto 50px;
+  width: 95%;
+  height: 1px;
+  border: none;
+  background-color: #eee;
 }
 
-/* Recently viewed */
-.recently-viewed {
-    width: 80%;
-    margin: 30px auto;
+/* Content Sections */
+.content-section {
+  width: 95%;
+  margin: 0 auto 60px;
 }
 
-.recently-viewed h2 {
-    font-size: 24px;
-    margin-bottom: 15px;
-    text-align: left;
-    font-weight: bold;
+/* Section Headings */
+.section-title {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+  position: relative;
+  padding-bottom: 10px;
 }
 
+.section-title::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 50px;
+  height: 3px;
+  background: #2d7a61;
+  border-radius: 2px;
+}
+
+.section-subtitle {
+  font-style: italic;
+  margin-bottom: 25px;
+  font-size: 1rem;
+  color: #666;
+}
+
+/* Grid Items */
 .picture-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 25px;
-    width: 100%;
-}
-
-.item-content {
-    position: relative;
-    display: inline-block;
-    overflow: hidden;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s ease;
-}
-
-.item-content:hover {
-    transform: translateY(-5px);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 30px;
+  width: 100%;
 }
 
 .picture-item {
-    text-align: center;
+  cursor: pointer;
+}
+
+.item-content {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  background: white;
+  height: 100%;
+}
+
+.item-content:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
 }
 
 .picture-item img {
-    max-width: 300px;
-    width: 100%;
-    aspect-ratio: 100/75;
-    border-radius: 12px;
-    object-fit: cover;
-    display: block;
-    transition: transform 0.3s ease;
+  width: 100%;
+  aspect-ratio: 4/3;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.6s ease;
 }
 
 .item-content:hover img {
-    transform: scale(1.05);
+  transform: scale(1.08);
 }
 
-.picture-item p {
-    max-width: 300px;
-    width: 100%;
-    text-overflow: ellipsis;
-    white-space: normal;
-    text-align: left;
-    font-size: 20px;
-    font-weight: bold;
-    margin: 7px auto;
+.item-details {
+  padding: 15px;
 }
 
-.you-might-like {
-    width: 80%;
-    margin: 30px auto;
-}
-
-.you-might-like h2 {
-    text-align: left;
-    font-size: 24px;
-    margin: 70px auto 0 auto;
-    font-weight: bold;
-}
-
-.you-might-like .like-recommend {
-    font-style: italic;
-    text-align: left;
-    margin: 10px auto 20px auto;
-    margin-top: 10px;
-    font-weight: bold;
-    color: #333;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
+.item-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #222;
 }
 
 .save-overlay {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    color: white;
-    z-index: 5;
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  z-index: 5;
 }
 
 .save-button-overlay {
-    width: 30px;
-    height: 30px;
-    padding: 5px;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: white;
-    border: none;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    cursor: pointer;
-    transition: transform 0.2s ease;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: white;
+  border: none;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 .save-button-overlay:hover {
-    transform: scale(1.1);
+  transform: scale(1.15);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
 .save-button-overlay .heart-icon-recent {
-    margin: auto;
-    font-size: 18px;
-    color: #666;
+  font-size: 18px;
+  color: #888;
+  transition: all 0.3s ease;
+}
+
+.save-button-overlay:hover .heart-icon-recent {
+  color: #666;
 }
 
 .save-button-overlay.saved .heart-icon-recent {
-    color: red;
+  color: #e74c3c;
 }

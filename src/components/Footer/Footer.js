@@ -13,7 +13,7 @@ import weblogo from "../../views/webLogo.png";
 
 function Footer() {
   return (
-    <footer className="bg-white border-t border-gray-200 pt-10 pb-6">
+    <footer className="bg-white border-t border-gray-200 pt-10 pb-6 mt-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Top section with logo and sections */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
