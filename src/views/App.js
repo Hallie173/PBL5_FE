@@ -91,7 +91,7 @@ function App() {
             }
           />
           <Route
-            path="/tripguide/citydetail"
+            path="/tripguide/citydetail/:id"
             element={
               <>
                 <Navbar />

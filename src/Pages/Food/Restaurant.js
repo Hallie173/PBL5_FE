@@ -31,8 +31,8 @@ const Restaurant = () => {
         const fetchRestaurant = async () => {
             try {
                 // Lấy thông tin nhà hàng
-                const restaurantResponse = await axios.get(`${BASE_URL}/restaurants/${restaurantId}`);
-                const restaurantData = restaurantResponse.data.data; // Dữ liệu nằm trong data.data theo controller
+                const restaurantResponse = await axios.get(`${BASE_URL}/attractions/${restaurantId}`);
+                const restaurantData = restaurantResponse.data; // Dữ liệu nằm trong data.data theo controller
                 setRestaurant(restaurantData);
 
                 // Comment lại phần lấy reviews
@@ -131,7 +131,7 @@ const Restaurant = () => {
                     <p className="open-status">Open until {restaurant.close_time}</p>
                     <p className="location">📍 {restaurant.address}</p>
                     <p className="contact">🌐 Website | 📞 {restaurant.phone_number}</p>
-                    <h2>Location</h2>
+                    <h1>Location</h1>
                     <div>
                         <MapComponent address={restaurant.address} />
                     </div>
