@@ -23,12 +23,8 @@
         justify-content: space-between;
         align-items: center;
 
-        .claim-status {
-            font-size: 18px;
-            color: gray;
-            font-weight: normal;
-            text-decoration: underline dotted;
-            margin-left: 10px;
+        h1 {
+            margin: 20px 0 8px 0;
         }
     }
 
@@ -43,7 +39,7 @@
 
         .share-icon,
         .review-icon,
-        .heart-icon {
+        .save-restaurant-icon {
             margin-right: 5px;
         }
 
@@ -53,12 +49,73 @@
         }
     }
 
+    .save-restaurant.saved .save-restaurant-icon {
+        color: red;
+    }
+
+    .restaurant-rating {
+        width: 100%;
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 50px;
+        margin-bottom: 30px;
+
+        span {
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            vertical-align: middle;
+        }
+
+        .rate-star {
+            color: #2d7a61;
+            font-size: 25px;
+            line-height: 1;
+        }
+
+        .star-container {
+            display: flex;
+            align-items: center;
+
+            .star {
+                width: 24px;
+                height: 24px;
+                background-size: cover;
+                position: relative;
+
+                &.full {
+                    background-image: url("https://upload.wikimedia.org/wikipedia/commons/4/49/Star_full.svg");
+                }
+
+                &.empty {
+                    background-image: url("https://upload.wikimedia.org/wikipedia/commons/2/29/Star_empty.svg");
+                }
+
+                &.partial {
+                    background-image: url("https://upload.wikimedia.org/wikipedia/commons/4/49/Star_full.svg");
+
+                    &::after {
+                        content: "";
+                        position: absolute;
+                        top: 0;
+                        left: var(--percent);
+                        width: calc(100% - var(--percent));
+                        height: 100%;
+                        background: white;
+                    }
+                }
+            }
+        }
+    }
+
     .rating {
-        margin-bottom: 20px;
-        text-align: left;
-        width: 50%;
-        display: grid;
-        grid-template-columns: 1fr 1fr 2fr;
+        max-width: 300px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        margin: auto;
 
         span {
             font-size: 15px;
@@ -142,16 +199,23 @@
         width: 90%;
         margin: auto;
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         gap: 10px;
 
         .location-info {
             width: 75%;
             text-align: left;
 
+            h2 {
+                font-size: 25px;
+                font-weight: bold;
+                margin: 30px 0 10px 0;
+            }
+
             .open-status {
                 color: #2d7a61;
                 font-weight: bold;
+                margin-bottom: 5px;
             }
         }
 
@@ -164,6 +228,8 @@
             padding: 10px 20px;
 
             h2 {
+                font-size: 25px;
+                font-weight: bold;
                 margin: 0;
             }
 
@@ -247,24 +313,10 @@
         display: block;
         text-align: left;
 
-        .nearby-list {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .nearby-item {
-            span {
-                display: block;
-                margin: 5px auto;
-                text-align: center;
-                font-weight: bold;
-            }
-
-            img {
-                width: 200px;
-                height: 150px;
-            }
+        h2 {
+            font-size: 25px;
+            font-weight: bold;
+            margin: 50px 0 10px 0;
         }
     }
 }

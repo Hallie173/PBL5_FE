@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./Restaurant.scss";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSquareShareNodes, faPen } from '@fortawesome/free-solid-svg-icons';
-import { faHeart } from '@fortawesome/free-regular-svg-icons';
+import { faImages, faHeart as regularHeart } from '@fortawesome/free-regular-svg-icons';
+import { faHeart as solidHeart } from '@fortawesome/free-solid-svg-icons';
 import comgaAHai1 from "../../assets/images/FoodDrink/comgaahai1.png";
 import comgaAHai2 from "../../assets/images/FoodDrink/comgaahai2.png";
 import comgaAHai3 from "../../assets/images/FoodDrink/comgaahai3.png";
@@ -12,10 +14,16 @@ import cozy from "../../assets/images/Hotel/cozy.png";
 import wink from "../../assets/images/Hotel/wink.png";
 import big3 from "../../assets/images/FoodDrink/3big.png";
 import tuongtheater from "../../assets/images/Cities/tuongtheater.png";
-import vancocktail from "../../assets/images/FoodDrink/vancocktail.png";
 import { useParams } from "react-router-dom";
 import MapComponent from "../../components/GoogleMap/GoogleMap";
 import BASE_URL from "../../constants/BASE_URL";
+
+const initialNearbyPlaces = [
+    { id: 1, name: "Cozy Danang Boutique Hotel", image: cozy, saved: false },
+    { id: 2, name: "Wink Hotel Danang Centre", image: wink, saved: false },
+    { id: 3, name: "3 Big - Nuong & Lau", image: big3, saved: false },
+    { id: 4, name: "Nguyen Hien Dinh Theatre", image: tuongtheater, saved: false },
+];
 
 const Restaurant = () => {
     const { id: restaurantId } = useParams(); // Lấy restaurantId từ URL
@@ -23,6 +31,9 @@ const Restaurant = () => {
     // const [reviews, setReviews] = useState([]); // Comment lại state reviews
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [nearbyPlaces, setNearbyPlaces] = useState(initialNearbyPlaces);
+    const navigate = useNavigate();
+    const [saved, setSaved] = useState(false);
 
     useEffect(() => {
         if (!restaurantId) return;
@@ -83,6 +94,26 @@ const Restaurant = () => {
         );
     };
 
+    const handlenavigate_attraction = async (attraction_id) => {
+        try {
+            console.log("Attraction_id", attraction_id);
+            navigate(`/tripguide/foodpage/${attraction_id}`);
+        } catch (error) {
+            console.error("Lỗi khi gọi API:", error);
+        }
+    };
+
+    const toggleSaveNearby = (id) => {
+        const updatedPlaces = nearbyPlaces.map((place) =>
+            place.id === id ? { ...place, saved: !place.saved } : place
+        );
+        setNearbyPlaces(updatedPlaces);
+    };
+
+    const toggleSaveRestaurant = () => {
+        setSaved(!saved);
+    };
+
     return (
         <div className="restaurant-container">
             <nav className="breadcrumb">
@@ -91,7 +122,7 @@ const Restaurant = () => {
 
             <header className="restaurant-header">
                 <div className="name-and-action">
-                    <h1>{restaurant.name} <span className="claim-status">Unclaimed</span></h1>
+                    <h1>{restaurant.name}</h1>
                     <div className="restaurant-action">
                         <button className="share-restaurant">
                             <FontAwesomeIcon icon={faSquareShareNodes} className="share-icon" />
@@ -103,13 +134,15 @@ const Restaurant = () => {
                                 Review
                             </button>
                         </a>
-                        <button className="save-restaurant">
-                            <FontAwesomeIcon icon={faHeart} className="heart-icon" />
-                            Save
+                        <button className={`save-restaurant ${saved ? "saved" : ""}`} onClick={toggleSaveRestaurant}>
+                            <FontAwesomeIcon
+                                icon={saved ? solidHeart : regularHeart}
+                                className="save-restaurant-icon" />
+                            {saved ? "Saved" : "Save"}
                         </button>
                     </div>
                 </div>
-                <div className="rating">
+                <div className="restaurant-rating">
                     <span className="rate-star">{renderStars(restaurant.average_rating)}</span>
                     <span className="rate-reviews">177 reviews</span>
                     <span className="rate-rank">#144 of 1,619 Restaurants in Da Nang</span>
@@ -131,7 +164,7 @@ const Restaurant = () => {
                     <p className="open-status">Open until {restaurant.close_time}</p>
                     <p className="location">📍 {restaurant.address}</p>
                     <p className="contact">🌐 Website | 📞 {restaurant.phone_number}</p>
-                    <h1>Location</h1>
+                    <h2>Location</h2>
                     <div>
                         <MapComponent address={restaurant.address} />
                     </div>
@@ -192,11 +225,31 @@ const Restaurant = () => {
 
             <div className="nearby">
                 <h2>Best nearby</h2>
-                <div className="nearby-list">
-                    <div className="nearby-item"><img src={cozy} /><span>Cozy Danang Boutique Hotel</span></div>
-                    <div className="nearby-item"><img src={wink} /><span>Wink Hotel Danang Centre</span></div>
-                    <div className="nearby-item"><img src={big3} /><span>3 Big - Nuong & Lau</span></div>
-                    <div className="nearby-item"><img src={tuongtheater} /><span>Nguyen Hien Dinh Theatre</span></div>
+                <div className="picture-grid">
+                    {nearbyPlaces.map((place) => (
+                        <div className="picture-item" key={place.id}>
+                            <div className="item-content">
+                                <img src={place.image} alt={place.name} onClick={() => handlenavigate_attraction(place.attraction_id)}
+                                    style={{ cursor: 'pointer' }} />
+                                <div className="save-overlay">
+                                    <button
+                                        className={`save-button-overlay ${place.saved ? "saved" : ""}`}
+                                        onClick={() => toggleSaveNearby(place.id)}>
+                                        <FontAwesomeIcon
+                                            icon={place.saved ? solidHeart : regularHeart}
+                                            className="heart-icon-recent"
+                                        />
+                                    </button>
+                                </div>
+                            </div>
+                            <p>{place.name}</p>
+                            <div className="rating">
+                                <span className="rate-star">{place.average_rating}{renderStars(place.average_rating)}</span>
+                                <span className="rate-reviews">177 reviews</span>
+                                <span className="rate-rank">No.17</span>
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
         </div>
