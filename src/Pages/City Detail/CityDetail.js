@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./CityDetail.scss";
 import dragonbridge from "../../assets/images/Cities/dragonbridge.png";
@@ -30,9 +31,11 @@ import rang from "../../assets/images/FoodDrink/rang.png";
 import mocseafood from "../../assets/images/FoodDrink/mocseafood.png";
 import madamelan from "../../assets/images/FoodDrink/madamelan.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faHeart as regularHeart } from '@fortawesome/free-regular-svg-icons';
+import { faImages, faHeart as regularHeart } from '@fortawesome/free-regular-svg-icons';
 import { faHeart as solidHeart } from '@fortawesome/free-solid-svg-icons';
+import { useParams } from "react-router-dom";
 
+import BASE_URL from "../../constants/BASE_URL";
 const images = [danang1, danang2, danang3, danang4];
 
 const initialVisitPlaces = [
@@ -79,18 +82,63 @@ const faqData = [
 ];
 
 const CityDetail = () => {
+    const { id: cityId } = useParams();
+    const [city, setCity] = useState(null);
+    const [image, setImage] = useState(null);
     const [currentIndex, setCurrentIndex] = useState(0);
-
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [placesToVisit, setPlacesToVisit] = useState(initialVisitPlaces);
+    const [placesToEat, setPlacesToEat] = useState(initialEatPlaces);
+    const navigate = useNavigate();
     useEffect(() => {
+        if (!cityId) console.log("Error! K tim thay cityId");
+        setLoading(true);
+        console.log(cityId);
+        const fetchCity = async () => {
+            try {
+                // Lấy thông tin nhà hàng
+                const cityRespone = await axios.get(`${BASE_URL}/city/${cityId}`);
+                // Dữ liệu nằm trong data.data theo controller
+                const citySpecialAttraction = await axios.get(`${BASE_URL}/attractions/special/${cityId}`);
+                const citySpecialRestaurant = await axios.get(`${BASE_URL}/restaurant/special/${cityId}`);
+
+                setCity(cityRespone.data);
+                setPlacesToVisit(citySpecialAttraction.data);
+                setPlacesToEat(citySpecialRestaurant.data);
+                console.log(cityId);
+                console.log(city.name);
+                if (Array.isArray(cityRespone.data.image_url)) {
+                    setImage(cityRespone.data.image_url);
+                } else {
+                    setImage([]); // hoặc xử lý tùy bạn nếu không đúng định dạng
+                }
+
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchCity();
         const interval = setInterval(() => {
             setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
         }, 4000);
         return () => clearInterval(interval);
-    }, []);
+    }, [cityId]);
 
-    const [placesToVisit, setPlacesToVisit] = useState(initialVisitPlaces);
-    const [placesToStay, setPlacesToStay] = useState(initialStayPlaces);
-    const [placesToEat, setPlacesToEat] = useState(initialEatPlaces);
+    const renderStars = (rating) => {
+        const fullStars = Math.floor(rating);
+        const halfStar = rating % 1 !== 0;
+        const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+        return (
+            <>
+                {"★".repeat(fullStars)}
+                {halfStar && "☆"}
+                {"☆".repeat(emptyStars)}
+            </>
+        );
+    };
 
     const toggleSaveVisitCity = (id) => {
         const updatedPlaces = placesToVisit.map((place) =>
@@ -99,12 +147,6 @@ const CityDetail = () => {
         setPlacesToVisit(updatedPlaces);
     };
 
-    const toggleSaveStayCity = (id) => {
-        const updatedPlaces = placesToStay.map((place) =>
-            place.id === id ? { ...place, saved: !place.saved } : place
-        );
-        setPlacesToStay(updatedPlaces);
-    };
 
     const toggleSaveEatCity = (id) => {
         const updatedPlaces = placesToEat.map((place) =>
@@ -124,10 +166,19 @@ const CityDetail = () => {
         setActiveIndex(index === activeIndex ? null : index);
     };
 
+    const handlenavigate_attraction = async (attraction_id) => {
+        try {
+            console.log("Attraction_id", attraction_id);
+            navigate(`/tripguide/foodpage/${attraction_id}`);
+        } catch (error) {
+            console.error("Lỗi khi gọi API:", error);
+        }
+    };
+
     return (
         <div className="city-detail-container">
             <nav className="city-breadcrumb">
-                <span>Asia &gt; Vietnam &gt; Da Nang</span>
+                <span>Vietnam &gt; {city.name}</span>
             </nav>
 
             <div className="slider">
@@ -148,7 +199,7 @@ const CityDetail = () => {
             </div>
 
             <div className="name-and-action">
-                <h1>Da Nang, Viet Nam</h1>
+                <h1>{city.name}</h1>
                 <div className="city-save-action">
                     <button className={`save-city ${saved ? "saved" : ""}`} onClick={toggleSaveCity}>
                         <FontAwesomeIcon
@@ -161,11 +212,7 @@ const CityDetail = () => {
             </div>
 
             <div className="city-overview">
-                Da Nang is a beautiful coastal city in central Vietnam, famous for its pristine beaches, unique bridges, and rich culinary scene.
-                This city is an ideal destination for travelers, featuring breathtaking attractions such as Ba Na Hills, Marble Mountains, and Son Tra Peninsula.
-                The Dragon Bridge, a symbol of Da Nang, captivates visitors every weekend with its spectacular fire and water performances.
-                Beyond its stunning landscapes, Da Nang is known for its modern yet friendly atmosphere and serves as a gateway to the ancient town of Hoi An and the My Son Sanctuary.
-                With a perfect blend of nature, culture, and cuisine, Da Nang is a must-visit destination for every traveler.
+                {city.description}
             </div>
 
             <div className="where-to-go">
@@ -177,7 +224,8 @@ const CityDetail = () => {
                     {placesToVisit.map((place) => (
                         <div className="picture-item" key={place.id}>
                             <div className="item-content">
-                                <img src={place.image} alt={place.name} />
+                                <img src={place.image_url} alt={place.name} onClick={() => handlenavigate_attraction(place.attraction_id)}
+                                    style={{ cursor: 'pointer' }} />
                                 <div className="save-overlay">
                                     <button
                                         className={`save-button-overlay ${place.saved ? "saved" : ""}`}
@@ -191,7 +239,7 @@ const CityDetail = () => {
                             </div>
                             <p>{place.name}</p>
                             <div className="rating">
-                                <span className="rate-star">*****</span>
+                                <span className="rate-star">{place.average_rating}{renderStars(place.average_rating)}</span>
                                 <span className="rate-reviews">177 reviews</span>
                                 <span className="rate-rank"></span>
                             </div>
@@ -200,37 +248,7 @@ const CityDetail = () => {
                 </div>
             </div>
 
-            <div className="where-to-stay">
-                <div className="where-to-stay-firstline">
-                    <h2>Where to stay?</h2>
-                    <button className="see-all">See all</button>
-                </div>
-                <div className="picture-grid">
-                    {placesToStay.map((place) => (
-                        <div className="picture-item" key={place.id}>
-                            <div className="item-content">
-                                <img src={place.image} alt={place.name} />
-                                <div className="save-overlay">
-                                    <button
-                                        className={`save-button-overlay ${place.saved ? "saved" : ""}`}
-                                        onClick={() => toggleSaveStayCity(place.id)}>
-                                        <FontAwesomeIcon
-                                            icon={place.saved ? solidHeart : regularHeart}
-                                            className="heart-icon-recent"
-                                        />
-                                    </button>
-                                </div>
-                            </div>
-                            <p>{place.name}</p>
-                            <div className="rating">
-                                <span className="rate-star">*****</span>
-                                <span className="rate-reviews">177 reviews</span>
-                                <span className="rate-rank"></span>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
+            {/*  */}
 
             <div className="food-and-drink">
                 <div className="food-and-drink-firstline">
@@ -241,7 +259,7 @@ const CityDetail = () => {
                     {placesToEat.map((place) => (
                         <div className="picture-item" key={place.id}>
                             <div className="item-content">
-                                <img src={place.image} alt={place.name} />
+                                <img src={place.image_url} alt={place.name} />
                                 <div className="save-overlay">
                                     <button
                                         className={`save-button-overlay ${place.saved ? "saved" : ""}`}
@@ -256,7 +274,7 @@ const CityDetail = () => {
                             </div>
                             <p>{place.name}</p>
                             <div className="rating">
-                                <span className="rate-star">*****</span>
+                                <span className="rate-star">{place.average_rating} {renderStars(place.average_rating)}</span>
                                 <span className="rate-reviews">177 reviews</span>
                                 <span className="rate-rank"></span>
                             </div>
@@ -336,3 +354,36 @@ const CityDetail = () => {
 };
 
 export default CityDetail;
+
+
+{/* <div className="where-to-stay">
+                <div className="where-to-stay-firstline">
+                    <h2>Where to stay?</h2>
+                    <button className="see-all">See all</button>
+                </div>
+                <div className="picture-grid">
+                    {placesToStay.map((place) => (
+                        <div className="picture-item" key={place.id}>
+                            <div className="item-content">
+                                <img src={place.image} alt={place.name} />
+                                <div className="save-overlay">
+                                    <button
+                                        className={`save-button-overlay ${place.saved ? "saved" : ""}`}
+                                        onClick={() => toggleSaveStayCity(place.id)}>
+                                        <FontAwesomeIcon
+                                            icon={place.saved ? solidHeart : regularHeart}
+                                            className="heart-icon-recent"
+                                        />
+                                    </button>
+                                </div>
+                            </div>
+                            <p>{place.name}</p>
+                            <div className="rating">
+                                <span className="rate-star">*****</span>
+                                <span className="rate-reviews">177 reviews</span>
+                                <span className="rate-rank"></span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div> */}
