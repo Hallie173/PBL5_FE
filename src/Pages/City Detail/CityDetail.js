@@ -91,6 +91,7 @@ const CityDetail = () => {
     const [placesToVisit, setPlacesToVisit] = useState(initialVisitPlaces);
     const [placesToEat, setPlacesToEat] = useState(initialEatPlaces);
     const navigate = useNavigate();
+
     useEffect(() => {
         if (!cityId) console.log("Error! K tim thay cityId");
         setLoading(true);

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import "./Profile.scss";
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
@@ -6,15 +6,22 @@ import { faPenToSquare } from "@fortawesome/free-solid-svg-icons";
 import { faCalendarDays } from "@fortawesome/free-solid-svg-icons";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faCamera } from "@fortawesome/free-solid-svg-icons";
+import { faPen } from "@fortawesome/free-solid-svg-icons";
 import RecentTrips from "./RecentTrips";
 import RecentSave from "./RecentSave";
 import RecentReviews from "./RecentReviews";
 
 function Profile() {
+    const [showUploadBox, setShowUpLoadBox] = useState(false);
+    const [activeTab, setActiveTab] = useState("trips");
+
+
     return (
         <div className="profile-page">
             <div className="cover-photo">
-                <button className="add-cover">Add cover photo</button>
+                <button className="add-cover" onClick={() => setShowUpLoadBox(true)}>Add cover photo</button>
             </div>
             <div className="section-container">
                 <div className="profile-section">
@@ -59,41 +66,80 @@ function Profile() {
                         </div>
                         <div className="advice-card">
                             <h3>Share your travel advice</h3>
-                            <button>📷 Post photos</button>
-                            <button>✏️ Write review</button>
+                            <div className="advice-buttons">
+                                <button><FontAwesomeIcon icon={faPen} className="advice-icon" />Write review</button>
+                            </div>
                         </div>
                     </div>
 
                     <div className="recent-activities">
-                        <h2 className="section-title">Recent Activities</h2>
-                        <RecentTrips />
-                        <RecentSave />
-                        <RecentReviews />
+                        <h3 className="section-title">Your Recent Travel Experiences</h3>
+                        <div className="recent-activities-tab">
+                            <div className="tabs-name">
+                                <button
+                                    className={activeTab === "trips" ? "active" : ""}
+                                    onClick={() => setActiveTab("trips")}
+                                >
+                                    My Trips
+                                </button>
+                                <button
+                                    className={activeTab === "saved" ? "active" : ""}
+                                    onClick={() => setActiveTab("saved")}
+                                >
+                                    Saved
+                                </button>
+                                <button
+                                    className={activeTab === "reviews" ? "active" : ""}
+                                    onClick={() => setActiveTab("reviews")}
+                                >
+                                    Reviews
+                                </button>
+                            </div>
+                            <div className="tab-content">
+                                {activeTab === "trips" && (
+                                    <RecentTrips />
+                                )}
+                                {activeTab === "saved" && (
+                                    <RecentSave />
+                                )}
+                                {activeTab === "reviews" && (
+                                    <RecentReviews />
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <hr />
 
-            <div class="col-span-full">
-                <label for="cover-photo" class="block text-sm/6 font-medium text-gray-900">Cover photo</label>
-                <div class="mt-2 flex justify-center rounded-lg border border-dashed border-gray-900/25 px-6 py-10">
-                    <div class="text-center">
-                        <svg class="mx-auto size-12 text-gray-300" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" data-slot="icon">
-                            <path fill-rule="evenodd" d="M1.5 6a2.25 2.25 0 0 1 2.25-2.25h16.5A2.25 2.25 0 0 1 22.5 6v12a2.25 2.25 0 0 1-2.25 2.25H3.75A2.25 2.25 0 0 1 1.5 18V6ZM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0 0 21 18v-1.94l-2.69-2.689a1.5 1.5 0 0 0-2.12 0l-.88.879.97.97a.75.75 0 1 1-1.06 1.06l-5.16-5.159a1.5 1.5 0 0 0-2.12 0L3 16.061Zm10.125-7.81a1.125 1.125 0 1 1 2.25 0 1.125 1.125 0 0 1-2.25 0Z" clip-rule="evenodd" />
-                        </svg>
-                        <div class="mt-4 flex text-sm/6 text-gray-600">
-                            <label for="file-upload" class="relative cursor-pointer rounded-md bg-white font-semibold text-indigo-600 focus-within:ring-2 focus-within:ring-indigo-600 focus-within:ring-offset-2 focus-within:outline-hidden hover:text-indigo-500">
-                                <span>Upload a file</span>
-                                <input id="file-upload" name="file-upload" type="file" class="sr-only" />
-                            </label>
-                            <p class="pl-1">or drag and drop</p>
+            {showUploadBox && (
+                <div className="overlay-upload-box" onClick={() => setShowUpLoadBox(false)}>
+                    <div class="col-span-full upload-image-container" onClick={(e) => e.stopPropagation()}>
+                        <div className="upload-box-title">
+                            <label for="cover-photo" class="label">Cover photo</label>
+                            <div onClick={() => setShowUpLoadBox(false)} className="close-button-wrapper">
+                                <FontAwesomeIcon icon={faXmark} className="close-button" />
+                            </div>
                         </div>
-                        <p class="text-xs/5 text-gray-600">PNG, JPG, GIF up to 10MB</p>
+                        <div class="upload-box">
+                            <div class="text-center">
+                                <div class="upload-action">
+                                    <label for="file-upload">
+                                        <span>Upload a file</span>
+                                        <input id="file-upload" name="file-upload" type="file" class="sr-only" />
+                                    </label>
+                                    <p class="instruction">or drag and drop</p>
+                                </div>
+                                <p class="upload-note">PNG, JPG, GIF up to 10MB</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
+            )}
+
+
+        </div >
     );
 }
 
