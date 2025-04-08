@@ -182,7 +182,7 @@ const CityDetail = () => {
             </nav>
 
             <div className="slider">
-                {images.map((src, index) => (
+                {image.map((src, index) => (
                     <img
                         key={index}
                         src={src}
@@ -191,10 +191,10 @@ const CityDetail = () => {
                     />
                 ))}
                 <div className="left-btn">
-                    <button className="slider-btn-left" onClick={() => setCurrentIndex((prevIndex) => prevIndex === 0 ? images.length - 1 : prevIndex - 1)}>◀</button>
+                    <button className="slider-btn-left" onClick={() => setCurrentIndex((prevIndex) => prevIndex === 0 ? image.length - 1 : prevIndex - 1)}>◀</button>
                 </div>
                 <div className="right-btn">
-                    <button className="slider-btn-right" onClick={() => setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length)}>▶</button>
+                    <button className="slider-btn-right" onClick={() => setCurrentIndex((prevIndex) => (prevIndex + 1) % image.length)}>▶</button>
                 </div>
             </div>
 

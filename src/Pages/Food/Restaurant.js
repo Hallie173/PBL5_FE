@@ -77,7 +77,7 @@ const Restaurant = () => {
         return (
             <>
                 {"★".repeat(fullStars)}
-                {halfStar && "⯨"}
+                {halfStar && "☆"}
                 {"☆".repeat(emptyStars)}
             </>
         );
