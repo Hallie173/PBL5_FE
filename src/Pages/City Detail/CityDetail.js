@@ -84,7 +84,7 @@ const faqData = [
 const CityDetail = () => {
     const { id: cityId } = useParams();
     const [city, setCity] = useState(null);
-    const [image, setImage] = useState(null);
+    const [image, setImage] = useState([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -107,8 +107,7 @@ const CityDetail = () => {
                 setCity(cityRespone.data);
                 setPlacesToVisit(citySpecialAttraction.data);
                 setPlacesToEat(citySpecialRestaurant.data);
-                console.log(cityId);
-                console.log(city.name);
+                console.log(city?.name);
                 if (Array.isArray(cityRespone.data.image_url)) {
                     setImage(cityRespone.data.image_url);
                 } else {
@@ -179,7 +178,7 @@ const CityDetail = () => {
     return (
         <div className="city-detail-container">
             <nav className="city-breadcrumb">
-                <span>Vietnam &gt; {city.name}</span>
+                <span>Vietnam &gt; {city?.name}</span>
             </nav>
 
             <div className="slider">
@@ -200,7 +199,7 @@ const CityDetail = () => {
             </div>
 
             <div className="name-and-action">
-                <h1>{city.name}</h1>
+                <h1>{city?.name}</h1>
                 <div className="city-save-action">
                     <button className={`save-city ${saved ? "saved" : ""}`} onClick={toggleSaveCity}>
                         <FontAwesomeIcon
@@ -213,7 +212,7 @@ const CityDetail = () => {
             </div>
 
             <div className="city-overview">
-                {city.description}
+                {city?.description}
             </div>
 
             <div className="where-to-go">
