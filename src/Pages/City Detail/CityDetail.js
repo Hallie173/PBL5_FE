@@ -84,7 +84,7 @@ const faqData = [
 const CityDetail = () => {
     const { id: cityId } = useParams();
     const [city, setCity] = useState(null);
-    const [image, setImage] = useState([]); 
+    const [image, setImage] = useState([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -107,6 +107,7 @@ const CityDetail = () => {
                 setCity(cityRespone.data);
                 setPlacesToVisit(citySpecialAttraction.data);
                 setPlacesToEat(citySpecialRestaurant.data);
+                console.log(city?.name);
                 
                 if (Array.isArray(cityRespone.data.image_url)) {
                     setImage(cityRespone.data.image_url);
@@ -177,6 +178,7 @@ const CityDetail = () => {
         <div className="city-detail-container">
             <nav className="city-breadcrumb">
             <span>Vietnam &gt; {city?.name}</span>
+                <span>Vietnam &gt; {city?.name}</span>
             </nav>
 
             <div className="slider">

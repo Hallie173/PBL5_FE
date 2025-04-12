@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import "./Restaurant.scss";
+import "./Attraction.scss";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSquareShareNodes, faPen } from '@fortawesome/free-solid-svg-icons';
 import { faImages, faHeart as regularHeart } from '@fortawesome/free-regular-svg-icons';
@@ -21,9 +21,9 @@ const initialNearbyPlaces = [
     { id: 4, name: "Nguyen Hien Dinh Theatre", image: tuongtheater, saved: false },
 ];
 
-const Restaurant = () => {
-    const { id: restaurantId } = useParams(); // Lấy restaurantId từ URL
-    const [restaurant, setRestaurant] = useState(null); // Đổi thành null để kiểm tra dễ hơn
+const Attraction = () => {
+    const { id: attractionId } = useParams(); // Lấy restaurantId từ URL
+    const [attraction, setAttraction] = useState(null); // Đổi thành null để kiểm tra dễ hơn
     // const [reviews, setReviews] = useState([]); // Comment lại state reviews
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -32,15 +32,15 @@ const Restaurant = () => {
     const [saved, setSaved] = useState(false);
 
     useEffect(() => {
-        if (!restaurantId) return;
+        if (!attractionId) return;
         setLoading(true);
 
-        const fetchRestaurant = async () => {
+        const fetchAttraction = async () => {
             try {
                 // Lấy thông tin nhà hàng
-                const restaurantResponse = await axios.get(`${BASE_URL}/attractions/${restaurantId}`);
-                const restaurantData = restaurantResponse.data; // Dữ liệu nằm trong data.data theo controller
-                setRestaurant(restaurantData);
+                const attractionResponse = await axios.get(`${BASE_URL}/attractions/${attractionId}`);
+                const attractionData = attractionResponse.data; // Dữ liệu nằm trong data.data theo controller
+                setAttraction(attractionData);
 
                 // Comment lại phần lấy reviews
                 /*
@@ -70,12 +70,8 @@ const Restaurant = () => {
             }
         };
 
-        fetchRestaurant();
-    }, [restaurantId]);
-
-    if (loading) return <p>Loading...</p>;
-    if (error) return <p>Error: {error}</p>;
-    if (!restaurant) return <p>No restaurant found</p>;
+        fetchAttraction();
+    }, [attractionId]);
 
     const renderStars = (rating) => {
         const fullStars = Math.floor(rating);
@@ -84,10 +80,21 @@ const Restaurant = () => {
         return (
             <>
                 {"★".repeat(fullStars)}
-                {halfStar && "☆"}
+                {halfStar && "⯨"}
                 {"☆".repeat(emptyStars)}
             </>
         );
+    };
+
+    const toggleSaveNearby = (id) => {
+        const updatedPlaces = nearbyPlaces.map((place) =>
+            place.id === id ? { ...place, saved: !place.saved } : place
+        );
+        setNearbyPlaces(updatedPlaces);
+    };
+
+    const toggleSaveAttraction = () => {
+        setSaved(!saved);
     };
 
     const handlenavigate_attraction = async (attraction_id) => {
@@ -99,82 +106,55 @@ const Restaurant = () => {
         }
     };
 
-    const toggleSaveNearby = (id) => {
-        const updatedPlaces = nearbyPlaces.map((place) =>
-            place.id === id ? { ...place, saved: !place.saved } : place
-        );
-        setNearbyPlaces(updatedPlaces);
-    };
-
-    const toggleSaveRestaurant = () => {
-        setSaved(!saved);
-    };
-
     return (
-        <div className="restaurant-container">
+        <div className="attraction-container">
             <nav className="breadcrumb">
-                <span>Asia &gt; Vietnam &gt; Da Nang &gt; Da Nang Restaurants &gt; {restaurant.name}</span>
+                <span>Asia &gt; Vietnam &gt; Da Nang &gt; Da Nang Attractions &gt; attraction name </span>
             </nav>
 
-            <header className="restaurant-header">
+            <header className="attraction-header">
                 <div className="name-and-action">
-                    <h1>{restaurant.name}</h1>
-                    <div className="restaurant-action">
-                        <button className="share-restaurant">
+                    <h1>Name</h1>
+                    <div className="attraction-action">
+                        <button className="share-attraction">
                             <FontAwesomeIcon icon={faSquareShareNodes} className="share-icon" />
                             Share
                         </button>
-                        <a href="#restaurant-reviews">
-                            <button className="review-restaurant">
+                        <a href="#attraction-reviews">
+                            <button className="review-attraction">
                                 <FontAwesomeIcon icon={faPen} className="review-icon" />
                                 Review
                             </button>
                         </a>
-                        <button className={`save-restaurant ${saved ? "saved" : ""}`} onClick={toggleSaveRestaurant}>
+                        <button className={`save-attraction ${saved ? "saved" : ""}`} onClick={toggleSaveAttraction}>
                             <FontAwesomeIcon
                                 icon={saved ? solidHeart : regularHeart}
-                                className="save-restaurant-icon" />
+                                className="save-attraction-icon" />
                             {saved ? "Saved" : "Save"}
                         </button>
                     </div>
                 </div>
-                <div className="restaurant-rating">
-                    <span className="rate-star">{renderStars(restaurant.average_rating)}</span>
+                <div className="attraction-rating">
+                    <span className="rate-star">{renderStars(attraction.average_rating)}</span>
                     <span className="rate-reviews">177 reviews</span>
-                    <span className="rate-rank">#144 of 1,619 Restaurants in Da Nang</span>
+                    <span className="rate-rank">#144 of 1,619 Attractive Places in Da Nang</span>
                 </div>
             </header>
 
-            <div className="restaurant-images">
-                <img src={restaurant.image_url[0]} alt="Main Dish" className="main-image" /> {/* Lấy ảnh đầu tiên */}
+            <div className="attraction-images">
+                <img src={attraction.image_url[0]} alt="Main Dish" className="main-image" /> {/* Lấy ảnh đầu tiên */}
             </div>
 
-            <div className="restaurant-info">
+            <div className="attraction-info">
                 <div className="location-info">
                     <h2>Overview</h2>
-                    <p className="open-status">Open until {restaurant.close_time}</p>
-                    <p className="location">📍 {restaurant.address}</p>
-                    <p className="contact">🌐 Website | 📞 {restaurant.phone_number}</p>
+                    <p className="brief-describe">"..."</p>
                     <h2>Location</h2>
                     <div>
-                        <MapComponent address={restaurant.address} />
+                        <MapComponent address={attraction.address} />
                     </div>
                 </div>
-                <div className="hours-info">
-                    <h2>Hours</h2>
-                    <p className="open-status">Open until {restaurant.close_time}</p>
-                    <table>
-                        <tbody>
-                            <tr><td>Sunday</td><td>{restaurant.open_time} - {restaurant.close_time}</td></tr>
-                            <tr><td>Monday</td><td>{restaurant.open_time} - {restaurant.close_time}</td></tr>
-                            <tr><td>Tuesday</td><td>{restaurant.open_time} - {restaurant.close_time}</td></tr>
-                            <tr><td>Wednesday</td><td>{restaurant.open_time} - {restaurant.close_time}</td></tr>
-                            <tr><td>Thursday</td><td>{restaurant.open_time} - {restaurant.close_time}</td></tr>
-                            <tr><td>Friday</td><td>{restaurant.open_time} - {restaurant.close_time}</td></tr>
-                            <tr><td>Saturday</td><td>{restaurant.open_time} - {restaurant.close_time}</td></tr>
-                        </tbody>
-                    </table>
-                </div>
+
             </div>
 
             {/* Comment lại phần Reviews */}
@@ -247,4 +227,4 @@ const Restaurant = () => {
     );
 };
 
-export default Restaurant;
+export default Attraction;

@@ -58,7 +58,7 @@ function Navbar() {
     },
     {
       name: "Trips",
-      path: "/tripguide/trips",
+      path: "/tripguide/mytrip",
       icon: <FaMapMarkedAlt className="mr-2" />,
     },
     {
