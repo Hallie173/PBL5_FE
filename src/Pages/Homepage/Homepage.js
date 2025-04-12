@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import "./Homepage.scss";
+import "./Homepage.scss"; // Main homepage styles
 import { FaSearch } from "react-icons/fa";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faHeart as solidHeart } from "@fortawesome/free-solid-svg-icons";
-import { faHeart as regularHeart } from "@fortawesome/free-regular-svg-icons";
+
+import LocationCard from "../../components/LocationCard/LocationCard";
+// Import images (giữ nguyên)
 import trendcast from "../../views/trendcast.png";
 import golemcafe from "../../assets/images/FoodDrink/golemcafe.png";
 import marblemountains from "../../assets/images/Cities/marblemountains.png";
@@ -21,31 +21,41 @@ const HomePage = () => {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const navigate = useNavigate();
 
-  // Define location data
+  // Dữ liệu mẫu (giữ nguyên)
   const recentlyViewedItems = [
     {
       id: 1,
       name: "Golem Cafe",
       image: golemcafe,
-      category: "Cafe"
+      rating: 4.5,
+      reviewCount: 123,
+      tags: "Cafe, Drinks",
+      badge: "New",
     },
     {
       id: 2,
       name: "The Marble Mountains",
       image: marblemountains,
-      category: "Attraction"
+      rating: 4.0,
+      reviewCount: 5432,
+      tags: "Attractions, Nature",
     },
     {
       id: 3,
       name: "Bao Tang Da Nang - Da Nang Museum",
       image: danangmuseum,
-      category: "Museum"
+      rating: 4.0,
+      reviewCount: 876,
+      tags: "Museums, History",
+      badge: "2024",
     },
     {
       id: 4,
       name: "Dragon Bridge",
       image: dragonbridge,
-      category: "Landmark"
+      rating: 4.5,
+      reviewCount: 10987,
+      tags: "Landmarks, Bridges",
     },
   ];
 
@@ -54,82 +64,89 @@ const HomePage = () => {
       id: 5,
       name: "Burger Bros",
       image: burgerbros,
-      category: "Restaurant"
+      rating: 4.5,
+      reviewCount: 1567,
+      tags: "Restaurants, Burgers",
     },
     {
       id: 6,
       name: "Banh Xeo Ba Duong",
       image: banhxeobaduong,
-      category: "Local Food"
+      rating: 4.0,
+      reviewCount: 987,
+      tags: "Local Food, Restaurants",
     },
     {
       id: 7,
       name: "Madame Lân",
       image: madamelan,
-      category: "Restaurant"
+      rating: 4.0,
+      reviewCount: 4321,
+      tags: "Restaurants, Vietnamese",
     },
     {
       id: 8,
       name: "Quan Com Hue Ngon",
       image: quancomhuengon,
-      category: "Local Food"
+      rating: 3.5,
+      reviewCount: 765,
+      tags: "Local Food, Budget",
     },
   ];
 
-  // Load saved items from localStorage on component mount
   useEffect(() => {
-    const savedItemsFromStorage = localStorage.getItem('savedItems');
+    const savedItemsFromStorage = localStorage.getItem("savedItems");
     if (savedItemsFromStorage) {
       setSavedItems(JSON.parse(savedItemsFromStorage));
     }
   }, []);
 
-  // Save items to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem('savedItems', JSON.stringify(savedItems));
+    localStorage.setItem("savedItems", JSON.stringify(savedItems));
   }, [savedItems]);
 
-  const toggleSave = (itemId, e) => {
-    e.stopPropagation();
-
-    setSavedItems(prev => ({
+  // toggleSave function remains here as it manages the state of Homepage
+  const toggleSave = (itemId) => {
+    // Removed 'e' as it's handled in LocationCard
+    setSavedItems((prev) => ({
       ...prev,
-      [itemId]: !prev[itemId]
+      [itemId]: !prev[itemId],
     }));
   };
 
+  // handleItemClick remains here for navigation logic
   const handleItemClick = (itemId) => {
-    // Navigate to item detail page
     console.log(`Navigating to item ${itemId}`);
-    // Uncomment this when you have item detail pages
     // navigate(`/location/${itemId}`);
   };
 
   const handleSearch = async () => {
     if (!searchText.trim()) return;
-
     try {
       const response = await fetch(
-        `http://localhost:8081/location/search?name=${encodeURIComponent(searchText)}`
+        `http://localhost:8081/location/search?name=${encodeURIComponent(
+          searchText
+        )}`
       );
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const data = await response.json();
-
       if (Array.isArray(data) && data.length > 0) {
         const firstLocation = data[0];
         navigate(`/tripguide/foodpage/${firstLocation.location_id}`);
       } else {
-        // Use a more subtle notification instead of alert
         showNotification("Không tìm thấy địa điểm!");
       }
     } catch (error) {
       console.error("Lỗi khi gọi API:", error);
-      showNotification("Có lỗi xảy ra, vui lòng thử lại!");
+      showNotification(
+        `Lỗi khi tìm kiếm: ${error.message || "Vui lòng thử lại!"}`
+      );
     }
   };
 
-  // A more subtle notification function (can be implemented with a state)
   const showNotification = (message) => {
-    // For now we'll use alert, but you could replace this with a toast component
     alert(message);
   };
 
@@ -139,36 +156,14 @@ const HomePage = () => {
     }
   };
 
-  // Location Item component 
-  const LocationItem = ({ item }) => (
-    <div className="picture-item" onClick={() => handleItemClick(item.id)}>
-      <div className="item-content">
-        <img src={item.image} alt={item.name} />
-        <div className="save-overlay">
-          <button
-            className={`save-button-overlay ${savedItems[item.id] ? "saved" : ""}`}
-            onClick={(e) => toggleSave(item.id, e)}
-            aria-label={savedItems[item.id] ? "Remove from saved" : "Save to favorites"}
-          >
-            <FontAwesomeIcon
-              icon={savedItems[item.id] ? solidHeart : regularHeart}
-              className="heart-icon-recent"
-            />
-          </button>
-        </div>
-        <div className="item-details">
-          <p className="item-title">{item.name}</p>
-        </div>
-      </div>
-    </div>
-  );
+  // --- Removed LocationItem Component Definition ---
 
   return (
     <div className="homepage">
       {/* Search Section */}
       <div className="search-container">
         <h1 className="search-title">Ready for a perfect trip?</h1>
-        <div className={`search-box ${isSearchFocused ? 'focused' : ''}`}>
+        <div className={`search-box ${isSearchFocused ? "focused" : ""}`}>
           <FaSearch className="search-icon" />
           <input
             type="text"
@@ -200,9 +195,17 @@ const HomePage = () => {
       {/* Recently Viewed Section */}
       <div className="content-section">
         <h2 className="section-title">Recently viewed</h2>
+        <p className="section-subtitle">Places you explored</p>
         <div className="picture-grid">
           {recentlyViewedItems.map((item) => (
-            <LocationItem key={item.id} item={item} />
+            // Use the new LocationCard component and pass props
+            <LocationCard
+              key={item.id}
+              item={item}
+              isSaved={!!savedItems[item.id]} // Ensure boolean value
+              onToggleSave={() => toggleSave(item.id)} // Pass specific toggle function
+              onClick={() => handleItemClick(item.id)} // Pass specific click function
+            />
           ))}
         </div>
       </div>
@@ -210,10 +213,16 @@ const HomePage = () => {
       {/* Recommended Section */}
       <div className="content-section">
         <h2 className="section-title">You might like these</h2>
-        <p className="section-subtitle">Make your meals unforgettable!</p>
+        <p className="section-subtitle">More things to do in Da Nang</p>
         <div className="picture-grid">
           {recommendedItems.map((item) => (
-            <LocationItem key={item.id} item={item} />
+            <LocationCard
+              key={item.id}
+              item={item}
+              isSaved={!!savedItems[item.id]} // Ensure boolean value
+              onToggleSave={() => toggleSave(item.id)} // Pass specific toggle function
+              onClick={() => handleItemClick(item.id)} // Pass specific click function
+            />
           ))}
         </div>
       </div>
