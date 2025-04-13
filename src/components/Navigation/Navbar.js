@@ -8,16 +8,34 @@ import {
   FaStar,
   FaCompass,
   FaMapMarkerAlt,
+  FaUser,
 } from "react-icons/fa";
 import { CgProfile } from "react-icons/cg";
 import { LuLogOut } from "react-icons/lu";
 import weblogo from "../../views/webLogo.png";
 import avatar from "../../assets/images/avatar.png";
+import LoginModal from "../../components/LoginModal/LoginModal";
+import RegisterModal from "../../components/RegisterModal/RegisterModal";
+import { authService } from "../../services/authService";
+import { set } from "date-fns";
 
 function Navbar() {
   const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // State để kiểm tra đăng nhập
+  const [user, setUser] = useState(null); // State để lưu thông tin người dùng
   const location = useLocation();
+
+  // Kiểm tra người dùng đã đăng nhập chưa (từ localStorage hoặc session)
+  useEffect(() => {
+    const currentUser = authService.getCurrentUser();
+    if (currentUser) {
+      setIsLoggedIn(true);
+      setUser(currentUser); // Lưu thông tin người dùng
+    }
+  }, []);
 
   const toggleLanguageMenu = () => {
     setLanguageMenuOpen(!languageMenuOpen);
@@ -29,12 +47,49 @@ function Navbar() {
     setLanguageMenuOpen(false);
   };
 
+  // Modal handling functions
+  const handleOpenLoginModal = () => {
+    setShowLoginModal(true);
+    setShowRegisterModal(false);
+  };
+
+  const handleSwitchToRegister = () => {
+    setShowLoginModal(false);
+    setShowRegisterModal(true);
+  };
+
+  const handleSwitchToLogin = () => {
+    setShowRegisterModal(false);
+    setShowLoginModal(true);
+  };
+
+  const handleCloseModals = () => {
+    setShowLoginModal(false);
+    setShowRegisterModal(false);
+  };
+
+  const handleLogout = () => {
+    authService.logout();
+    setIsLoggedIn(false);
+    setUser(null);
+    setUserMenuOpen(false);
+  };
+
+  // Xử lý khi đăng nhập thành công
+  const handleLoginSuccess = (response) => {
+    setIsLoggedIn(true);
+    setUser(response); // Lưu toàn bộ response
+    handleCloseModals();
+  };
+
   // Close dropdowns when clicking outside
   useEffect(() => {
     const closeDropdowns = (e) => {
       if (
         !e.target.closest(".language-menu") &&
-        !e.target.closest(".user-menu")
+        !e.target.closest(".user-menu") &&
+        !e.target.closest(".login-modal") &&
+        !e.target.closest(".register-modal")
       ) {
         setLanguageMenuOpen(false);
         setUserMenuOpen(false);
@@ -105,10 +160,11 @@ function Navbar() {
                   <Link
                     key={item.name}
                     to={item.path}
-                    className={`flex items-center px-3 py-2 text-sm font-medium ${isActive(item.path)
-                      ? "text-green-600 border-b-2 border-green-600"
-                      : "text-gray-700 hover:text-green-600"
-                      }`}
+                    className={`flex items-center px-3 py-2 text-sm font-medium ${
+                      isActive(item.path)
+                        ? "text-green-600 border-b-2 border-green-600"
+                        : "text-gray-700 hover:text-green-600"
+                    }`}
                   >
                     {item.icon}
                     {item.name}
@@ -164,59 +220,96 @@ function Navbar() {
                 )}
               </div>
 
-              {/* Profile dropdown */}
-              <div className="relative ml-3 user-menu">
-                <button onClick={toggleUserMenu} className="flex items-center">
-                  <img
-                    className="h-8 w-8 rounded-full object-cover border border-gray-200"
-                    src={avatar}
-                    alt="User"
-                  />
+              {/* Login Button or Profile dropdown based on login status */}
+              {!isLoggedIn ? (
+                <button
+                  onClick={handleOpenLoginModal}
+                  className="ml-4 bg-black text-white font-semibold px-4 py-2 rounded-2xl hover:bg-gray-800 transition-colors flex items-center"
+                >
+                  <span>Sign in</span>
                 </button>
+              ) : (
+                <div className="relative ml-3 user-menu">
+                  <button
+                    onClick={toggleUserMenu}
+                    className="flex items-center"
+                  >
+                    <img
+                      className="h-8 w-8 rounded-full object-cover border border-gray-200"
+                      src={avatar}
+                      alt="User"
+                    />
+                  </button>
 
-                {/* User Dropdown */}
-                {userMenuOpen && (
-                  <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-md py-1 bg-white ring-1 ring-gray-200 z-10">
-                    <div className="px-4 py-2 border-b border-gray-100">
-                      <p className="text-sm font-medium text-gray-900">
-                        John Traveler
-                      </p>
-                      <p className="text-xs text-gray-500 truncate">
-                        john.traveler@example.com
-                      </p>
+                  {/* User Dropdown */}
+                  {userMenuOpen && (
+                    <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-md py-1 bg-white ring-1 ring-gray-200 z-10">
+                      <div className="px-4 py-2 border-b border-gray-100">
+                        <p className="text-sm font-medium text-gray-900">
+                          {user && user.user ? user.user.username : "Guest"}
+                        </p>
+                        <p className="text-xs text-gray-500 truncate">
+                          {user && user.user ? user.user.email : ""}
+                        </p>
+                      </div>
+                      <Link
+                        to="/tripguide/user-profile"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center"
+                      >
+                        <CgProfile className="inline-block mr-2 text-gray-500" />
+                        Profile
+                      </Link>
+                      <Link
+                        to="/tripguide/mytrip"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center"
+                      >
+                        <FaMapMarkedAlt className="inline-block mr-2 text-gray-500" />
+                        My Trips
+                      </Link>
+                      <Link
+                        to="/tripguide/saved-places"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center"
+                      >
+                        <FaMapMarkerAlt className="inline-block mr-2 text-gray-500" />
+                        Saved Places
+                      </Link>
+                      <div className="border-t border-gray-100 mt-1"></div>
+                      <button
+                        onClick={handleLogout}
+                        className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center transition-colors"
+                      >
+                        <LuLogOut className="inline-block mr-2" />
+                        Logout
+                      </button>
                     </div>
-                    <Link to="/tripguide/user-profile"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center"
-                    >
-                      <CgProfile className="inline-block mr-2 text-gray-500" />
-                      Profile
-                    </Link>
-                    <Link to="/tripguide/mytrip"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center"
-                    >
-                      <FaMapMarkedAlt className="inline-block mr-2 text-gray-500" />
-                      My Trips
-                    </Link>
-                    <Link to="/tripguide/saved-places"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center"
-                    >
-                      <FaMapMarkerAlt className="inline-block mr-2 text-gray-500" />
-                      Saved Places
-                    </Link>
-                    <div className="border-t border-gray-100 mt-1"></div>
-                    <Link
-                      className="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center transition-colors"
-                    >
-                      <LuLogOut className="inline-block mr-2" />
-                      Logout
-                    </Link>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
       </nav>
+
+      {/* Login Modal */}
+      {showLoginModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 login-modal">
+          <LoginModal
+            onSwitchToRegister={handleSwitchToRegister}
+            onClose={handleCloseModals}
+            onLoginSuccess={handleLoginSuccess}
+          />
+        </div>
+      )}
+
+      {/* Register Modal */}
+      {showRegisterModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 register-modal">
+          <RegisterModal
+            onSwitchToLogin={handleSwitchToLogin}
+            onClose={handleCloseModals}
+          />
+        </div>
+      )}
 
       {/* Spacer div to create space between navbar and content */}
       <div className="h-16"></div>

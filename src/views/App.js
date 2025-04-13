@@ -20,6 +20,7 @@ import CityDetail from "../Pages/City Detail/CityDetail";
 import Profile from "../Pages/Profile/Profile";
 import Restaurants from "../Pages/Admin/Restaurants/Restaurants";
 import Attraction from "../Pages/Attraction/Attraction";
+import Auth from "../components/LoginModal/Auth";
 
 function App() {
   return (
@@ -27,6 +28,8 @@ function App() {
       <Router>
         <Routes>
           {/* Route articles */}
+          <Route path="/auth-callback" element={<Auth />} />
+
           <Route
             path="/"
             element={
@@ -119,7 +122,6 @@ function App() {
             <Route path="cities" element={<Cities />} />
             <Route path="attractions" element={<Attractions />} />
             <Route path="restaurants" element={<Restaurants />} />
-
           </Route>
         </Routes>
       </Router>
