@@ -83,7 +83,7 @@ const faqData = [
 
 const CityDetail = () => {
     const { id: cityId } = useParams();
-    const [city, setCity] = useState(null);
+    const [city, setCity] = useState([]);
     const [image, setImage] = useState([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [loading, setLoading] = useState(true);
@@ -107,7 +107,7 @@ const CityDetail = () => {
                 setCity(cityRespone.data);
                 setPlacesToVisit(citySpecialAttraction.data);
                 setPlacesToEat(citySpecialRestaurant.data);
-                console.log(city?.name);
+               // console.log(city?.name);
                 
                 if (Array.isArray(cityRespone.data.image_url)) {
                     setImage(cityRespone.data.image_url);
@@ -178,7 +178,6 @@ const CityDetail = () => {
         <div className="city-detail-container">
             <nav className="city-breadcrumb">
             <span>Vietnam &gt; {city?.name}</span>
-                <span>Vietnam &gt; {city?.name}</span>
             </nav>
 
             <div className="slider">
@@ -240,7 +239,7 @@ const CityDetail = () => {
                             <p>{place.name}</p>
                             <div className="rating">
                                 <span className="rate-star">{place.average_rating}{renderStars(place.average_rating)}</span>
-                                <span className="rate-reviews">177 reviews</span>
+                                <span className="rate-reviews">{place.rating_total}</span>
                                 <span className="rate-rank"></span>
                             </div>
                         </div>
@@ -275,7 +274,7 @@ const CityDetail = () => {
                             <p>{place.name}</p>
                             <div className="rating">
                                 <span className="rate-star">{place.average_rating} {renderStars(place.average_rating)}</span>
-                                <span className="rate-reviews">177 reviews</span>
+                                <span className="rate-reviews">{place.rating_total} </span>
                                 <span className="rate-rank"></span>
                             </div>
                         </div>
