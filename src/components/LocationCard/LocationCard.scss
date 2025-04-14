@@ -1,11 +1,12 @@
 // Define variables locally or import from a global variables file
 $grid-gap: 20px;
-$card-border-radius: 8px;
+$card-border-radius: 12px;
 $text-color: #333;
 $text-color-light: #555;
 $rating-color: #00aa6c;
 
 .picture-item {
+  max-width: 280px;
   text-align: left;
   cursor: pointer;
   transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;

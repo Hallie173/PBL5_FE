@@ -48,18 +48,18 @@ const Restaurant = () => {
                 const cityRespone = await axios.get(`${BASE_URL}/cities/${restaurantData.city_id}`);
                 const cityData = cityRespone.data;
                 setCity(cityData);
-                
+
                 const restaurantRankRespone = await axios.get(`${BASE_URL}/restaurants/rank/${restaurantId}`);
                 const restaurantRankData = restaurantRankRespone.data;
                 setresRank(restaurantRankData);
-                
+
                 const nearByRespone = await axios.get(`${BASE_URL}/restaurants/topnearby/${restaurantId}`);
                 const nearByData = nearByRespone.data.nearbyTopRestaurant;
                 setnearBy(nearByData);
-                
+
                 console.log("nearByData:", nearByData);
 
-                
+
                 // Comment lại phần lấy reviews
                 /*
                 // Lấy danh sách reviews
@@ -174,9 +174,9 @@ const Restaurant = () => {
                     <p className="location">📍 {restaurant.address}</p>
                     <p className="contact">🌐 Website | 📞 {restaurant.phone_number}</p>
                     <h2>Location</h2>
-                    {/* <div>
+                    <div>
                         <MapComponent address={restaurant.address} />
-                    </div> */}
+                    </div>
                 </div>
                 <div className="hours-info">
                     <h2>Hours</h2>
@@ -237,7 +237,7 @@ const Restaurant = () => {
                 <div className="picture-grid">
                     {nearBy?.map((place) => (
                         <div className="picture-item" key={place.id}>
-                            <div className="item-content">
+                            <div className="item-image-container">
                                 <img src={place.image_url} alt={place.name} onClick={() => handlenavigate_attraction(place.restaurant_id)}
                                     style={{ cursor: 'pointer' }} />
                                 <div className="save-overlay">
@@ -246,16 +246,18 @@ const Restaurant = () => {
                                         onClick={() => toggleSaveNearby(place.id)}>
                                         <FontAwesomeIcon
                                             icon={place.saved ? solidHeart : regularHeart}
-                                            className="heart-icon-recent"   
+                                            className="heart-icon-recent"
                                         />
                                     </button>
                                 </div>
                             </div>
-                            <p>{place.name}</p>
-                            <div className="rating">
-                                <span className="rate-star">{place.average_rating}{renderStars(place.average_rating)}  </span>
-                                <span className="rate-reviews">{place.rating_total}</span>
-                                <span className="rate-rank">No.17</span>
+                            <div className="item-text-content">
+                                <p className="item-title">{place.name}</p>
+                                <div className="item-rating">
+                                    <span className="rating-score">{place.average_rating}  </span>
+                                    <span className="rating-dots">{renderStars(place.average_rating)}  </span>
+                                    <span className="review-count">{place.rating_total}</span>
+                                </div>
                             </div>
                         </div>
                     ))}
