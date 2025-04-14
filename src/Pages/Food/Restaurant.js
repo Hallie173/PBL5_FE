@@ -24,6 +24,9 @@ const initialNearbyPlaces = [
 const Restaurant = () => {
     const { id: restaurantId } = useParams(); // Lấy restaurantId từ URL
     const [restaurant, setRestaurant] = useState(null); // Đổi thành null để kiểm tra dễ hơn
+    const [city, setCity] = useState(null);
+    const [resRank, setresRank] = useState(null);
+    const [nearBy, setnearBy] = useState([]);
     // const [reviews, setReviews] = useState([]); // Comment lại state reviews
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -34,14 +37,29 @@ const Restaurant = () => {
     useEffect(() => {
         if (!restaurantId) return;
         setLoading(true);
-
+        console.log(restaurantId);
         const fetchRestaurant = async () => {
             try {
                 // Lấy thông tin nhà hàng
-                const restaurantResponse = await axios.get(`${BASE_URL}/attractions/${restaurantId}`);
+                const restaurantResponse = await axios.get(`${BASE_URL}/restaurants/${restaurantId}`);
                 const restaurantData = restaurantResponse.data; // Dữ liệu nằm trong data.data theo controller
                 setRestaurant(restaurantData);
 
+                const cityRespone = await axios.get(`${BASE_URL}/cities/${restaurantData.city_id}`);
+                const cityData = cityRespone.data;
+                setCity(cityData);
+                
+                const restaurantRankRespone = await axios.get(`${BASE_URL}/restaurants/rank/${restaurantId}`);
+                const restaurantRankData = restaurantRankRespone.data;
+                setresRank(restaurantRankData);
+                
+                const nearByRespone = await axios.get(`${BASE_URL}/restaurants/topnearby/${restaurantId}`);
+                const nearByData = nearByRespone.data.nearbyTopRestaurant;
+                setnearBy(nearByData);
+                
+                console.log("nearByData:", nearByData);
+
+                
                 // Comment lại phần lấy reviews
                 /*
                 // Lấy danh sách reviews
@@ -113,7 +131,7 @@ const Restaurant = () => {
     return (
         <div className="restaurant-container">
             <nav className="breadcrumb">
-                <span>Asia &gt; Vietnam &gt; Da Nang &gt; Da Nang Restaurants &gt; {restaurant.name}</span>
+                <span>Vietnam &gt; {city?.name} &gt; {city?.name} Restaurants &gt; {restaurant.name}</span>
             </nav>
 
             <header className="restaurant-header">
@@ -139,9 +157,9 @@ const Restaurant = () => {
                     </div>
                 </div>
                 <div className="restaurant-rating">
-                    <span className="rate-star">{renderStars(restaurant.average_rating)}</span>
-                    <span className="rate-reviews">177 reviews</span>
-                    <span className="rate-rank">#144 of 1,619 Restaurants in Da Nang</span>
+                    <span className="rate-star">{restaurant.average_rating} &gt;{renderStars(restaurant.average_rating)}</span>
+                    <span className="rate-reviews">{restaurant.rating_total} reviews</span>
+                    <span className="rate-rank">#{resRank?.rank} of {city?.name}'s restaurant.</span>
                 </div>
             </header>
 
@@ -156,9 +174,9 @@ const Restaurant = () => {
                     <p className="location">📍 {restaurant.address}</p>
                     <p className="contact">🌐 Website | 📞 {restaurant.phone_number}</p>
                     <h2>Location</h2>
-                    <div>
+                    {/* <div>
                         <MapComponent address={restaurant.address} />
-                    </div>
+                    </div> */}
                 </div>
                 <div className="hours-info">
                     <h2>Hours</h2>
@@ -217,10 +235,10 @@ const Restaurant = () => {
             <div className="nearby">
                 <h2>Best nearby</h2>
                 <div className="picture-grid">
-                    {nearbyPlaces.map((place) => (
+                    {nearBy?.map((place) => (
                         <div className="picture-item" key={place.id}>
                             <div className="item-content">
-                                <img src={place.image} alt={place.name} onClick={() => handlenavigate_attraction(place.attraction_id)}
+                                <img src={place.image_url} alt={place.name} onClick={() => handlenavigate_attraction(place.restaurant_id)}
                                     style={{ cursor: 'pointer' }} />
                                 <div className="save-overlay">
                                     <button
@@ -228,15 +246,15 @@ const Restaurant = () => {
                                         onClick={() => toggleSaveNearby(place.id)}>
                                         <FontAwesomeIcon
                                             icon={place.saved ? solidHeart : regularHeart}
-                                            className="heart-icon-recent"
+                                            className="heart-icon-recent"   
                                         />
                                     </button>
                                 </div>
                             </div>
                             <p>{place.name}</p>
                             <div className="rating">
-                                <span className="rate-star">{place.average_rating}{renderStars(place.average_rating)}</span>
-                                <span className="rate-reviews">177 reviews</span>
+                                <span className="rate-star">{place.average_rating}{renderStars(place.average_rating)}  </span>
+                                <span className="rate-reviews">{place.rating_total}</span>
                                 <span className="rate-rank">No.17</span>
                             </div>
                         </div>

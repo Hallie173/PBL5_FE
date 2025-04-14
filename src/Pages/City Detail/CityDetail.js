@@ -99,19 +99,17 @@ const CityDetail = () => {
         const fetchCity = async () => {
             try {
                 // Lấy thông tin nhà hàng
-                const cityRespone = await axios.get(`${BASE_URL}/city/${cityId}`);
+                const cityRespone = await axios.get(`${BASE_URL}/cities/${cityId}`);
                 // Dữ liệu nằm trong data.data theo controller
                 const citySpecialAttraction = await axios.get(`${BASE_URL}/attractions/special/${cityId}`);
-                const citySpecialRestaurant = await axios.get(`${BASE_URL}/restaurant/special/${cityId}`);
+                const citySpecialRestaurant = await axios.get(`${BASE_URL}/restaurants/special/${cityId}`);
 
                 setCity(cityRespone.data);
                 setPlacesToVisit(citySpecialAttraction.data);
                 setPlacesToEat(citySpecialRestaurant.data);
-               // console.log(city?.name);
-                
                 if (Array.isArray(cityRespone.data.image_url)) {
                     setImage(cityRespone.data.image_url);
-                } else {
+                } else {        
                     setImage([]); // hoặc xử lý tùy bạn nếu không đúng định dạng
                 }
             } catch (err) {
@@ -168,8 +166,15 @@ const CityDetail = () => {
 
     const handlenavigate_attraction = async (attraction_id) => {
         try {
-            console.log("Attraction_id", attraction_id);
-            navigate(`/tripguide/foodpage/${attraction_id}`);
+            navigate(`/tripguide/attraction/${attraction_id}`);
+        } catch (error) {
+            console.error("Lỗi khi gọi API:", error);
+        }
+    };
+
+    const handlenavigate_restaurant = async (restaurantId) => {
+        try {
+            navigate(`/tripguide/foodpage/${restaurantId}`);
         } catch (error) {
             console.error("Lỗi khi gọi API:", error);
         }
@@ -219,6 +224,8 @@ const CityDetail = () => {
                     <h2>Where to go?</h2>
                     <button className="see-all">See all</button>
                 </div>
+                
+
                 <div className="picture-grid">
                     {placesToVisit.map((place) => (
                         <div className="picture-item" key={place.id}>
@@ -258,7 +265,7 @@ const CityDetail = () => {
                     {placesToEat.map((place) => (
                         <div className="picture-item" key={place.id}>
                             <div className="item-content">
-                                <img src={place.image_url} alt={place.name} />
+                                <img src={place.image_url} alt={place.name} onClick={() => handlenavigate_restaurant(place.restaurant_id)}/>
                                 <div className="save-overlay">
                                     <button
                                         className={`save-button-overlay ${place.saved ? "saved" : ""}`}

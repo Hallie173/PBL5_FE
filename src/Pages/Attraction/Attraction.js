@@ -24,6 +24,9 @@ const initialNearbyPlaces = [
 const Attraction = () => {
     const { id: attractionId } = useParams(); // Lấy restaurantId từ URL
     const [attraction, setAttraction] = useState(null); // Đổi thành null để kiểm tra dễ hơn
+    const [city, setCity] = useState(null);
+    const [attractionRank, setattractionRank] = useState(null);
+    const [nearBy, setnearBy] = useState([]);
     // const [reviews, setReviews] = useState([]); // Comment lại state reviews
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -41,6 +44,19 @@ const Attraction = () => {
                 const attractionResponse = await axios.get(`${BASE_URL}/attractions/${attractionId}`);
                 const attractionData = attractionResponse.data; // Dữ liệu nằm trong data.data theo controller
                 setAttraction(attractionData);
+                
+                const cityRespone = await axios.get(`${BASE_URL}/cities/${attractionData.city_id}`);
+                const cityData = cityRespone.data;
+                setCity(cityData);
+                
+                const attractionRankRespone = await axios.get(`${BASE_URL}/attractions/rank/${attractionId}`);
+                const attractionRankData = attractionRankRespone.data;
+                setattractionRank(attractionRankData);
+
+
+                const nearByRespone = await axios.get(`${BASE_URL}/attractions/topnearby/${attractionId}`);
+                const nearByData = nearByRespone.data.nearbyTopRestaurant;
+                setnearBy(nearByData);
 
                 // Comment lại phần lấy reviews
                 /*
@@ -80,7 +96,7 @@ const Attraction = () => {
         return (
             <>
                 {"★".repeat(fullStars)}
-                {halfStar && "⯨"}
+                {halfStar && "☆"}
                 {"☆".repeat(emptyStars)}
             </>
         );
@@ -109,12 +125,12 @@ const Attraction = () => {
     return (
         <div className="attraction-container">
             <nav className="breadcrumb">
-                <span>Asia &gt; Vietnam &gt; Da Nang &gt; Da Nang Attractions &gt; attraction name </span>
+                <span>Vietnam &gt; {city?.name} &gt; {city?.name} Attractions &gt; {attraction?.name} </span>
             </nav>
 
             <header className="attraction-header">
                 <div className="name-and-action">
-                    <h1>Name</h1>
+                    <h1>{attraction?.name}</h1>
                     <div className="attraction-action">
                         <button className="share-attraction">
                             <FontAwesomeIcon icon={faSquareShareNodes} className="share-icon" />
@@ -135,14 +151,14 @@ const Attraction = () => {
                     </div>
                 </div>
                 <div className="attraction-rating">
-                    <span className="rate-star">{renderStars(attraction.average_rating)}</span>
-                    <span className="rate-reviews">177 reviews</span>
-                    <span className="rate-rank">#144 of 1,619 Attractive Places in Da Nang</span>
+                    <span className="rate-star">{renderStars(attraction?.average_rating)}</span>
+                    <span className="rate-reviews">{attraction?.rating_total} reviews </span>
+                    <span className="rate-rank">#{attractionRank?.rank} of {city?.name}'s attraction.</span>
                 </div>
             </header>
 
             <div className="attraction-images">
-                <img src={attraction.image_url[0]} alt="Main Dish" className="main-image" /> {/* Lấy ảnh đầu tiên */}
+                <img src={attraction?.image_url[0]} alt="Main Dish" className="main-image" /> {/* Lấy ảnh đầu tiên */}
             </div>
 
             <div className="attraction-info">
@@ -150,9 +166,9 @@ const Attraction = () => {
                     <h2>Overview</h2>
                     <p className="brief-describe">"..."</p>
                     <h2>Location</h2>
-                    <div>
-                        <MapComponent address={attraction.address} />
-                    </div>
+                    {/* <div>
+                        <MapComponent address={attraction?.address} />
+                    </div> */}
                 </div>
 
             </div>
@@ -197,10 +213,10 @@ const Attraction = () => {
             <div className="nearby">
                 <h2>Best nearby</h2>
                 <div className="picture-grid">
-                    {nearbyPlaces.map((place) => (
+                    {nearBy?.map((place) => (
                         <div className="picture-item" key={place.id}>
                             <div className="item-content">
-                                <img src={place.image} alt={place.name} onClick={() => handlenavigate_attraction(place.attraction_id)}
+                                <img src={place.image_url} alt={place.name} onClick={() => handlenavigate_attraction(place.attraction_id)}
                                     style={{ cursor: 'pointer' }} />
                                 <div className="save-overlay">
                                     <button
