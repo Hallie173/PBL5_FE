@@ -109,7 +109,7 @@ const CityDetail = () => {
                 setPlacesToEat(citySpecialRestaurant.data);
                 if (Array.isArray(cityRespone.data.image_url)) {
                     setImage(cityRespone.data.image_url);
-                } else {        
+                } else {
                     setImage([]); // hoặc xử lý tùy bạn nếu không đúng định dạng
                 }
             } catch (err) {
@@ -182,7 +182,7 @@ const CityDetail = () => {
     return (
         <div className="city-detail-container">
             <nav className="city-breadcrumb">
-            <span>Vietnam &gt; {city?.name}</span>
+                <span>Vietnam &gt; {city?.name}</span>
             </nav>
 
             <div className="slider">
@@ -224,12 +224,12 @@ const CityDetail = () => {
                     <h2>Where to go?</h2>
                     <button className="see-all">See all</button>
                 </div>
-                
+
 
                 <div className="picture-grid">
                     {placesToVisit.map((place) => (
                         <div className="picture-item" key={place.id}>
-                            <div className="item-content">
+                            <div className="item-image-container">
                                 <img src={place.image_url} alt={place.name} onClick={() => handlenavigate_attraction(place.attraction_id)}
                                     style={{ cursor: 'pointer' }} />
                                 <div className="save-overlay">
@@ -243,11 +243,13 @@ const CityDetail = () => {
                                     </button>
                                 </div>
                             </div>
-                            <p>{place.name}</p>
-                            <div className="rating">
-                                <span className="rate-star">{place.average_rating}{renderStars(place.average_rating)}</span>
-                                <span className="rate-reviews">{place.rating_total}</span>
-                                <span className="rate-rank"></span>
+                            <div className="item-text-content">
+                                <p className="item-title">{place.name}</p>
+                                <div className="item-rating">
+                                    <span className="rating-score">{place.average_rating}  </span>
+                                    <span className="rating-dots">{renderStars(place.average_rating)}  </span>
+                                    <span className="review-count">{place.rating_total}</span>
+                                </div>
                             </div>
                         </div>
                     ))}
@@ -264,8 +266,8 @@ const CityDetail = () => {
                 <div className="picture-grid">
                     {placesToEat.map((place) => (
                         <div className="picture-item" key={place.id}>
-                            <div className="item-content">
-                                <img src={place.image_url} alt={place.name} onClick={() => handlenavigate_restaurant(place.restaurant_id)}/>
+                            <div className="item-image-container">
+                                <img src={place.image_url} alt={place.name} onClick={() => handlenavigate_restaurant(place.restaurant_id)} />
                                 <div className="save-overlay">
                                     <button
                                         className={`save-button-overlay ${place.saved ? "saved" : ""}`}
@@ -278,11 +280,13 @@ const CityDetail = () => {
                                     </button>
                                 </div>
                             </div>
-                            <p>{place.name}</p>
-                            <div className="rating">
-                                <span className="rate-star">{place.average_rating} {renderStars(place.average_rating)}</span>
-                                <span className="rate-reviews">{place.rating_total} </span>
-                                <span className="rate-rank"></span>
+                            <div className="item-text-content">
+                                <p className="item-title">{place.name}</p>
+                                <div className="item-rating">
+                                    <span className="rating-score">{place.average_rating}  </span>
+                                    <span className="rating-dots">{renderStars(place.average_rating)}  </span>
+                                    <span className="review-count">{place.rating_total}</span>
+                                </div>
                             </div>
                         </div>
                     ))}

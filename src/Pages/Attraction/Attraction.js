@@ -40,15 +40,15 @@ const Attraction = () => {
 
         const fetchAttraction = async () => {
             try {
-                // Lấy thông tin nhà hàng
+                // Lấy thông tin địa điểm
                 const attractionResponse = await axios.get(`${BASE_URL}/attractions/${attractionId}`);
                 const attractionData = attractionResponse.data; // Dữ liệu nằm trong data.data theo controller
                 setAttraction(attractionData);
-                
+
                 const cityRespone = await axios.get(`${BASE_URL}/cities/${attractionData.city_id}`);
                 const cityData = cityRespone.data;
                 setCity(cityData);
-                
+
                 const attractionRankRespone = await axios.get(`${BASE_URL}/attractions/rank/${attractionId}`);
                 const attractionRankData = attractionRankRespone.data;
                 setattractionRank(attractionRankData);
@@ -116,7 +116,7 @@ const Attraction = () => {
     const handlenavigate_attraction = async (attraction_id) => {
         try {
             console.log("Attraction_id", attraction_id);
-            navigate(`/tripguide/foodpage/${attraction_id}`);
+            navigate(`/tripguide/attraction/${attraction_id}`);
         } catch (error) {
             console.error("Lỗi khi gọi API:", error);
         }
@@ -164,11 +164,11 @@ const Attraction = () => {
             <div className="attraction-info">
                 <div className="location-info">
                     <h2>Overview</h2>
-                    <p className="brief-describe">"..."</p>
+                    <p className="brief-describe">Welcome to ...</p>
                     <h2>Location</h2>
-                    {/* <div>
+                    <div>
                         <MapComponent address={attraction?.address} />
-                    </div> */}
+                    </div>
                 </div>
 
             </div>
@@ -215,7 +215,7 @@ const Attraction = () => {
                 <div className="picture-grid">
                     {nearBy?.map((place) => (
                         <div className="picture-item" key={place.id}>
-                            <div className="item-content">
+                            <div className="item-image-container">
                                 <img src={place.image_url} alt={place.name} onClick={() => handlenavigate_attraction(place.attraction_id)}
                                     style={{ cursor: 'pointer' }} />
                                 <div className="save-overlay">
@@ -229,11 +229,13 @@ const Attraction = () => {
                                     </button>
                                 </div>
                             </div>
-                            <p>{place.name}</p>
-                            <div className="rating">
-                                <span className="rate-star">{place.average_rating}{renderStars(place.average_rating)}</span>
-                                <span className="rate-reviews">177 reviews</span>
-                                <span className="rate-rank">No.17</span>
+                            <div className="item-text-content">
+                                <p className="item-title">{place.name}</p>
+                                <div className="item-rating">
+                                    <span className="rating-score">{place.average_rating}  </span>
+                                    <span className="rating-dots">{renderStars(place.average_rating)}  </span>
+                                    <span className="review-count">{place.rating_total}</span>
+                                </div>
                             </div>
                         </div>
                     ))}
