@@ -149,7 +149,7 @@ const HomePage = () => {
   const showNotification = (message) => {
     alert(message);
   };
-
+  
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
       handleSearch();
