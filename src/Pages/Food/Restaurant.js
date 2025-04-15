@@ -174,9 +174,9 @@ const Restaurant = () => {
                     <p className="location">📍 {restaurant.address}</p>
                     <p className="contact">🌐 Website | 📞 {restaurant.phone_number}</p>
                     <h2>Location</h2>
-                    <div>
+                    {/* <div>
                         <MapComponent address={restaurant.address} />
-                    </div>
+                    </div> */}
                 </div>
                 <div className="hours-info">
                     <h2>Hours</h2>

@@ -8,6 +8,7 @@ export const useLoginForm = ({ onLoginSuccess, onClose }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [formError, setFormError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const navigate = useNavigate();
 
   // Formik setup for email/password login
@@ -72,5 +73,7 @@ export const useLoginForm = ({ onLoginSuccess, onClose }) => {
     togglePasswordVisibility,
     handleGoogleLogin,
     clearFormError,
+    showForgotPassword,
+    setShowForgotPassword,
   };
 };

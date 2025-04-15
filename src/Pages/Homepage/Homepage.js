@@ -124,7 +124,7 @@ const HomePage = () => {
     if (!searchText.trim()) return;
     try {
       const response = await fetch(
-        `http://localhost:8081/location/search?name=${encodeURIComponent(
+        `http://localhost:8081/cities/search/${encodeURIComponent(
           searchText
         )}`
       );
@@ -132,9 +132,9 @@ const HomePage = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      if (Array.isArray(data) && data.length > 0) {
-        const firstLocation = data[0];
-        navigate(`/tripguide/foodpage/${firstLocation.location_id}`);
+      if (data && data.city_id) {
+        //const firstLocation = data[0];
+        navigate(`/tripguide/citydetail/${data.city_id}`);
       } else {
         showNotification("Không tìm thấy địa điểm!");
       }

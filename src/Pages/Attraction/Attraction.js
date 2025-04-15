@@ -57,7 +57,9 @@ const Attraction = () => {
                 const nearByRespone = await axios.get(`${BASE_URL}/attractions/topnearby/${attractionId}`);
                 const nearByData = nearByRespone.data.nearbyTopRestaurant;
                 setnearBy(nearByData);
+                
 
+                console.log(nearByData);
                 // Comment lại phần lấy reviews
                 /*
                 // Lấy danh sách reviews
@@ -166,9 +168,9 @@ const Attraction = () => {
                     <h2>Overview</h2>
                     <p className="location">📍 {attraction.address}</p>
                     <h2>Location</h2>
-                    <div>
+                    {/* <div>
                         <MapComponent address={attraction?.address} />
-                    </div>
+                    </div> */}
                 </div>
 
             </div>

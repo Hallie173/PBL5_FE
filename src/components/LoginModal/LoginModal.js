@@ -9,6 +9,7 @@ import {
 import { MdEmail } from "react-icons/md";
 import { FcGoogle } from "react-icons/fc";
 import { useLoginForm } from "./hooks/useLoginForm";
+import ForgotPasswordModal from "../ForgotPasswordModal/ForgotPasswordModal";
 
 export default function LoginModal({
   onSwitchToRegister,
@@ -23,6 +24,8 @@ export default function LoginModal({
     togglePasswordVisibility,
     handleGoogleLogin,
     clearFormError,
+    showForgotPassword,
+    setShowForgotPassword,
   } = useLoginForm({ onLoginSuccess });
 
   const primaryColor = "bg-[#2d7a61]";
@@ -45,6 +48,24 @@ export default function LoginModal({
       ? `${baseClass} border-red-300 focus:border-red-500`
       : `${baseClass} border-gray-300 ${primaryBorderColor}`;
   };
+
+  const handleOpenForgotPassword = () => {
+    setShowForgotPassword(true);
+  };
+
+  const handleCloseForgotPassword = () => {
+    setShowForgotPassword(false);
+  };
+
+  // If forgot password modal is shown, render that instead
+  if (showForgotPassword) {
+    return (
+      <ForgotPasswordModal
+        onClose={handleCloseForgotPassword}
+        onBackToLogin={handleCloseForgotPassword}
+      />
+    );
+  }
 
   return (
     <div className="bg-white rounded-xl shadow-xl overflow-hidden w-full max-w-md animate-fadeIn">
@@ -158,9 +179,7 @@ export default function LoginModal({
             <div className="mt-2 flex justify-end">
               <button
                 type="button"
-                onClick={() => {
-                  /* Implement forgot password modal */
-                }}
+                onClick={handleOpenForgotPassword}
                 className={`text-sm ${primaryTextColor} hover:underline font-medium`}
               >
                 Quên mật khẩu?
