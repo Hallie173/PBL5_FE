@@ -164,7 +164,7 @@ const Attraction = () => {
             <div className="attraction-info">
                 <div className="location-info">
                     <h2>Overview</h2>
-                    <p className="brief-describe">Welcome to ...</p>
+                    <p className="location">📍 {attraction.address}</p>
                     <h2>Location</h2>
                     <div>
                         <MapComponent address={attraction?.address} />
