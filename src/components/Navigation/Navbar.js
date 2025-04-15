@@ -16,24 +16,25 @@ import weblogo from "../../views/webLogo.png";
 import avatar from "../../assets/images/avatar.png";
 import LoginModal from "../../components/LoginModal/LoginModal";
 import RegisterModal from "../../components/RegisterModal/RegisterModal";
+import ForgotPasswordModal from "../../components/ForgotPasswordModal/ForgotPasswordModal";
 import { authService } from "../../services/authService";
-import { set } from "date-fns";
 
 function Navbar() {
   const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // State để kiểm tra đăng nhập
-  const [user, setUser] = useState(null); // State để lưu thông tin người dùng
+  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState(null);
   const location = useLocation();
 
-  // Kiểm tra người dùng đã đăng nhập chưa (từ localStorage hoặc session)
+  // Check if user is logged in
   useEffect(() => {
     const currentUser = authService.getCurrentUser();
     if (currentUser) {
       setIsLoggedIn(true);
-      setUser(currentUser); // Lưu thông tin người dùng
+      setUser(currentUser);
     }
   }, []);
 
@@ -51,21 +52,31 @@ function Navbar() {
   const handleOpenLoginModal = () => {
     setShowLoginModal(true);
     setShowRegisterModal(false);
+    setShowForgotPasswordModal(false);
   };
 
   const handleSwitchToRegister = () => {
     setShowLoginModal(false);
     setShowRegisterModal(true);
+    setShowForgotPasswordModal(false);
   };
 
   const handleSwitchToLogin = () => {
     setShowRegisterModal(false);
     setShowLoginModal(true);
+    setShowForgotPasswordModal(false);
+  };
+
+  const handleSwitchToForgotPassword = () => {
+    setShowRegisterModal(false);
+    setShowLoginModal(false);
+    setShowForgotPasswordModal(true);
   };
 
   const handleCloseModals = () => {
     setShowLoginModal(false);
     setShowRegisterModal(false);
+    setShowForgotPasswordModal(false);
   };
 
   const handleLogout = () => {
@@ -75,10 +86,10 @@ function Navbar() {
     setUserMenuOpen(false);
   };
 
-  // Xử lý khi đăng nhập thành công
+  // Handle successful login
   const handleLoginSuccess = (response) => {
     setIsLoggedIn(true);
-    setUser(response); // Lưu toàn bộ response
+    setUser(response);
     handleCloseModals();
   };
 
@@ -89,7 +100,8 @@ function Navbar() {
         !e.target.closest(".language-menu") &&
         !e.target.closest(".user-menu") &&
         !e.target.closest(".login-modal") &&
-        !e.target.closest(".register-modal")
+        !e.target.closest(".register-modal") &&
+        !e.target.closest(".forgot-password-modal")
       ) {
         setLanguageMenuOpen(false);
         setUserMenuOpen(false);
@@ -307,6 +319,16 @@ function Navbar() {
           <RegisterModal
             onSwitchToLogin={handleSwitchToLogin}
             onClose={handleCloseModals}
+          />
+        </div>
+      )}
+
+      {/* Forgot Password Modal */}
+      {showForgotPasswordModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 forgot-password-modal">
+          <ForgotPasswordModal
+            onClose={handleCloseModals}
+            onBackToLogin={handleSwitchToLogin}
           />
         </div>
       )}

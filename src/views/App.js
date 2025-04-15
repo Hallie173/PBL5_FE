@@ -21,6 +21,7 @@ import Profile from "../Pages/Profile/Profile";
 import Restaurants from "../Pages/Admin/Restaurants/Restaurants";
 import Attraction from "../Pages/Attraction/Attraction";
 import Auth from "../components/LoginModal/Auth";
+import ResetPasswordPage from "../components/ForgotPasswordModal/ResetPasswordPage";
 
 function App() {
   return (
@@ -29,7 +30,7 @@ function App() {
         <Routes>
           {/* Route articles */}
           <Route path="/auth-callback" element={<Auth />} />
-
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route
             path="/"
             element={
