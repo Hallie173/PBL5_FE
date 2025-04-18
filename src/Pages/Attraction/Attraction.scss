@@ -1,7 +1,7 @@
 .attraction-container {
     width: 90%;
     max-width: 1200px;
-    margin: 0 auto;
+    margin: 0 auto 50px auto;
     display: block;
 
     .breadcrumb {
@@ -123,7 +123,7 @@
     }
 
     .attraction-info {
-        width: 90%;
+        width: 100%;
         margin: auto;
         display: flex;
         align-items: flex-start;
@@ -137,10 +137,6 @@
                 font-size: 25px;
                 font-weight: bold;
                 margin: 30px 0 10px 0;
-            }
-
-            .brief-describe {
-                font-style: italic;
             }
         }
     }
@@ -213,8 +209,8 @@
     }
 
     .nearby {
-        width: 90%;
-        margin: auto;
+        width: 100%;
+        margin: 0 auto 10px auto;
         display: block;
         text-align: left;
 

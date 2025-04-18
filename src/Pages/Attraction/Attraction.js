@@ -57,7 +57,7 @@ const Attraction = () => {
                 const nearByRespone = await axios.get(`${BASE_URL}/attractions/topnearby/${attractionId}`);
                 const nearByData = nearByRespone.data.nearby;
                 setnearBy(nearByData);
-                
+
 
                 console.log("nearby", nearByData);
                 // Comment lại phần lấy reviews

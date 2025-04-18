@@ -11,7 +11,7 @@ import Articles from "../Pages/Articles/Articles";
 import Homepage from "../Pages/Homepage/Homepage";
 import Dashboard from "../Pages/Admin/Dashboard/Dashboard";
 import AdminLayout from "../components/AdminLayout/AdminLayout";
-import Restaurant from "../Pages/Food/Restaurant";
+import Restaurant from "../Pages/Restaurant/Restaurant";
 import Users from "../Pages/Admin/Users/Users";
 import Cities from "../Pages/Admin/Cities/Citites";
 import MyTrips from "../components/Mytrips/Mytrips";
@@ -86,7 +86,7 @@ function App() {
             }
           />
           <Route
-            path="/tripguide/foodpage/:id"
+            path="/tripguide/restaurant/:id"
             element={
               <>
                 <Navbar />
