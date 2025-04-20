@@ -172,7 +172,6 @@ const Restaurant = () => {
                     <h2>Overview</h2>
                     <p className="open-status">Open until {restaurant.close_time}</p>
                     <p className="location">📍 {restaurant.address}</p>
-                    <p className="contact">🌐 Website | 📞 {restaurant.phone_number}</p>
                     <h2>Location</h2>
                     <div>
                         <MapComponent address={restaurant.address} />

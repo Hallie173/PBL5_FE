@@ -14,7 +14,7 @@ import AdminLayout from "../components/AdminLayout/AdminLayout";
 import Restaurant from "../Pages/Restaurant/Restaurant";
 import Users from "../Pages/Admin/Users/Users";
 import Cities from "../Pages/Admin/Cities/Citites";
-import MyTrips from "../components/Mytrips/Mytrips";
+import MyTrips from "../Pages/Mytrips/Mytrips";
 import Attractions from "../Pages/Admin/Attractions/Attractions";
 import CityDetail from "../Pages/City Detail/CityDetail";
 import Profile from "../Pages/Profile/Profile";
@@ -22,6 +22,8 @@ import Restaurants from "../Pages/Admin/Restaurants/Restaurants";
 import Attraction from "../Pages/Attraction/Attraction";
 import Auth from "../components/LoginModal/Auth";
 import ResetPasswordPage from "../components/ForgotPasswordModal/ResetPasswordPage";
+import NewTrip from "../Pages/NewTrip/NewTrip";
+
 
 function App() {
   return (
@@ -71,6 +73,16 @@ function App() {
               <>
                 <Navbar />
                 <MyTrips />
+                <Footer />
+              </>
+            }
+          />
+          <Route
+            path="/tripguide/newtrip"
+            element={
+              <>
+                <Navbar />
+                <NewTrip />
                 <Footer />
               </>
             }
