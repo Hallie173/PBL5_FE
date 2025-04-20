@@ -13,7 +13,7 @@ import tuongtheater from "../../assets/images/Cities/tuongtheater.png";
 import { useParams } from "react-router-dom";
 import MapComponent from "../../components/GoogleMap/GoogleMap";
 import BASE_URL from "../../constants/BASE_URL";
-
+import { authService } from "../../services/authService";
 const initialNearbyPlaces = [
     { id: 1, name: "Cozy Danang Boutique Hotel", image: cozy, saved: false },
     { id: 2, name: "Wink Hotel Danang Centre", image: wink, saved: false },
@@ -27,13 +27,16 @@ const Restaurant = () => {
     const [city, setCity] = useState(null);
     const [resRank, setresRank] = useState(null);
     const [nearBy, setnearBy] = useState([]);
-    // const [reviews, setReviews] = useState([]); // Comment lại state reviews
+    const [reviews, setReviews] = useState([]); // Comment lại state reviews
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [nearbyPlaces, setNearbyPlaces] = useState(initialNearbyPlaces);
     const navigate = useNavigate();
     const [saved, setSaved] = useState(false);
-
+    const [user, setUser] = useState(null);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [comment, setComment] = useState("");
+    const [user_id, setUser_id] = useState(null);
     useEffect(() => {
         if (!restaurantId) return;
         setLoading(true);
@@ -59,6 +62,32 @@ const Restaurant = () => {
 
                 console.log("nearByData:", nearByData);
 
+                const reviewResponse = await axios.get(`${BASE_URL}/reviews/restaurant/${restaurantId}`);
+                const reviewData = reviewResponse.data;
+                if (!Array.isArray(reviewData)) {
+                    console.error("Lỗi: API reviews không trả về mảng", reviewData);
+                    setReviews([]);
+                    return;
+                }
+                const reviewsWithUser = await Promise.all(
+                    reviewData.map(async (review) => {
+                        const userResponse = await axios.get(`${BASE_URL}/users/${review.user_id}`);
+                        //console.log(userResponse.data.username);
+                        return { ...review, userName: userResponse.data.username };
+                    })
+                );
+
+                setReviews(reviewsWithUser);
+                const currentUser = authService.getCurrentUser();
+                if (currentUser) {
+                    setIsLoggedIn(true);
+                    setUser(currentUser);
+                }
+                // console.log(user.user.username)
+                const userIdRespone = await axios.get(`${BASE_URL}/users/email/${user.user.email}`);
+                const userIdData = userIdRespone.data;
+                setUser_id(userIdData);
+                console.log(userIdData.user_id);
 
                 // Comment lại phần lấy reviews
                 /*
@@ -117,6 +146,40 @@ const Restaurant = () => {
         }
     };
 
+    const handleSubmit = async () => {
+        if (!comment.trim()) return;
+
+        try {
+            const response = await fetch('http://localhost:8080/reviews', {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    user_id: user_id?.user_id,
+                    attraction_id: null,
+                    restaurant_id: restaurant?.restaurant_id,
+                    comment: comment.trim(),
+                    rating: 5,
+                    photos: null,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log(response.json);
+            console.log("Đã tạo review:", data);
+            alert("Đánh giá đã được gửi!");
+            setComment(""); // Reset form
+        } catch (error) {
+            console.error("Lỗi khi gửi review:", error);
+            alert("Có lỗi xảy ra. Vui lòng thử lại.");
+        }
+    };
+
     const toggleSaveNearby = (id) => {
         const updatedPlaces = nearbyPlaces.map((place) =>
             place.id === id ? { ...place, saved: !place.saved } : place
@@ -172,7 +235,7 @@ const Restaurant = () => {
                     <h2>Overview</h2>
                     <p className="open-status">Open until {restaurant.close_time}</p>
                     <p className="location">📍 {restaurant.address}</p>
-                    
+
                     <h2>Location</h2>
                     <div>
                         <MapComponent address={restaurant.address} />
@@ -196,7 +259,7 @@ const Restaurant = () => {
             </div>
 
             {/* Comment lại phần Reviews */}
-            {/* 
+
             <div className="reviews">
                 <h2 id="restaurant-reviews">Reviews</h2>
                 <div className="reviews-div">
@@ -211,8 +274,12 @@ const Restaurant = () => {
                         </div>
                     </div>
                     <div className="review-detail">
-                        <div className="new-review"><input type="text" placeholder="Write new review..." /></div><br />
-                        <div className="submit-review"><input type="submit" /></div>
+                        <div className="new-review"><textarea
+                            placeholder="Write new review..."
+                            value={comment}
+                            onChange={(e) => setComment(e.target.value)}
+                        /></div><br />
+                        <div className="submit-review"><button onClick={handleSubmit}>Submit</button></div>
                         <div>
                             {reviews.length > 0 ? (
                                 reviews.map((review, index) => (
@@ -230,7 +297,7 @@ const Restaurant = () => {
                     </div>
                 </div>
             </div>
-            */}
+
 
             <div className="nearby">
                 <h2>Best nearby</h2>
