@@ -124,7 +124,7 @@ const HomePage = () => {
     if (!searchText.trim()) return;
     try {
       const response = await fetch(
-        `http://localhost:8081/cities/search/${encodeURIComponent(
+        `http://localhost:8080/cities/search/${encodeURIComponent(
           searchText
         )}`
       );

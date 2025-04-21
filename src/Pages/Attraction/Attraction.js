@@ -83,6 +83,7 @@ const Attraction = () => {
                     setIsLoggedIn(true);
                     setUser(currentUser);
                 }
+                
                 // console.log(user.user.username)
                 const userIdRespone = await axios.get(`${BASE_URL}/users/email/${user.user.email}`);
                 const userIdData = userIdRespone.data;
@@ -169,6 +170,7 @@ const Attraction = () => {
             console.log("Đã tạo review:", data);
             alert("Đánh giá đã được gửi!");
             setComment(""); // Reset form
+            window.location.reload();
         } catch (error) {
             console.error("Lỗi khi gửi review:", error);
             alert("Có lỗi xảy ra. Vui lòng thử lại.");
