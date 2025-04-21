@@ -7,7 +7,7 @@ import {
 } from "react-router-dom";
 import Navbar from "../components/Navigation/Navbar";
 import Footer from "../components/Footer/Footer";
-import Articles from "../Pages/Articles/Articles";
+import AllArticles from "../Pages/Articles/AllArticles";
 import Homepage from "../Pages/Homepage/Homepage";
 import Dashboard from "../Pages/Admin/Dashboard/Dashboard";
 import AdminLayout from "../components/AdminLayout/AdminLayout";
@@ -23,6 +23,8 @@ import Attraction from "../Pages/Attraction/Attraction";
 import Auth from "../components/LoginModal/Auth";
 import ResetPasswordPage from "../components/ForgotPasswordModal/ResetPasswordPage";
 import NewTrip from "../Pages/NewTrip/NewTrip";
+import NewArticle from "../Pages/Articles/NewArticle";
+import Article from "../Pages/Articles/Article";
 
 
 function App() {
@@ -48,7 +50,17 @@ function App() {
             element={
               <>
                 <Navbar />
-                <Articles />
+                <AllArticles />
+                <Footer />
+              </>
+            }
+          />
+          <Route
+            path="/tripguide/articles/id"
+            element={
+              <>
+                <Navbar />
+                <Article />
                 <Footer />
               </>
             }
@@ -58,7 +70,7 @@ function App() {
             element={
               <>
                 <Navbar />
-                <Articles />
+                <NewArticle />
                 <Footer />
               </>
             }
