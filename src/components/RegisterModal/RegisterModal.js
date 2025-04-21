@@ -1,3 +1,5 @@
+// src/components/RegisterModal/RegisterModal.js
+import React, { useState } from "react";
 import {
   FaEye,
   FaEyeSlash,
@@ -8,26 +10,70 @@ import {
   FaTimes,
   FaExclamationCircle,
 } from "react-icons/fa";
-import { useRegisterForm } from "./hooks/useRegisterForm";
+import { authService } from "../../services/authService"; // Sử dụng authService từ file của bạn
 
-export default function RegisterModal({
-  onSwitchToLogin,
-  onClose,
-  onRegisterSuccess,
-}) {
-  // Sử dụng custom hook để xử lý form logic
-  const {
-    formik,
-    isLoading,
-    formError,
-    showPassword,
-    showConfirmPassword,
-    togglePasswordVisibility,
-    toggleConfirmPasswordVisibility,
-    clearFormError,
-  } = useRegisterForm({ onSwitchToLogin, onRegisterSuccess });
+export default function RegisterModal({ onSwitchToLogin, onClose }) {
+  const [formData, setFormData] = useState({
+    fullName: "",
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [formError, setFormError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
 
-  // Custom color scheme
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setFormError(null);
+    setSuccessMessage(null);
+
+    // Kiểm tra xác nhận mật khẩu
+    if (formData.password !== formData.confirmPassword) {
+      setFormError("Mật khẩu và xác nhận mật khẩu không khớp.");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const response = await authService.register(formData);
+      if (response) {
+        setSuccessMessage(
+          "Đăng ký thành công. Bạn có thể đăng nhập ngay bây giờ."
+        );
+        onSwitchToLogin(); // Chuyển sang modal đăng nhập sau khi đăng ký thành công
+      }
+    } catch (error) {
+      setFormError("Đăng ký thất bại. Vui lòng thử lại.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const clearFormError = () => {
+    setFormError(null);
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
+  };
+
   const primaryColor = "bg-[#2d7a61]";
   const primaryHoverColor = "hover:bg-[#236c53]";
   const primaryTextColor = "text-[#2d7a61]";
@@ -36,18 +82,32 @@ export default function RegisterModal({
 
   // Hàm tiện ích để hiển thị lỗi từ formik
   const getFieldError = (fieldName) => {
-    return formik.touched[fieldName] && formik.errors[fieldName] ? (
-      <div className="mt-1 text-xs text-red-500">
-        {formik.errors[fieldName]}
-      </div>
+    let error = null;
+    if (fieldName === "fullName" && !formData.fullName) {
+      error = "Họ và tên là bắt buộc.";
+    } else if (fieldName === "username" && !formData.username) {
+      error = "Username là bắt buộc.";
+    } else if (fieldName === "email" && !formData.email) {
+      error = "Email là bắt buộc.";
+    } else if (fieldName === "email" && !/\S+@\S+\.\S+/.test(formData.email)) {
+      error = "Email không hợp lệ.";
+    } else if (fieldName === "password" && !formData.password) {
+      error = "Mật khẩu là bắt buộc.";
+    } else if (fieldName === "password" && formData.password.length < 8) {
+      error = "Mật khẩu phải có ít nhất 8 ký tự.";
+    } else if (fieldName === "confirmPassword" && !formData.confirmPassword) {
+      error = "Xác nhận mật khẩu là bắt buộc.";
+    }
+    return error ? (
+      <div className="mt-1 text-xs text-red-500">{error}</div>
     ) : null;
   };
 
   // Hàm tạo class cho input field dựa vào tình trạng validation
   const getInputClass = (fieldName) => {
     const baseClass = `pl-10 pr-3 py-2.5 w-full border rounded-lg ${primaryFocusRing} focus:outline-none transition-colors`;
-
-    return formik.touched[fieldName] && formik.errors[fieldName]
+    const error = getFieldError(fieldName);
+    return error
       ? `${baseClass} border-red-300 focus:border-red-500`
       : `${baseClass} border-gray-300 ${primaryBorderColor}`;
   };
@@ -68,7 +128,6 @@ export default function RegisterModal({
           </button>
         )}
       </div>
-
       {/* Form Container */}
       <div className="p-6 sm:p-8">
         {/* Error message */}
@@ -86,8 +145,16 @@ export default function RegisterModal({
           </div>
         )}
 
+        {/* Success message */}
+        {successMessage && (
+          <div className="mb-5 bg-green-50 text-green-700 p-3 rounded-lg flex items-start border border-green-100">
+            <FaExclamationCircle className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
+            <div className="text-sm">{successMessage}</div>
+          </div>
+        )}
+
         {/* Form */}
-        <form onSubmit={formik.handleSubmit}>
+        <form onSubmit={handleSubmit}>
           {/* Full Name Field */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -101,16 +168,15 @@ export default function RegisterModal({
                 type="text"
                 id="fullName"
                 name="fullName"
-                value={formik.values.fullName}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
+                value={formData.fullName}
+                onChange={handleChange}
                 className={getInputClass("fullName")}
                 placeholder="Nhập họ và tên của bạn"
+                required
               />
             </div>
             {getFieldError("fullName")}
           </div>
-
           {/* Username Field */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -124,16 +190,15 @@ export default function RegisterModal({
                 type="text"
                 id="username"
                 name="username"
-                value={formik.values.username}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
+                value={formData.username}
+                onChange={handleChange}
                 className={getInputClass("username")}
                 placeholder="Chọn tên đăng nhập"
+                required
               />
             </div>
             {getFieldError("username")}
           </div>
-
           {/* Email Field */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -147,16 +212,15 @@ export default function RegisterModal({
                 type="email"
                 id="email"
                 name="email"
-                value={formik.values.email}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
+                value={formData.email}
+                onChange={handleChange}
                 className={getInputClass("email")}
                 placeholder="Nhập địa chỉ email của bạn"
+                required
               />
             </div>
             {getFieldError("email")}
           </div>
-
           {/* Password Field */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -170,11 +234,11 @@ export default function RegisterModal({
                 type={showPassword ? "text" : "password"}
                 id="password"
                 name="password"
-                value={formik.values.password}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
+                value={formData.password}
+                onChange={handleChange}
                 className={`${getInputClass("password")} pr-10`}
                 placeholder="Tạo mật khẩu"
+                required
               />
               <button
                 type="button"
@@ -196,7 +260,6 @@ export default function RegisterModal({
               </div>
             )}
           </div>
-
           {/* Confirm Password Field */}
           <div className="mb-5">
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -210,11 +273,11 @@ export default function RegisterModal({
                 type={showConfirmPassword ? "text" : "password"}
                 id="confirmPassword"
                 name="confirmPassword"
-                value={formik.values.confirmPassword}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
+                value={formData.confirmPassword}
+                onChange={handleChange}
                 className={`${getInputClass("confirmPassword")} pr-10`}
                 placeholder="Nhập lại mật khẩu"
+                required
               />
               <button
                 type="button"
@@ -233,7 +296,6 @@ export default function RegisterModal({
             </div>
             {getFieldError("confirmPassword")}
           </div>
-
           {/* Register Button */}
           <button
             type="submit"
@@ -271,7 +333,6 @@ export default function RegisterModal({
             )}
           </button>
         </form>
-
         {/* Toggle to Login */}
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
