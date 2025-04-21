@@ -4,7 +4,8 @@ import maldives from "../../assets/images/Cities/maldives.png";
 import marrakech from "../../assets/images/Cities/marrakech.png";
 import winterlondon from "../../assets/images/Cities/winterlondon.png";
 import amazonrainforest from "../../assets/images/Cities/amazonrainforest.png";
-import romanticeurope from "../../assets/images/Cities/romanticeurope.png";
+import asiapark from "../../assets/images/Cities/asiapark.png";
+import { Link } from "react-router-dom";
 
 // Giả lập nhiều bài viết để thử phân trang
 const articlesData = Array.from({ length: 24 }, (_, i) => ({
@@ -98,17 +99,12 @@ function Articles() {
         <div className="articles-container">
             <div className="featured-article">
                 <div className="featured-image">
-                    <img src={romanticeurope} alt="Featured" />
+                    <img src={asiapark} alt="Featured" />
                 </div>
                 <div className="featured-content">
-                    <span className="featured-badge">Featured</span>
-                    <h2>Five ultra-romantic European trips for couples</h2>
-                    <p>From island hopping in Greece to hiking in Scotland</p>
-                    <div className="author-info">
-                        <div>
-                            <p className="author-name">Sarah Khan</p>
-                            <p className="date">August 27, 2022</p>
-                        </div>
+                    <h2>Share your experiences and advices</h2>
+                    <div className="new-article-button">
+                        <Link to="/tripguide/articles/new" className="create-article-button">+ New Article</Link>
                     </div>
                 </div>
             </div>
