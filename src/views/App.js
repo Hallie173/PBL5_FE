@@ -53,6 +53,16 @@ function App() {
               </>
             }
           />
+          <Route
+            path="/tripguide/articles/new"
+            element={
+              <>
+                <Navbar />
+                <Articles />
+                <Footer />
+              </>
+            }
+          />
 
           {/* Route homepage */}
           <Route
