@@ -52,7 +52,7 @@ const Attraction = () => {
                 const cityRespone = await axios.get(`${BASE_URL}/cities/${attractionData.city_id}`);
                 const cityData = cityRespone.data;
                 setCity(cityData);
-
+                console.log(city.city_id);
                 const attractionRankRespone = await axios.get(`${BASE_URL}/attractions/rank/${attractionId}`);
                 const attractionRankData = attractionRankRespone.data;
                 setattractionRank(attractionRankData);
@@ -83,7 +83,7 @@ const Attraction = () => {
                     setIsLoggedIn(true);
                     setUser(currentUser);
                 }
-                
+                console.log(user.user.username);
                 // console.log(user.user.username)
                 const userIdRespone = await axios.get(`${BASE_URL}/users/email/${user.user.email}`);
                 const userIdData = userIdRespone.data;
