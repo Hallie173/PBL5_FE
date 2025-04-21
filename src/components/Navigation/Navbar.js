@@ -1,3 +1,4 @@
+// src/components/Navbar/Navbar.js
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -17,26 +18,15 @@ import avatar from "../../assets/images/avatar.png";
 import LoginModal from "../../components/LoginModal/LoginModal";
 import RegisterModal from "../../components/RegisterModal/RegisterModal";
 import ForgotPasswordModal from "../../components/ForgotPasswordModal/ForgotPasswordModal";
-import { authService } from "../../services/authService";
-
+import { useAuth } from "../../contexts/AuthContext"; // Import useAuth hook
 function Navbar() {
+  const { user, isLoggedIn, login, logout } = useAuth();
   const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState(null);
   const location = useLocation();
-
-  // Check if user is logged in
-  useEffect(() => {
-    const currentUser = authService.getCurrentUser();
-    if (currentUser) {
-      setIsLoggedIn(true);
-      setUser(currentUser);
-    }
-  }, []);
 
   const toggleLanguageMenu = () => {
     setLanguageMenuOpen(!languageMenuOpen);
@@ -79,17 +69,8 @@ function Navbar() {
     setShowForgotPasswordModal(false);
   };
 
-  const handleLogout = () => {
-    authService.logout();
-    setIsLoggedIn(false);
-    setUser(null);
-    setUserMenuOpen(false);
-  };
-
   // Handle successful login
   const handleLoginSuccess = (response) => {
-    setIsLoggedIn(true);
-    setUser(response);
     handleCloseModals();
   };
 
@@ -107,7 +88,6 @@ function Navbar() {
         setUserMenuOpen(false);
       }
     };
-
     document.addEventListener("click", closeDropdowns);
     return () => document.removeEventListener("click", closeDropdowns);
   }, []);
@@ -164,7 +144,6 @@ function Navbar() {
                 </span>
               </Link>
             </div>
-
             {/* Center Nav */}
             <div className="flex items-center justify-center flex-1">
               <div className="flex space-x-6">
@@ -184,7 +163,6 @@ function Navbar() {
                 ))}
               </div>
             </div>
-
             {/* Right side elements */}
             <div className="flex items-center">
               {/* Language Selector */}
@@ -197,7 +175,6 @@ function Navbar() {
                   <span>EN</span>
                   <FaChevronDown className="ml-1 text-xs" />
                 </button>
-
                 {/* Language Dropdown */}
                 {languageMenuOpen && (
                   <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-md py-1 bg-white ring-1 ring-gray-200 z-10">
@@ -231,7 +208,6 @@ function Navbar() {
                   </div>
                 )}
               </div>
-
               {/* Login Button or Profile dropdown based on login status */}
               {!isLoggedIn ? (
                 <button
@@ -248,20 +224,19 @@ function Navbar() {
                   >
                     <img
                       className="h-8 w-8 rounded-full object-cover border border-gray-200"
-                      src={avatar}
+                      src={user?.avatar_url || avatar}
                       alt="User"
                     />
                   </button>
-
                   {/* User Dropdown */}
                   {userMenuOpen && (
                     <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-md py-1 bg-white ring-1 ring-gray-200 z-10">
                       <div className="px-4 py-2 border-b border-gray-100">
                         <p className="text-sm font-medium text-gray-900">
-                          {user && user.user ? user.user.username : "Guest"}
+                          {user?.username || "Guest"}
                         </p>
                         <p className="text-xs text-gray-500 truncate">
-                          {user && user.user ? user.user.email : ""}
+                          {user?.email || ""}
                         </p>
                       </div>
                       <Link
@@ -287,7 +262,7 @@ function Navbar() {
                       </Link>
                       <div className="border-t border-gray-100 mt-1"></div>
                       <button
-                        onClick={handleLogout}
+                        onClick={logout}
                         className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center transition-colors"
                       >
                         <LuLogOut className="inline-block mr-2" />
@@ -301,7 +276,6 @@ function Navbar() {
           </div>
         </div>
       </nav>
-
       {/* Login Modal */}
       {showLoginModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 login-modal">
@@ -309,10 +283,10 @@ function Navbar() {
             onSwitchToRegister={handleSwitchToRegister}
             onClose={handleCloseModals}
             onLoginSuccess={handleLoginSuccess}
+            login={login} // Truyền hàm login từ context
           />
         </div>
       )}
-
       {/* Register Modal */}
       {showRegisterModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 register-modal">
@@ -322,7 +296,6 @@ function Navbar() {
           />
         </div>
       )}
-
       {/* Forgot Password Modal */}
       {showForgotPasswordModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 forgot-password-modal">
@@ -332,7 +305,6 @@ function Navbar() {
           />
         </div>
       )}
-
       {/* Spacer div to create space between navbar and content */}
       <div className="h-16"></div>
     </>

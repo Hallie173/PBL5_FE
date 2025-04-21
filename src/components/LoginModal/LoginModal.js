@@ -1,3 +1,5 @@
+// src/components/LoginModal/LoginModal.js
+import React, { useState } from "react";
 import {
   FaEye,
   FaEyeSlash,
@@ -8,45 +10,33 @@ import {
 } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
 import { FcGoogle } from "react-icons/fc";
-import { useLoginForm } from "./hooks/useLoginForm";
+import { useAuth } from "../../contexts/AuthContext";
 import ForgotPasswordModal from "../ForgotPasswordModal/ForgotPasswordModal";
-
+import { authService } from "../../services/authService"; // Import authService
 export default function LoginModal({
   onSwitchToRegister,
   onClose,
   onLoginSuccess,
 }) {
-  const {
-    formik,
-    isLoading,
-    formError,
-    showPassword,
-    togglePasswordVisibility,
-    handleGoogleLogin,
-    clearFormError,
-    showForgotPassword,
-    setShowForgotPassword,
-  } = useLoginForm({ onLoginSuccess });
+  const { login } = useAuth(); // Sử dụng hàm login từ AuthContext
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [formError, setFormError] = useState(null);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
-  const primaryColor = "bg-[#2d7a61]";
-  const primaryHoverColor = "hover:bg-[#236c53]";
-  const primaryTextColor = "text-[#2d7a61]";
-  const primaryFocusRing = "focus:ring-[#2d7a61]";
-  const primaryBorderColor = "focus:border-[#2d7a61]";
-
-  const getFieldError = (fieldName) => {
-    return formik.touched[fieldName] && formik.errors[fieldName] ? (
-      <div className="mt-1 text-xs text-red-500">
-        {formik.errors[fieldName]}
-      </div>
-    ) : null;
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
-  const getInputClass = (fieldName) => {
-    const baseClass = `pl-10 pr-3 py-2.5 w-full border rounded-lg ${primaryFocusRing} focus:outline-none transition-colors`;
-    return formik.touched[fieldName] && formik.errors[fieldName]
-      ? `${baseClass} border-red-300 focus:border-red-500`
-      : `${baseClass} border-gray-300 ${primaryBorderColor}`;
+  const handleGoogleLogin = () => {
+    // Gọi hàm googleLogin từ authService
+    authService.googleLogin();
+  };
+
+  const clearFormError = () => {
+    setFormError(null);
   };
 
   const handleOpenForgotPassword = () => {
@@ -57,7 +47,25 @@ export default function LoginModal({
     setShowForgotPassword(false);
   };
 
-  // If forgot password modal is shown, render that instead
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      const response = await login(email, password);
+      if (response) {
+        onLoginSuccess(response);
+        onClose();
+      }
+    } catch (error) {
+      setFormError(
+        "Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Nếu modal quên mật khẩu được hiển thị, render nó thay vì form đăng nhập
   if (showForgotPassword) {
     return (
       <ForgotPasswordModal
@@ -66,6 +74,32 @@ export default function LoginModal({
       />
     );
   }
+
+  const getFieldError = (fieldName) => {
+    let error = null;
+    if (fieldName === "email" && !email) {
+      error = "Email là bắt buộc.";
+    } else if (fieldName === "password" && !password) {
+      error = "Mật khẩu là bắt buộc.";
+    }
+    return error ? (
+      <div className="mt-1 text-xs text-red-500">{error}</div>
+    ) : null;
+  };
+
+  const getInputClass = (fieldName) => {
+    const baseClass = `pl-10 pr-3 py-2.5 w-full border rounded-lg focus:ring-[#2d7a61] focus:outline-none transition-colors`;
+    const error = getFieldError(fieldName);
+    return error
+      ? `${baseClass} border-red-300 focus:border-red-500`
+      : `${baseClass} border-gray-300 focus:border-[#2d7a61]`;
+  };
+
+  const primaryColor = "bg-[#2d7a61]";
+  const primaryHoverColor = "hover:bg-[#236c53]";
+  const primaryTextColor = "text-[#2d7a61]";
+  const primaryFocusRing = "focus:ring-[#2d7a61]";
+  const primaryBorderColor = "focus:border-[#2d7a61]";
 
   return (
     <div className="bg-white rounded-xl shadow-xl overflow-hidden w-full max-w-md animate-fadeIn">
@@ -121,7 +155,7 @@ export default function LoginModal({
           <div className="flex-grow border-t border-gray-300"></div>
         </div>
 
-        <form onSubmit={formik.handleSubmit}>
+        <form onSubmit={handleSubmit}>
           <div className="mb-5">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Email
@@ -134,9 +168,8 @@ export default function LoginModal({
                 type="text"
                 id="email"
                 name="email"
-                value={formik.values.email}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className={getInputClass("email")}
                 placeholder="Nhập email"
               />
@@ -156,9 +189,8 @@ export default function LoginModal({
                 type={showPassword ? "text" : "password"}
                 id="password"
                 name="password"
-                value={formik.values.password}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 className={`${getInputClass("password")} pr-10`}
                 placeholder="Nhập mật khẩu"
               />
@@ -193,8 +225,8 @@ export default function LoginModal({
                 id="rememberMe"
                 name="rememberMe"
                 type="checkbox"
-                checked={formik.values.rememberMe}
-                onChange={formik.handleChange}
+                checked={false} // Bạn có thể quản lý trạng thái này nếu cần
+                onChange={() => {}}
                 className={`h-4 w-4 rounded border-gray-300 ${primaryTextColor} ${primaryFocusRing}`}
               />
               <label
