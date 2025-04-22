@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./AllArticles.scss";
 import maldives from "../../assets/images/Cities/maldives.png";
 import marrakech from "../../assets/images/Cities/marrakech.png";
@@ -6,7 +6,9 @@ import winterlondon from "../../assets/images/Cities/winterlondon.png";
 import amazonrainforest from "../../assets/images/Cities/amazonrainforest.png";
 import asiapark from "../../assets/images/Cities/asiapark.png";
 import { Link } from "react-router-dom";
-
+import BASE_URL from "../../constants/BASE_URL";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 // Giả lập nhiều bài viết để thử phân trang
 const articlesData = Array.from({ length: 24 }, (_, i) => ({
     category: "Sample Category",
@@ -18,6 +20,7 @@ const articlesData = Array.from({ length: 24 }, (_, i) => ({
 }));
 
 const Pagination = ({ page, totalPages, handlePageChange }) => {
+
     const pagesPerGroup = 6;
     const totalGroups = Math.ceil(totalPages / pagesPerGroup);
     const currentGroup = Math.floor((page - 1) / pagesPerGroup);
@@ -25,6 +28,8 @@ const Pagination = ({ page, totalPages, handlePageChange }) => {
 
     const startPage = visibleGroup * pagesPerGroup + 1;
     const endPage = Math.min(startPage + pagesPerGroup - 1, totalPages);
+
+
 
     const showNextGroup = () => {
         if (visibleGroup < totalGroups - 1) {
@@ -84,16 +89,49 @@ const Pagination = ({ page, totalPages, handlePageChange }) => {
     );
 };
 
-function AllArticles() {
+const AllArticles = () => {
     const [page, setPage] = useState(1);
     const articlesPerPage = 8;
-    const totalPages = Math.ceil(articlesData.length / articlesPerPage);
-
+    const [articles, setArticles] = useState([]);
+    const totalPages = Math.ceil(articles.length / articlesPerPage);
+    const navigate = useNavigate();
     const handlePageChange = (newPage) => {
         if (newPage >= 1 && newPage <= totalPages) {
             setPage(newPage);
         }
     };
+
+    const handlenavigate_article = async (article_id) => {
+        try {
+            console.log("Article_id", article_id);
+            navigate(`/tripguide/articles/${article_id}`);
+        } catch (error) {
+            console.error("Lỗi khi gọi API:", error);
+        }
+    };
+
+    useEffect(() => {
+        const fetchArticles = async () => {
+            try {
+                const articleRespone = await axios.get(`${BASE_URL}/articles`);
+                const articleData = articleRespone.data;
+                setArticles(articleData);
+
+                const articlewithUser = await Promise.all(
+                    articleData.map(async (article) => {
+                        const userResponse = await axios.get(`${BASE_URL}/users/${article.user_id}`);
+                        //console.log(userResponse.data.username);
+                        return { ...article, userName: userResponse.data.username };
+                    })
+                );
+            } catch (error) {
+                console.error(error);
+            } finally {
+
+            }
+        }
+        fetchArticles();
+    }, []);
 
     return (
         <div className="articles-container">
@@ -119,20 +157,20 @@ function AllArticles() {
             </div>
 
             <div className="article-list">
-                {articlesData
+                {articles
                     .slice((page - 1) * articlesPerPage, page * articlesPerPage)
                     .map((article, index) => (
                         <div className="article-card" key={index}>
-                            <img src={article.image} alt={article.title} />
+                            <img src={article.images} alt={article.title} onClick={() => handlenavigate_article(article.article_id)} />
                             <div className="article-content">
                                 <div className="upper-content">
-                                    <span className="category">{article.category}</span>
-                                    <h3>{article.title}</h3>
-                                    <p>{article.description}</p>
+                                    <span className="category">Tourist Attraction</span>
+                                    <h3 className="item-title">{article.title}</h3>
+                                    <p>Sample description for article </p>
                                 </div>
                                 <div className="article-footer">
-                                    <span className="author">{article.author}</span>
-                                    <span className="date">{article.date}</span>
+                                    <span className="author">Ahrumiki</span>
+                                    <span className="date">{new Date(article?.created_at).toDateString()}</span>
                                 </div>
                             </div>
                         </div>
