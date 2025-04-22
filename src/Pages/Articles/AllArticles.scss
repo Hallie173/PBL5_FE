@@ -134,6 +134,12 @@ $gray-medium: #777;
                     font-size: 18px;
                 }
 
+                .category {
+                    color: $green;
+                    font-style: italic;
+                    font-size: 14px;
+                }
+
                 .article-footer {
                     display: flex;
                     justify-content: space-between;
@@ -141,11 +147,7 @@ $gray-medium: #777;
                     color: $gray-medium;
                     margin-top: 12px;
 
-                    .category {
-                        color: $green;
-                        font-weight: bold;
-                        font-size: 14px;
-                    }
+                    
                 }
             }
         }
