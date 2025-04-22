@@ -1,0 +1,63 @@
+.new-article-container {
+    width: 90%;
+    margin: 0 auto;
+    display: block;
+    padding: 20px 0;
+
+    .new-article {
+        font-size: 20px;
+        font-weight: bold;
+        font-style: italic;
+        color: #2d7a61;
+        margin: auto;
+        text-align: center;
+    }
+
+    .write-page {
+        height: 100vh;
+        padding: 2rem;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        background-color: #fff;
+    }
+
+    .article-title {
+        font-size: 2.5rem;
+        font-weight: bold;
+        font-style: italic;
+        margin-bottom: 1.5rem;
+        outline: none;
+        text-align: center;
+        position: relative;
+    }
+
+    .editor {
+        flex: 1;
+        font-size: 1.2rem;
+        line-height: 1.8;
+        border: none;
+        outline: none;
+        padding-right: 1rem;
+        overflow-y: auto;
+        margin-top: 1rem;
+    }
+
+    .editor:empty::before {
+        content: attr(placeholder);
+        color: #aaa;
+        font-style: italic;
+    }
+
+    .btn-submit {
+        margin-top: 1rem;
+        padding: 0.8rem 1.5rem;
+        align-self: flex-end;
+        background-color: #0f9d58;
+        color: white;
+        font-size: 1rem;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+}
