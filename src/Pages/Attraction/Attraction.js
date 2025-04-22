@@ -61,7 +61,7 @@ const Attraction = () => {
                 const nearByRespone = await axios.get(`${BASE_URL}/attractions/topnearby/${attractionId}`);
                 const nearByData = nearByRespone.data.nearby;
                 setnearBy(nearByData);
-                
+
                 const reviewResponse = await axios.get(`${BASE_URL}/reviews/attraction/${attractionId}`);
                 const reviewData = reviewResponse.data;
                 if (!Array.isArray(reviewData)) {
@@ -83,7 +83,7 @@ const Attraction = () => {
                     setIsLoggedIn(true);
                     setUser(currentUser);
                 }
-                
+
                 // console.log(user.user.username)
                 const userIdRespone = await axios.get(`${BASE_URL}/users/email/${user.user.email}`);
                 const userIdData = userIdRespone.data;
@@ -257,7 +257,6 @@ const Attraction = () => {
                                         <p className="review-title"><b>{review.userName}</b></p>
                                         <p className="review-date"><i>{new Date(review.created_at).toDateString()}</i></p>
                                         <p className="review-content">{review.comment}</p>
-                                        <button>Read more</button>
                                     </div>
                                 ))
                             ) : (
