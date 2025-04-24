@@ -5,7 +5,6 @@ import { ThemeProvider, createTheme } from "@mui/material/styles";
 import reportWebVitals from "./reportWebVitals";
 import "./styles/global.scss";
 import "./App.css";
-import { AuthProvider } from "./contexts/AuthContext"; // Điều chỉnh đường dẫn
 
 const theme = createTheme({
   palette: {
