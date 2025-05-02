@@ -151,6 +151,14 @@
       gap: 10px;
     }
 
+    .loading-overlay {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
     .change-avatar-btn {
       background-color: #f0f0f0;
       border: none;
