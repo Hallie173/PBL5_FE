@@ -8,15 +8,16 @@ const containerStyle = {
 
 const MapComponent = ({ address }) => {
   const [location, setLocation] = useState(null);
-  const apiKey = "AIzaSyCCnsE1CCMUcR_BiT0HRajs5buYHNXqyaE";
-
+  const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
   useEffect(() => {
     if (!address) return;
 
     const fetchCoordinates = async () => {
       try {
         const response = await fetch(
-          `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`
+          `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
+            address
+          )}&key=${apiKey}`
         );
         const data = await response.json();
         if (data.status === "OK") {
@@ -36,7 +37,11 @@ const MapComponent = ({ address }) => {
   return (
     <LoadScript googleMapsApiKey={apiKey}>
       {location ? (
-        <GoogleMap mapContainerStyle={containerStyle} center={location} zoom={15}>
+        <GoogleMap
+          mapContainerStyle={containerStyle}
+          center={location}
+          zoom={15}
+        >
           <Marker position={location} />
         </GoogleMap>
       ) : (
