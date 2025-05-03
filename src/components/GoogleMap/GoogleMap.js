@@ -8,8 +8,7 @@ const containerStyle = {
 
 const MapComponent = ({ address }) => {
   const [location, setLocation] = useState(null);
-  const apiKey = "AIzaSyCCnsE1CCMUcR_BiT0HRajs5buYHNXqyaE";
-
+  const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
   useEffect(() => {
     if (!address) return;
 
@@ -36,7 +35,11 @@ const MapComponent = ({ address }) => {
   return (
     <LoadScript googleMapsApiKey={apiKey}>
       {location ? (
-        <GoogleMap mapContainerStyle={containerStyle} center={location} zoom={15}>
+        <GoogleMap
+          mapContainerStyle={containerStyle}
+          center={location}
+          zoom={15}
+        >
           <Marker position={location} />
         </GoogleMap>
       ) : (

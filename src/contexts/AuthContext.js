@@ -1,6 +1,6 @@
-// src/AuthContext.js
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { authService } from "../services/authService";
+
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -10,14 +10,16 @@ export const AuthProvider = ({ children }) => {
   // Hàm đăng nhập
   const login = async (email, password) => {
     try {
-      const response = await authService.login(email, password);
-      if (response) {
-        const userData = authService.getCurrentUser();
+      const userData = await authService.login(email, password);
+      if (userData && userData.user_id) {
         setUser(userData);
         setIsLoggedIn(true);
+        console.log("Logged in user:", userData); // Debug
+        return userData;
       }
-      return response;
+      throw new Error("Invalid user data from login");
     } catch (error) {
+      console.error("Login error:", error);
       throw error;
     }
   };
@@ -32,9 +34,13 @@ export const AuthProvider = ({ children }) => {
   // Tự động tải thông tin người dùng từ localStorage khi component mount
   useEffect(() => {
     const currentUser = authService.getCurrentUser();
-    if (currentUser) {
+    console.log("Current user from localStorage:", currentUser); // Debug
+    if (currentUser && currentUser.user_id) {
       setUser(currentUser);
       setIsLoggedIn(true);
+    } else {
+      setUser(null);
+      setIsLoggedIn(false);
     }
   }, []);
 

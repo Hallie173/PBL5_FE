@@ -1,6 +1,5 @@
-// src/Pages/Profile/Profile.js
-import React, { useState, useEffect, useCallback, useContext } from "react";
-import { authService } from "../../services/authService";
+import React, { useState, useEffect, useCallback } from "react";
+import { useAuth } from "../../contexts/AuthContext";
 import UserService from "../../services/userService";
 import "./Profile.scss";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -19,154 +18,130 @@ import RecentReviews from "./RecentReviews";
 import ProfileEditModal from "./ProfileEditModal";
 import formatDate from "../../utils/formatDate";
 import { toast } from "react-toastify";
-import { useAuth } from "../../contexts/AuthContext"; // Import useAuth hook
 
-// Default images and constants
 const DEFAULT_AVATAR = "https://i.imgur.com/MO4pS2K.jpeg";
+const DEFAULT_USER = {
+  full_name: "User",
+  username: "user",
+  bio: {},
+  avatar_url: DEFAULT_AVATAR,
+  created_at: new Date(),
+};
 
 function Profile() {
+  const { user, isLoggedIn } = useAuth();
   const [showUploadBox, setShowUploadBox] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [activeTab, setActiveTab] = useState("trips");
-  const [userData, setUserData] = useState(null);
+  const [userData, setUserData] = useState(DEFAULT_USER);
   const [loading, setLoading] = useState(true);
-  const { user, logout, login } = useAuth(); // Get user from context
 
-  // Fetch user data from API or local storage
+  // Fetch user data from API
   const fetchUserData = useCallback(async () => {
     try {
       setLoading(true);
-      if (user && user.user_id) {
-        try {
-          // Try to get fresh data from API
-          const freshUserData = await UserService.getUserById(user.user_id);
-          // Format and save data
-          if (freshUserData) {
-            const formattedUserData = {
-              ...freshUserData,
-              bio: freshUserData.bio || {},
-            };
-            authService.setCurrentUser(formattedUserData);
-            setUserData(formattedUserData);
-          } else {
-            // If API returns no data, fall back to local storage
-            setUserData({ ...user, bio: user.bio || {} });
-          }
-        } catch (error) {
-          console.error("Failed to refresh user data:", error);
-          // Fall back to local storage on error
-          setUserData({ ...user, bio: user.bio || {} });
-        }
-      } else if (user) {
-        // Use local data
-        setUserData({ ...user, bio: user.bio || {} });
+      console.log("Auth user:", user);
+      if (!isLoggedIn || !user?.user_id) {
+        setUserData(DEFAULT_USER);
+        toast.warn("Please log in to view your profile");
+        return;
+      }
+      const freshUserData = await UserService.getUserById(user.user_id);
+      if (freshUserData) {
+        const formattedUserData = {
+          ...freshUserData,
+          bio: freshUserData.bio || {},
+        };
+        setUserData(formattedUserData);
       } else {
-        // Default guest user
-        setUserData(getGuestUserData());
+        throw new Error("No user data returned from API");
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
       toast.error("Failed to load profile data");
-      setUserData(getGuestUserData());
+      setUserData(user ? { ...user, bio: user.bio || {} } : DEFAULT_USER);
     } finally {
       setLoading(false);
     }
-  }, [user]); // Thêm user vào dependency array
+  }, [user, isLoggedIn]);
 
-  // Fetch user data on component mount
+  // Fetch user data on mount
   useEffect(() => {
     fetchUserData();
-  }, [fetchUserData, user]); // Thêm user vào dependency array
-
-  // Default guest user data
-  const getGuestUserData = () => ({
-    full_name: "Guest User",
-    username: "guest",
-    bio: {},
-    created_at: new Date(),
-    avatar_url: DEFAULT_AVATAR,
-  });
+  }, [fetchUserData]);
 
   // Update profile handler
   const handleProfileUpdate = async (updatedData) => {
     try {
-      if (!userData.user_id) {
+      if (!user?.user_id) {
         toast.error("You need to be logged in to update your profile");
         return Promise.reject(new Error("Authentication required"));
       }
+      console.log("Updating profile with:", updatedData); // Debug
       // Optimistic UI update
       setUserData((prevData) => ({
         ...prevData,
         full_name: updatedData.full_name,
         username: updatedData.username,
         avatar_url: updatedData.avatar_url || prevData.avatar_url,
-        bio: {
-          ...prevData.bio,
-          ...(updatedData.bio || {}),
-        },
+        bio: updatedData.bio || prevData.bio,
       }));
       // Update via API
-      await UserService.updateProfile(userData.user_id, updatedData);
-      // Refresh data to ensure consistency
+      await UserService.updateProfile(user.user_id, updatedData);
+      // Refresh data
       await fetchUserData();
       toast.success("Profile updated successfully!");
       return Promise.resolve();
     } catch (error) {
-      console.error("Error updating profile:", error);
-      // Revert UI to server state on error
-      await fetchUserData();
-      const errorMsg = error.message || "Failed to update profile";
-      toast.error(errorMsg);
+      console.error("Error updating profile:", error.message);
+      await fetchUserData(); // Revert to latest data
+      toast.error(error.message || "Failed to update profile");
       return Promise.reject(error);
     }
   };
 
   // Avatar upload handler
   const handleAvatarUpload = async (file) => {
-    if (!file || !userData.user_id) {
+    if (!file || !user?.user_id) {
       toast.error("You need to be logged in to update your avatar");
       return null;
     }
-    // Validate file
     if (file.size > 2 * 1024 * 1024) {
       toast.error("Avatar image must be less than 2MB");
       return null;
     }
     const validTypes = ["image/jpeg", "image/png", "image/gif"];
     if (!validTypes.includes(file.type)) {
-      toast.error("Only JPG, PNG or GIF images are allowed");
+      toast.error("Only JPG, PNG, or GIF images are allowed");
       return null;
     }
     try {
-      // Upload avatar
       const response = await UserService.uploadAvatar(file);
-      return response?.url;
+      return response; // Trả về { avatarUrl: "url" }
     } catch (error) {
-      console.error("Error uploading avatar:", error);
-      toast.error("Failed to upload avatar. Please try again.");
+      console.error("Error uploading avatar:", error.message);
+      toast.error(error.message || "Failed to upload avatar");
       return null;
     }
   };
 
-  // Cover photo upload handler
+  // Cover photo upload handler (placeholder)
   const handleCoverPhotoUpload = async (file) => {
-    if (!file || !userData.user_id) {
+    if (!file || !user?.user_id) {
       toast.error("You need to be logged in to upload a cover photo");
       return;
     }
-    // Validate file
     if (file.size > 10 * 1024 * 1024) {
       toast.error("Cover photo must be less than 10MB");
       return;
     }
     const validTypes = ["image/jpeg", "image/png", "image/gif"];
     if (!validTypes.includes(file.type)) {
-      toast.error("Only JPG, PNG or GIF images are allowed");
+      toast.error("Only JPG, PNG, or GIF images are allowed");
       return;
     }
-    // Todo: Implement cover photo upload
     toast.success("Cover photo functionality coming soon!");
-    toggleUploadBox();
+    setShowUploadBox(false);
   };
 
   // Toggle upload box
@@ -175,7 +150,7 @@ function Profile() {
     setShowUploadBox(!showUploadBox);
   };
 
-  // Handle edit profile button click
+  // Handle edit profile
   const handleEditProfile = () => {
     setShowEditModal(true);
   };
@@ -208,7 +183,7 @@ function Profile() {
             </div>
             <div className="user-details">
               <h2 className="display-name">{userData.full_name || "User"}</h2>
-              <p className="username">@{userData.username || "guest"}</p>
+              <p className="username">@{userData.username || "user"}</p>
             </div>
             <button className="edit-button" onClick={handleEditProfile}>
               <FontAwesomeIcon icon={faPenToSquare} className="edit-icon" />
