@@ -16,7 +16,7 @@ const MapComponent = ({ address }) => {
     const fetchCoordinates = async () => {
       try {
         const response = await fetch(
-          `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`
+          ``
         );
         const data = await response.json();
         if (data.status === "OK") {
