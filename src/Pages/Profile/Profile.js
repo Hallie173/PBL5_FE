@@ -35,18 +35,20 @@ function Profile() {
   const [activeTab, setActiveTab] = useState("trips");
   const [userData, setUserData] = useState(DEFAULT_USER);
   const [loading, setLoading] = useState(true);
+  console.log(user);
 
   // Fetch user data from API
   const fetchUserData = useCallback(async () => {
     try {
       setLoading(true);
       console.log("Auth user:", user);
-      if (!isLoggedIn || !user?.user_id) {
+      if (!isLoggedIn || (!user?.user_id && !user?.id)) {
         setUserData(DEFAULT_USER);
         toast.warn("Please log in to view your profile");
         return;
       }
-      const freshUserData = await UserService.getUserById(user.user_id);
+      const userId = user.user_id || user.id; // Sử dụng id nếu user_id không có
+      const freshUserData = await UserService.getUserById(userId);
       if (freshUserData) {
         const formattedUserData = {
           ...freshUserData,
@@ -59,7 +61,11 @@ function Profile() {
     } catch (error) {
       console.error("Error fetching user data:", error);
       toast.error("Failed to load profile data");
-      setUserData(user ? { ...user, bio: user.bio || {} } : DEFAULT_USER);
+      setUserData(
+        user
+          ? { ...user, bio: user.bio || {}, user_id: user.id || user.user_id }
+          : DEFAULT_USER
+      );
     } finally {
       setLoading(false);
     }

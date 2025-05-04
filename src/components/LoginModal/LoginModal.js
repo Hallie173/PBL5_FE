@@ -104,11 +104,16 @@ export default function LoginModal({
     } else if (fieldName === "password" && !password) {
       error = "Mật khẩu là bắt buộc.";
     }
-    return error ? (
-      <div className="mt-1 text-xs text-red-500 flex items-center">
-        <FaExclamationCircle className="mr-1" /> {error}
+    return (
+      <div className="h-5 mt-1">
+        {error && (
+          <div className="text-xs text-red-500 flex items-center">
+            <FaExclamationCircle className="mr-1 flex-shrink-0 w-3 h-3" />{" "}
+            {error}
+          </div>
+        )}
       </div>
-    ) : null;
+    );
   };
 
   return (
@@ -134,7 +139,7 @@ export default function LoginModal({
       {/* Right side - Login form */}
       <div className="w-full md:w-1/2 bg-white">
         <div className="h-full flex flex-col">
-          <div className="bg-gradient-to-r from-emerald-800 to-emerald-600 px-8 py-6 relative">
+          <div className="bg-gradient-to-r from-emerald-800 to-emerald-600 px-6 py-4 relative">
             <h1 className="text-white text-2xl font-bold">Sign In</h1>
             <p className="text-white text-sm mt-1 opacity-90">
               Access your TripGuide account
@@ -150,49 +155,54 @@ export default function LoginModal({
             )}
           </div>
 
-          <div className="p-8 flex-grow flex flex-col">
-            {formError && (
-              <div className="mb-5 bg-red-50 text-red-700 p-3 rounded-lg flex items-start border border-red-100">
-                <FaExclamationCircle className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
-                <div className="text-sm">{formError}</div>
-                <button
-                  className="ml-auto"
-                  onClick={clearFormError}
-                  aria-label="Close error message"
-                >
-                  <FaTimes className="h-4 w-4" />
-                </button>
-              </div>
-            )}
+          <div className="p-6 flex-grow flex flex-col">
+            {/* Error message container - Fixed height */}
+            <div className="h-12 mb-2">
+              {formError && (
+                <div className="bg-red-50 text-red-700 p-2 rounded-lg flex items-center border border-red-100">
+                  <FaExclamationCircle className="h-4 w-4 mr-2 flex-shrink-0" />
+                  <div className="text-sm flex-grow line-clamp-2">
+                    {formError}
+                  </div>
+                  <button
+                    className="ml-1 flex-shrink-0 p-1 hover:bg-red-100 rounded-full"
+                    onClick={clearFormError}
+                    aria-label="Close error message"
+                  >
+                    <FaTimes className="h-3 w-3" />
+                  </button>
+                </div>
+              )}
+            </div>
 
             {/* Google Sign In Button */}
             <button
               type="button"
               onClick={handleGoogleLogin}
               disabled={isLoading}
-              className="w-full bg-white border border-gray-300 rounded-lg py-3 px-4 flex items-center justify-center hover:bg-gray-50 transition-all duration-200 shadow-sm mb-6 hover:shadow"
+              className="w-full bg-white border border-gray-300 rounded-lg py-2.5 px-4 flex items-center justify-center hover:bg-gray-50 transition-all duration-200 shadow-sm mb-4 hover:shadow"
             >
-              <FcGoogle className="h-5 w-5 mr-3" />
+              <FcGoogle className="h-5 w-5 mr-2" />
               <span className="font-medium text-gray-700">
                 Sign in with Google
               </span>
             </button>
 
-            <div className="relative flex items-center mb-6">
+            <div className="relative flex items-center mb-4">
               <div className="flex-grow border-t border-gray-300"></div>
-              <span className="flex-shrink mx-4 text-gray-500 text-sm">or</span>
+              <span className="flex-shrink mx-3 text-gray-500 text-xs">or</span>
               <div className="flex-grow border-t border-gray-300"></div>
             </div>
 
             <form onSubmit={handleSubmit} className="flex-grow flex flex-col">
-              <div className="mb-5">
+              <div className="mb-3">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Email
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <MdEmail
-                      className={`h-5 w-5 ${
+                      className={`h-4 w-4 ${
                         focusedField === "email"
                           ? "text-emerald-600"
                           : "text-gray-400"
@@ -207,7 +217,7 @@ export default function LoginModal({
                     onChange={(e) => setEmail(e.target.value)}
                     onFocus={() => setFocusedField("email")}
                     onBlur={() => setFocusedField(null)}
-                    className={`pl-10 pr-3 py-3 w-full border rounded-lg focus:outline-none transition-all duration-200 ${
+                    className={`pl-9 pr-3 py-2 w-full border rounded-lg focus:outline-none transition-all duration-200 ${
                       focusedField === "email"
                         ? "border-emerald-600 shadow-sm ring-1 ring-emerald-200"
                         : "border-gray-300"
@@ -219,14 +229,14 @@ export default function LoginModal({
                 {getFieldError("email")}
               </div>
 
-              <div className="mb-5">
+              <div className="mb-3">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Password
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <FaLock
-                      className={`h-5 w-5 ${
+                      className={`h-4 w-4 ${
                         focusedField === "password"
                           ? "text-emerald-600"
                           : "text-gray-400"
@@ -241,7 +251,7 @@ export default function LoginModal({
                     onChange={(e) => setPassword(e.target.value)}
                     onFocus={() => setFocusedField("password")}
                     onBlur={() => setFocusedField(null)}
-                    className={`pl-10 pr-10 py-3 w-full border rounded-lg focus:outline-none transition-all duration-200 ${
+                    className={`pl-9 pr-9 py-2 w-full border rounded-lg focus:outline-none transition-all duration-200 ${
                       focusedField === "password"
                         ? "border-emerald-600 shadow-sm ring-1 ring-emerald-200"
                         : "border-gray-300"
@@ -258,27 +268,27 @@ export default function LoginModal({
                     }
                   >
                     {showPassword ? (
-                      <FaEyeSlash className="h-5 w-5" />
+                      <FaEyeSlash className="h-4 w-4" />
                     ) : (
-                      <FaEye className="h-5 w-5" />
+                      <FaEye className="h-4 w-4" />
                     )}
                   </button>
                 </div>
                 {getFieldError("password")}
-                <div className="mt-2 flex justify-end">
+                <div className="mt-1 flex justify-end">
                   <button
                     type="button"
                     onClick={handleOpenForgotPassword}
-                    className="text-sm text-emerald-700 hover:text-emerald-900 hover:underline font-medium transition-colors"
+                    className="text-xs text-emerald-700 hover:text-emerald-900 hover:underline font-medium transition-colors"
                   >
                     Forgot password?
                   </button>
                 </div>
               </div>
 
-              <div className="mb-6">
+              <div className="mb-4">
                 <div className="flex items-center">
-                  <div className="relative w-10 h-5 inline-flex items-center">
+                  <div className="relative w-8 h-4 inline-flex items-center">
                     <input
                       id="rememberMe"
                       name="rememberMe"
@@ -289,13 +299,13 @@ export default function LoginModal({
                     />
                     <div
                       onClick={() => setRememberMe(!rememberMe)}
-                      className={`w-10 h-5 rounded-full shadow-inner ${
+                      className={`w-8 h-4 rounded-full shadow-inner ${
                         rememberMe ? "bg-emerald-500" : "bg-gray-300"
                       } transition-colors duration-200 cursor-pointer`}
                     >
                       <div
-                        className={`absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full shadow transform transition-transform duration-200 ${
-                          rememberMe ? "translate-x-5" : ""
+                        className={`absolute left-0.5 top-0.5 bg-white w-3 h-3 rounded-full shadow transform transition-transform duration-200 ${
+                          rememberMe ? "translate-x-4" : ""
                         }`}
                       />
                     </div>
@@ -303,7 +313,7 @@ export default function LoginModal({
                   <label
                     htmlFor="rememberMe"
                     onClick={() => setRememberMe(!rememberMe)}
-                    className="ml-2 block text-sm text-gray-700 select-none cursor-pointer"
+                    className="ml-2 block text-xs text-gray-700 select-none cursor-pointer"
                   >
                     Keep me signed in
                   </label>
@@ -313,11 +323,11 @@ export default function LoginModal({
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-gradient-to-r from-emerald-700 to-emerald-600 text-white py-3 px-4 rounded-lg hover:from-emerald-800 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 transition-all duration-200 flex items-center justify-center font-medium shadow-md transform hover:-translate-y-0.5 active:translate-y-0"
+                className="w-full bg-gradient-to-r from-emerald-700 to-emerald-600 text-white py-2.5 px-4 rounded-lg hover:from-emerald-800 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 transition-all duration-200 flex items-center justify-center font-medium shadow-md"
               >
                 {isLoading ? (
                   <svg
-                    className="animate-spin h-5 w-5 text-white"
+                    className="animate-spin h-4 w-4 text-white"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -338,13 +348,13 @@ export default function LoginModal({
                   </svg>
                 ) : (
                   <>
-                    <FaSignInAlt className="h-5 w-5 mr-2" />
+                    <FaSignInAlt className="h-4 w-4 mr-2" />
                     Sign In
                   </>
                 )}
               </button>
 
-              <div className="mt-6 text-center mt-auto">
+              <div className="mt-6 text-center">
                 <p className="text-sm text-gray-600">
                   Don't have an account?{" "}
                   <button

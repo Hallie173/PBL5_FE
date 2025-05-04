@@ -27,6 +27,7 @@ function Navbar() {
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
   const location = useLocation();
+  console.log(user);
 
   const toggleLanguageMenu = () => {
     setLanguageMenuOpen(!languageMenuOpen);
@@ -240,7 +241,7 @@ function Navbar() {
                         </p>
                       </div>
                       <Link
-                        to="/tripguide/user-profile"
+                        to="/tripguide/profile"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center"
                       >
                         <CgProfile className="inline-block mr-2 text-gray-500" />
