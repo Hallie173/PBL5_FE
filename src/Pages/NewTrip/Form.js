@@ -62,6 +62,14 @@ const Form = () => {
                                 <div className="tag">Camping</div>
                             </div>
                         </div>
+                        <div className="restaurant-type">
+                            <div className="type-title">Activity:</div>
+                            <div className="tags">
+                                <div className="tag">Seafood</div>
+                                <div className="tag">Local Specialities</div>
+                                <div className="tag">Rice</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
