@@ -71,24 +71,45 @@ export const authService = {
   // Lấy thông tin người dùng hiện tại
   getCurrentUser: () => {
     const userData = localStorage.getItem("data");
+    console.log("Raw userData from localStorage:", userData);
     if (!userData) {
-      console.log("No user data in localStorage"); // Debug
+      console.log("No user data in localStorage");
       return null;
     }
 
     try {
-      const user = JSON.parse(userData);
-      // console.log("Retrieved user from localStorage:", user); // Debug
+      const parsedData = JSON.parse(userData);
+      console.log("Parsed userData:", parsedData);
+
+      // Kiểm tra nếu dữ liệu từ Google auth
+      if (parsedData.token && parsedData.user) {
+        return {
+          user_id: parsedData.user.id || parsedData.user.user_id,
+          username: parsedData.user.username || "unknown",
+          email: parsedData.user.email || "",
+          full_name:
+            parsedData.user.full_name || parsedData.user.fullName || "",
+          avatar_url:
+            parsedData.user.avatar || parsedData.user.avatar_url || "",
+          role: parsedData.user.role || "user",
+          created_at:
+            parsedData.user.created_at ||
+            parsedData.user.joinedAt ||
+            new Date().toISOString(),
+          bio: parsedData.user.bio || {},
+        };
+      }
+
+      // Dữ liệu từ đăng nhập thông thường
       return {
-        ...user,
-        bio: user.bio || {},
+        ...parsedData,
+        bio: parsedData.bio || {},
       };
     } catch (error) {
       console.error("Error parsing user data:", error);
       return null;
     }
   },
-
   // Cập nhật thông tin người dùng
   setCurrentUser: (userData) => {
     const normalizedData = {
@@ -100,8 +121,21 @@ export const authService = {
   },
 
   // Kiểm tra đã xác thực chưa
-  isAuthenticated: () => !!localStorage.getItem("token"),
-
+  isAuthenticated: () => {
+    const token = localStorage.getItem("token");
+    if (token) return true;
+    const data = localStorage.getItem("data");
+    if (data) {
+      try {
+        const parsedData = JSON.parse(data);
+        return !!parsedData.token;
+      } catch (error) {
+        console.error("Error parsing data for token:", error);
+        return false;
+      }
+    }
+    return false;
+  },
   // Lấy token
   getToken: () => localStorage.getItem("token"),
 

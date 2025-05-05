@@ -154,7 +154,7 @@ function App() {
               }
             />
             <Route
-              path="/tripguide/user-profile"
+              path="/tripguide/profile"
               element={
                 <>
                   <Navbar />

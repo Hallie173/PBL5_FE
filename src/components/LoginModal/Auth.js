@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 function Auth() {
   const navigate = useNavigate();
 
+  // Auth.js
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
     const token = queryParams.get("token");
@@ -13,14 +14,24 @@ function Auth() {
     if (token && googleUser) {
       try {
         const userData = JSON.parse(decodeURIComponent(googleUser));
-        const authData = { token, user: userData };
+        // Chuẩn hóa dữ liệu người dùng
+        const normalizedUserData = {
+          user_id: userData.id || userData.user_id,
+          username: userData.username || "unknown",
+          email: userData.email || "",
+          full_name: userData.full_name || userData.fullName || "",
+          avatar_url: userData.avatar || userData.avatar_url || "",
+          role: userData.role || "user",
+          created_at: userData.created_at || new Date().toISOString(),
+          bio: userData.bio || {},
+        };
 
-        // Lưu vào localStorage
-        localStorage.setItem("data", JSON.stringify(authData));
+        // Lưu token và user data riêng biệt
+        localStorage.setItem("token", token);
+        localStorage.setItem("data", JSON.stringify(normalizedUserData));
 
-        // Chuyển về trang chủ
         navigate("/", { replace: true });
-        window.location.reload(); // Reload trang để cập nhật UI
+        window.location.reload();
       } catch (error) {
         console.error("Error processing auth data:", error);
         navigate("/");
@@ -29,7 +40,6 @@ function Auth() {
       navigate("/");
     }
   }, [navigate]);
-
   return (
     <div className="flex items-center justify-center h-screen">
       <p className="text-lg">Đang đăng nhập...</p>
