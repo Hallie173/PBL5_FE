@@ -62,9 +62,8 @@ const Pagination = ({ page, totalPages, handlePageChange }) => {
           <button
             key={pageNumber}
             onClick={() => handlePageChange(pageNumber)}
-            className={`pagination-page ${
-              page === pageNumber ? "pagination-page-active" : ""
-            }`}
+            className={`pagination-page ${page === pageNumber ? "pagination-page-active" : ""
+              }`}
           >
             {pageNumber}
           </button>
@@ -144,7 +143,6 @@ const AllArticles = () => {
           <div className="new-article-button">
             <Link
               to="/tripguide/articles/new"
-              className="create-article-button"
             >
               + New Article
             </Link>

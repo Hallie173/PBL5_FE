@@ -27,28 +27,6 @@ function NewTrip() {
             </div>
             <div className="trip-details">
                 <div className="trip-info">
-                    <div className="trip-date">
-                        <h3 className="trip-date-title">When & How Long?</h3>
-                        <div className="date-picker-container">
-                            <DatePicker
-                                selected={startDate}
-                                onChange={(date) => setStartDate(date)}
-                                dateFormat="yyyy-MM-dd"
-                                placeholderText="Select your trip start date"
-                                className="date-picker-input"
-                            />
-                            <DatePicker
-                                selected={endDate}
-                                onChange={(date) => setEndDate(date)}
-                                dateFormat="yyyy-MM-dd"
-                                placeholderText="Select your trip end date"
-                                className="date-picker-input"
-                            />
-                            <div className="save-date-btn">
-                                <button className="save-date-button">Save</button>
-                            </div>
-                        </div>
-                    </div>
                     <div className="trip-itinerary">
                         <h2 className="trip-itinerary-title">Itinerary</h2>
                         <div className="trip-day">

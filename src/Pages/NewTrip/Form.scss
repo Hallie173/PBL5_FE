@@ -1,0 +1,213 @@
+.form-container {
+    display: flex;
+    flex-direction: column;
+    width: 60%;
+    margin: 20px auto 50px auto;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+
+    .form-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 20px auto;
+        padding-bottom: 20px;
+        width: 60%;
+        border-bottom: 1px solid #ccc;
+
+        h1 {
+            font-size: 35px;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #2d7a61;
+        }
+
+        p {
+            font-size: 18px;
+            color: #555;
+            text-align: center;
+            font-style: italic;
+        }
+    }
+
+    .form-body {
+        margin: 0 50px;
+        padding: 20px 0;
+
+        .city-select {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ccc;
+
+            label {
+                font-size: 20px;
+                margin-bottom: 10px;
+                font-weight: bold;
+            }
+
+            #city-select {
+                width: 50%;
+                padding: 10px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                font-size: 16px;
+                box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.1);
+                transition: border 0.3s ease;
+
+                &:focus {
+                    border: 2px solid black;
+                }
+            }
+
+            div {
+                display: flex;
+                justify-content: flex-start;
+                gap: 20px;
+
+                button {
+                    background: rgb(47, 122, 97);
+                    color: white;
+                    border-radius: 5px;
+                    font-size: 16px;
+                    box-shadow: 2px 2px 1px rgba(0, 0, 0, 0.5);
+                    transition: border 0.3s ease;
+                    padding: 10px 15px;
+                    font-size: 16px;
+                    cursor: pointer;
+
+                    &:hover {
+                        background: #1f5b4a;
+                    }
+
+                    &:active {
+                        color: #ccc;
+                    }
+                }
+            }
+        }
+
+        .date-group {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ccc;
+
+            label {
+                font-size: 20px;
+                margin-bottom: 10px;
+                font-weight: bold;
+            }
+
+            .date-select {
+                display: flex;
+                justify-content: flex-start;
+                gap: 50px;
+
+                .start-date,
+                .end-date {
+                    display: block;
+
+                    label {
+                        font-size: 18px;
+                        margin-bottom: 10px;
+                        font-weight: normal;
+                    }
+
+                    input {
+                        width: 250px;
+                        padding: 10px;
+                        border: 1px solid #ccc;
+                        border-radius: 5px;
+                        font-size: 16px;
+                        box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.1);
+                        transition: border 0.3s ease;
+
+                        &:focus {
+                            border: 2px solid black;
+                        }
+                    }
+                }
+            }
+        }
+
+        .schedule-group {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+
+            label {
+                font-size: 20px;
+                margin-bottom: 10px;
+                font-weight: bold;
+            }
+
+            .place-search-recommend {
+                font-style: italic;
+                color: #555;
+                font-size: 16px;
+                margin-bottom: 10px;
+            }
+
+            .place-search {
+                display: flex;
+                flex-direction: column;
+
+                .type-title {
+                    font-size: 18px;
+                    margin: 10px 0;
+                    font-weight: normal;
+                }
+
+                .tags {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 10px;
+
+                    .tag {
+                        background: white;
+                        color: rgb(47, 122, 97);
+                        display: inline-block;
+                        padding: 10px 20px;
+                        font-size: 15px;
+                        font-weight: bold;
+                        border-radius: 25px;
+                        border: 2px solid #2f7a61;
+                        cursor: pointer;
+                    }
+                }
+            }
+        }
+    }
+
+    .form-footer {
+        display: flex;
+        justify-content: flex-end;
+        margin: 20px 50px;
+
+        .next-button {
+            display: inline-block;
+            width: fit-content;
+            padding: 10px 20px;
+            background: #2f7a61;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 18px;
+            text-decoration: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease;
+            cursor: pointer;
+
+            &:hover {
+                background-color: #1f5b4a;
+            }
+        }
+    }
+}

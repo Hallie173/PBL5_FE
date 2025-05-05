@@ -84,43 +84,6 @@
             flex-direction: column;
         }
 
-        .trip-date {
-            display: block;
-            margin-bottom: 50px;
-
-            .date-picker-container {
-                display: flex;
-                align-items: center;
-                gap: 20px;
-
-                .date-picker-input {
-                    padding: 8px;
-                    border: 1px solid #ccc;
-                    border-radius: 8px;
-                    font-size: 16px;
-                    margin: auto;
-                    width: 100%;
-                    max-width: 300px;
-                }
-
-                .save-date-btn {
-                    background: #2d7a61;
-                    color: white;
-                    border: none;
-                    padding: 8px 20px;
-                    border-radius: 25px;
-                    cursor: pointer;
-                    font-weight: bold;
-                    transition: background-color 0.2s ease;
-                    white-space: nowrap;
-
-                    &:hover {
-                        background: #1e5c48;
-                    }
-                }
-            }
-        }
-
         .trip-itinerary {
             .trip-itinerary-title {
                 font-size: 25px;
