@@ -28,6 +28,7 @@ import Article from "../Pages/Articles/Article";
 import { AuthProvider } from "../contexts/AuthContext";
 import Review from "../Pages/Review/Review";
 import ReviewDetail from "../Pages/ReviewDetail/ReviewDetail";
+import Form from "../Pages/NewTrip/Form";
 
 function App() {
   return (
@@ -98,6 +99,16 @@ function App() {
                 <>
                   <Navbar />
                   <MyTrips />
+                  <Footer />
+                </>
+              }
+            />
+            <Route
+              path="/tripguide/new-trip-form"
+              element={
+                <>
+                  <Navbar />
+                  <Form />
                   <Footer />
                 </>
               }
