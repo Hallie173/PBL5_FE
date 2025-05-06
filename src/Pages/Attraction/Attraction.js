@@ -1,368 +1,618 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./Attraction.scss";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSquareShareNodes, faPen } from "@fortawesome/free-solid-svg-icons";
+import {
+  faSquareShareNodes,
+  faPen,
+  faLocationDot,
+  faStar as solidStar,
+  faStarHalfStroke,
+  faCircleInfo,
+} from "@fortawesome/free-solid-svg-icons";
 import {
   faImages,
   faHeart as regularHeart,
+  faStar as regularStar,
 } from "@fortawesome/free-regular-svg-icons";
-import { faHeart as solidHeart } from "@fortawesome/free-solid-svg-icons";
-import cozy from "../../assets/images/Hotel/cozy.png";
-import wink from "../../assets/images/Hotel/wink.png";
-import big3 from "../../assets/images/FoodDrink/3big.png";
-import tuongtheater from "../../assets/images/Cities/tuongtheater.png";
+import {
+  faHeart as solidHeart,
+  faChevronRight,
+} from "@fortawesome/free-solid-svg-icons";
 import { useParams } from "react-router-dom";
-// import MapComponent from "../../components/GoogleMap/GoogleMap";
 import BASE_URL from "../../constants/BASE_URL";
-import { authService } from "../../services/authService";
 import { useAuth } from "../../contexts/AuthContext";
-
-const initialNearbyPlaces = [
-  { id: 1, name: "Cozy Danang Boutique Hotel", image: cozy, saved: false },
-  { id: 2, name: "Wink Hotel Danang Centre", image: wink, saved: false },
-  { id: 3, name: "3 Big - Nuong & Lau", image: big3, saved: false },
-  {
-    id: 4,
-    name: "Nguyen Hien Dinh Theatre",
-    image: tuongtheater,
-    saved: false,
-  },
-];
+import OpenStreetMap from "../../components/OpenStreetMap/OpenStreetMap";
 
 const Attraction = () => {
-    const { id: attractionId } = useParams(); // Lấy restaurantId từ URL
-    const [attraction, setAttraction] = useState(null); // Đổi thành null để kiểm tra dễ hơn
-    const [city, setCity] = useState(null);
-    const [attractionRank, setattractionRank] = useState(null);
-    const [nearBy, setnearBy] = useState([]);
-    const [reviews, setReviews] = useState([]); // Comment lại state reviews
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [nearbyPlaces, setNearbyPlaces] = useState(initialNearbyPlaces);
-    const navigate = useNavigate();
-    const [saved, setSaved] = useState(false);
-    const [user, setUser] = useState(null);
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [comment, setComment] = useState("");
-    const [user_id, setUser_id] = useState(null);
-    const {users} = useAuth();
-    useEffect(() => {
-        if (!attractionId) return;
-        setLoading(true);
+  const { id: attractionId } = useParams();
+  const { user, isLoggedIn } = useAuth();
+  const [attraction, setAttraction] = useState(null);
+  const [city, setCity] = useState(null);
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [saved, setSaved] = useState(false);
+  const [comment, setComment] = useState("");
+  const [user_id, setUser_id] = useState(null);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [rating, setRating] = useState(5);
+  const [mapCenter, setMapCenter] = useState(null);
+  const [mapError, setMapError] = useState(null);
+  const navigate = useNavigate();
 
-    const fetchAttraction = async () => {
-      try {
-        // Lấy thông tin địa điểm
-        const attractionResponse = await axios.get(
-          `${BASE_URL}/attractions/${attractionId}`
-        );
-        const attractionData = attractionResponse.data; // Dữ liệu nằm trong data.data theo controller
-        setAttraction(attractionData);
-
-        const cityRespone = await axios.get(
-          `${BASE_URL}/cities/${attractionData.city_id}`
-        );
-        const cityData = cityRespone.data;
-        setCity(cityData);
-        console.log(city.city_id);
-        const attractionRankRespone = await axios.get(
-          `${BASE_URL}/attractions/rank/${attractionId}`
-        );
-        const attractionRankData = attractionRankRespone.data;
-        setattractionRank(attractionRankData);
-
-        const nearByRespone = await axios.get(
-          `${BASE_URL}/attractions/topnearby/${attractionId}`
-        );
-        const nearByData = nearByRespone.data.nearby;
-        setnearBy(nearByData);
-
-        const reviewResponse = await axios.get(
-          `${BASE_URL}/reviews/attraction/${attractionId}`
-        );
-        const reviewData = reviewResponse.data;
-        if (!Array.isArray(reviewData)) {
-          console.error("Lỗi: API reviews không trả về mảng", reviewData);
-          setReviews([]);
-          return;
-        }
-        const reviewsWithUser = await Promise.all(
-          reviewData.map(async (review) => {
-            const userResponse = await axios.get(
-              `${BASE_URL}/users/${review.user_id}`
-            );
-            //console.log(userResponse.data.username);
-            return { ...review, userName: userResponse.data.username };
-          })
-        );
-
-        setReviews(reviewsWithUser);
-        const currentUser = authService.getCurrentUser();
-        if (currentUser) {
-          setIsLoggedIn(true);
-          setUser(currentUser);
-        }
-        console.log(user.user.username);
-        // console.log(user.user.username)
-        const userIdRespone = await axios.get(
-          `${BASE_URL}/users/email/${user.user.email}`
-        );
-        const userIdData = userIdRespone.data;
-        setUser_id(userIdData);
-        console.log(userIdData.user_id);
-        // Comment lại phần lấy reviews
-        /*
-                // Lấy danh sách reviews
-                const reviewResponse = await axios.get(`${BASE_URL}/reviews/${restaurantId}`);
-                const reviewData = reviewResponse.data; // Giả sử API reviews trả về mảng trực tiếp
-
-                
-
-                // Lấy thông tin user cho mỗi review
-                
-                */
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAttraction();
-  }, [attractionId]);
-
-  const renderStars = (rating) => {
-    const fullStars = Math.floor(rating);
-    const halfStar = rating % 1 !== 0;
-    const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
-    return (
-      <>
-        {"★".repeat(fullStars)}
-        {halfStar && "☆"}
-        {"☆".repeat(emptyStars)}
-      </>
-    );
-  };
-
-  const toggleSaveNearby = (id) => {
-    const updatedPlaces = nearbyPlaces.map((place) =>
-      place.id === id ? { ...place, saved: !place.saved } : place
-    );
-    setNearbyPlaces(updatedPlaces);
-  };
-
-  const toggleSaveAttraction = () => {
-    setSaved(!saved);
-  };
-
-  const handlenavigate_attraction = async (attraction_id) => {
+  // Fetch attraction data and geocode address
+  const fetchAttraction = useCallback(async () => {
+    if (!attractionId) return;
+    setLoading(true);
+    setMapError(null);
     try {
-      console.log("Attraction_id", attraction_id);
-      navigate(`/tripguide/attraction/${attraction_id}`);
-    } catch (error) {
-      console.error("Lỗi khi gọi API:", error);
-    }
-  };
-  const handleSubmit = async () => {
-    if (!comment.trim()) return;
+      // Fetch attraction data
+      const attractionResponse = await axios.get(
+        `${BASE_URL}/attractions/${attractionId}`
+      );
+      const attractionData = attractionResponse.data;
+      const processedAttraction = {
+        ...attractionData,
+        average_rating: parseFloat(attractionData.average_rating) || 0,
+      };
+      setAttraction(processedAttraction);
 
-    try {
-      const response = await fetch("http://localhost:8080/reviews", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          user_id: user_id?.user_id,
-          attraction_id: attraction?.attraction_id,
-          restaurant_id: null,
-          comment: comment.trim(),
-          rating: 5,
-          photos: null,
-        }),
+      // Fetch city data
+      const cityResponse = await axios.get(
+        `${BASE_URL}/cities/${attractionData.city_id}`
+      );
+      setCity(cityResponse.data);
+
+      // Fetch reviews
+      const reviewResponse = await axios.get(
+        `${BASE_URL}/reviews/attraction/${attractionId}`
+      );
+      const reviewData = Array.isArray(reviewResponse.data)
+        ? reviewResponse.data
+        : [];
+      const reviewsWithUser = await Promise.all(
+        reviewData.map(async (review) => {
+          const userResponse = await axios.get(
+            `${BASE_URL}/users/${review.user_id}`
+          );
+          return {
+            ...review,
+            userName: userResponse.data.username,
+            profilePic:
+              userResponse.data.profile_image ||
+              "https://via.placeholder.com/40",
+          };
+        })
+      );
+      setReviews(reviewsWithUser);
+
+      // Geocode address
+      const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+        attractionData.address
+      )}`;
+      const geocodeResponse = await axios.get(geocodeUrl, {
+        headers: { Accept: "application/json" },
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (geocodeResponse.data && geocodeResponse.data.length > 0) {
+        const { lat, lon } = geocodeResponse.data[0];
+        const coords = [parseFloat(lat), parseFloat(lon)];
+        if (!isNaN(coords[0]) && !isNaN(coords[1])) {
+          setMapCenter(coords);
+        } else {
+          setMapError("Tọa độ không hợp lệ từ địa chỉ.");
+        }
+      } else {
+        setMapError("Không thể tìm thấy vị trí trên bản đồ.");
       }
+    } catch (err) {
+      setError(err.message);
+      setMapError("Lỗi khi tải vị trí: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [attractionId]);
 
-      const data = await response.json();
-      console.log(response.json);
-      console.log("Đã tạo review:", data);
-      alert("Đánh giá đã được gửi!");
-      setComment(""); // Reset form
+  useEffect(() => {
+    fetchAttraction();
+  }, [fetchAttraction]);
+
+  // Render rating stars
+  const renderStars = (rating) => {
+    const numRating = parseFloat(rating);
+    if (isNaN(numRating) || numRating < 0 || numRating > 5) {
+      return <div className="stars-container">Invalid rating</div>;
+    }
+
+    return (
+      <div className="stars-container">
+        {[1, 2, 3, 4, 5].map((star) => {
+          if (star <= Math.floor(numRating)) {
+            return (
+              <FontAwesomeIcon
+                key={star}
+                icon={solidStar}
+                className="star-icon filled"
+              />
+            );
+          } else if (
+            star === Math.ceil(numRating) &&
+            !Number.isInteger(numRating)
+          ) {
+            return (
+              <FontAwesomeIcon
+                key={star}
+                icon={faStarHalfStroke}
+                className="star-icon half"
+              />
+            );
+          } else {
+            return (
+              <FontAwesomeIcon
+                key={star}
+                icon={regularStar}
+                className="star-icon empty"
+              />
+            );
+          }
+        })}
+      </div>
+    );
+  };
+
+  // Handle review submission
+  const handleSubmitReview = async () => {
+    if (!comment.trim()) {
+      alert("Please enter a comment before submitting.");
+      return;
+    }
+    if (!isLoggedIn) {
+      alert("Please log in to submit a review.");
+      return;
+    }
+    try {
+      await axios.post(`${BASE_URL}/reviews`, {
+        user_id: user_id?.user_id,
+        attraction_id: attraction?.attraction_id,
+        restaurant_id: null,
+        comment: comment.trim(),
+        rating,
+        photos: null,
+      });
+      alert("Your review has been submitted!");
+      setComment("");
+      setRating(5);
       window.location.reload();
     } catch (error) {
-      console.error("Lỗi khi gửi review:", error);
-      alert("Có lỗi xảy ra. Vui lòng thử lại.");
+      console.error("Error submitting review:", error);
+      alert("An error occurred. Please try again.");
     }
   };
+
+  // Format date
+  const formatDate = (dateString) => {
+    const options = { year: "numeric", month: "long", day: "numeric" };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  };
+
+  // Handle sharing
+  const handleShareClick = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: attraction?.name,
+        text: `Discover ${attraction?.name} in ${city?.name}!`,
+        url: window.location.href,
+      });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      alert("Liên kết đã được sao chép vào clipboard!");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>Loading attraction information...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="error-container">
+        <h2>An error occurred</h2>
+        <p>{error}</p>
+        <button onClick={() => navigate(-1)}>Go back</button>
+      </div>
+    );
+  }
 
   return (
     <div className="attraction-container">
-      <nav className="breadcrumb">
-        <span>
-          Vietnam &gt; {city?.name} &gt; {city?.name} Attractions &gt;{" "}
-          {attraction?.name}{" "}
-        </span>
+      {/* Header and breadcrumb */}
+      <nav className="breadcrumb" aria-label="Breadcrumb">
+        <ol className="breadcrumb-list">
+          <li className="breadcrumb-item">
+            <button
+              onClick={() => navigate("/tripguide")}
+              aria-label="Go to Vietnam"
+            >
+              Vietnam
+            </button>
+          </li>
+          <li className="breadcrumb-separator" aria-hidden="true">
+            <FontAwesomeIcon icon={faChevronRight} />
+          </li>
+          <li className="breadcrumb-item">
+            <button
+              onClick={() => navigate(`/tripguide/city/${city?.city_id}`)}
+              aria-label={`Go to ${city?.name}`}
+            >
+              {city?.name}
+            </button>
+          </li>
+          <li className="breadcrumb-separator" aria-hidden="true">
+            <FontAwesomeIcon icon={faChevronRight} />
+          </li>
+          <li className="breadcrumb-item">
+            <button
+              onClick={() =>
+                navigate(`/tripguide/city/${city?.city_id}/attractions`)
+              }
+              aria-label={`Go to ${city?.name} attractions`}
+            >
+              {city?.name} Attractions
+            </button>
+          </li>
+          <li className="breadcrumb-separator" aria-hidden="true">
+            <FontAwesomeIcon icon={faChevronRight} />
+          </li>
+          <li className="breadcrumb-item current" aria-current="page">
+            {attraction?.name}
+          </li>
+        </ol>
       </nav>
 
       <header className="attraction-header">
         <div className="name-and-action">
           <h1>{attraction?.name}</h1>
           <div className="attraction-action">
-            <button className="share-attraction">
+            <button
+              className="action-button share-attraction"
+              onClick={handleShareClick}
+            >
               <FontAwesomeIcon
                 icon={faSquareShareNodes}
-                className="share-icon"
+                className="action-icon"
               />
-              Share
+              <span>Share</span>
             </button>
-            <a href="#attraction-reviews">
-              <button className="review-attraction">
-                <FontAwesomeIcon icon={faPen} className="review-icon" />
-                Review
+            <a href="#review-section">
+              <button className="action-button review-attraction">
+                <FontAwesomeIcon icon={faPen} className="action-icon" />
+                <span>Review</span>
               </button>
             </a>
             <button
-              className={`save-attraction ${saved ? "saved" : ""}`}
-              onClick={toggleSaveAttraction}
+              className={`action-button save-attraction ${
+                saved ? "saved" : ""
+              }`}
             >
               <FontAwesomeIcon
                 icon={saved ? solidHeart : regularHeart}
-                className="save-attraction-icon"
+                className="action-icon"
               />
-              {saved ? "Saved" : "Save"}
+              <span>{saved ? "Saved" : "Save"}</span>
             </button>
           </div>
         </div>
         <div className="attraction-rating">
-          <span className="rate-star">
+          <div className="rating-stars">
             {renderStars(attraction?.average_rating)}
-          </span>
-          <span className="rate-reviews">
-            {attraction?.rating_total} reviews{" "}
-          </span>
-          <span className="rate-rank">
-            #{attractionRank?.rank} of {city?.name}'s attraction.
+            <span className="rating-value">
+              {attraction?.average_rating !== null &&
+              !isNaN(attraction?.average_rating)
+                ? attraction.average_rating.toFixed(1)
+                : "0.0"}
+            </span>
+          </div>
+          <span className="rating-count">
+            {attraction?.rating_total}{" "}
+            {attraction?.rating_total === 1 ? "đánh giá" : "đánh giá"}
           </span>
         </div>
       </header>
 
-      <div className="attraction-images">
-        <img
-          src={attraction?.image_url[0]}
-          alt="Main Dish"
-          className="main-image"
-        />{" "}
-        {/* Lấy ảnh đầu tiên */}
+      {/* Attraction images */}
+      <div className="attraction-gallery">
+        {attraction?.image_url && attraction.image_url.length > 0 ? (
+          <>
+            <div className="main-image-container">
+              <img
+                src={attraction.image_url[activeImageIndex]}
+                alt={attraction.name}
+                className="main-image"
+              />
+              {attraction.image_url.length > 1 && (
+                <div className="gallery-controls">
+                  <button
+                    className="gallery-nav prev"
+                    onClick={() =>
+                      setActiveImageIndex((prev) =>
+                        prev === 0 ? attraction.image_url.length - 1 : prev - 1
+                      )
+                    }
+                  >
+                    ‹
+                  </button>
+                  <button
+                    className="gallery-nav next"
+                    onClick={() =>
+                      setActiveImageIndex((prev) =>
+                        prev === attraction.image_url.length - 1 ? 0 : prev + 1
+                      )
+                    }
+                  >
+                    ›
+                  </button>
+                </div>
+              )}
+            </div>
+            {attraction.image_url.length > 1 && (
+              <div className="thumbnail-gallery">
+                {attraction.image_url.map((img, idx) => (
+                  <div
+                    key={idx}
+                    className={`thumbnail ${
+                      activeImageIndex === idx ? "active" : ""
+                    }`}
+                    onClick={() => setActiveImageIndex(idx)}
+                  >
+                    <img
+                      src={img}
+                      alt={`${attraction.name} thumbnail ${idx + 1}`}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="no-image">
+            <FontAwesomeIcon icon={faImages} className="no-image-icon" />
+            <p>No images available</p>
+          </div>
+        )}
       </div>
 
-      <div className="attraction-info">
-        <div className="location-info">
-          <h2>Overview</h2>
-          <p className="location">📍 {attraction?.address}</p>
-          <h2>Location</h2>
-          {/* <div>
-                        <MapComponent address={attraction?.address} />
-                    </div> */}
-                </div>
-
+      {/* Attraction content */}
+      <div className="attraction-content">
+        <div className="attraction-info">
+          <section className="info-section">
+            <h2>
+              <FontAwesomeIcon icon={faCircleInfo} className="section-icon" />
+              Overview
+            </h2>
+            <div className="description">
+              {attraction?.description ? (
+                <p>{attraction.description}</p>
+              ) : (
+                <p className="no-content">No description available.</p>
+              )}
             </div>
+            {attraction?.tags && attraction.tags.length > 0 && (
+              <div className="tags">
+                {attraction.tags.map((tag, idx) => (
+                  <span key={idx} className="tag">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+          </section>
 
-      {/* Comment lại phần Reviews */}
+          {/* Map section */}
+          <section className="info-section">
+            <h2>
+              <FontAwesomeIcon icon={faLocationDot} className="section-icon" />
+              Location
+            </h2>
+            <p className="location-address">{attraction?.address}</p>
+            <div className="map-container">
+              {mapError ? (
+                <div className="map-error" role="alert">
+                  {mapError}
+                  <button
+                    onClick={() => fetchAttraction()}
+                    style={{
+                      marginTop: "10px",
+                      padding: "5px 10px",
+                      background: "#2d7a61",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "5px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Retry
+                  </button>
+                </div>
+              ) : mapCenter &&
+                Array.isArray(mapCenter) &&
+                mapCenter.length === 2 &&
+                !isNaN(mapCenter[0]) &&
+                !isNaN(mapCenter[1]) ? (
+                <OpenStreetMap
+                  center={mapCenter}
+                  zoom={15}
+                  markers={[
+                    {
+                      position: mapCenter,
+                      popup: attraction?.name || "Địa điểm này",
+                    },
+                  ]}
+                  height="400px"
+                  width="100%"
+                  showCurrentLocation
+                />
+              ) : (
+                <div className="map-error" role="alert">
+                  Loading map...
+                </div>
+              )}
+            </div>
+          </section>
+        </div>
 
-      <div className="reviews">
-        <h2 id="restaurant-reviews">Reviews</h2>
-        <div className="reviews-div">
-          <div className="review-summary">
-            <span className="rate-star">
-              {renderStars(attraction?.average_rating)}{" "}
-              {attraction?.average_rating}
-            </span>
-            <div className="reviews-score">
-              <p>75 Excellent</p>
-              <p>66 Very Good</p>
-              <p>29 Average</p>
-              <p>8 Poor</p>
-              <p>3 Terrible</p>
+        {/* Sidebar quick info */}
+        <div className="attraction-sidebar">
+          <div className="quick-info">
+            <h3>Quick Info</h3>
+            <ul>
+              <li>
+                <strong>Location:</strong> {city?.name}, Vietnam
+              </li>
+              <li>
+                <strong>Rating:</strong>{" "}
+                {attraction?.average_rating !== null &&
+                !isNaN(attraction?.average_rating)
+                  ? `${attraction.average_rating.toFixed(1)}/5`
+                  : `0.0/5`}{" "}
+                ({attraction?.rating_total} reviews)
+              </li>
+              {attraction?.tags && attraction.tags.length > 0 && (
+                <li>
+                  <strong>Type:</strong> {attraction.tags.join(", ")}
+                </li>
+              )}
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* Reviews section */}
+      <section id="review-section" className="reviews-section">
+        <h2>Reviews</h2>
+        <div className="reviews-container">
+          <div className="review-stats">
+            <div className="average-rating">
+              <span className="big-rating">
+                {attraction?.average_rating !== null &&
+                !isNaN(attraction?.average_rating)
+                  ? attraction.average_rating.toFixed(1)
+                  : "0.0"}
+              </span>
+              <div className="rating-label">
+                {renderStars(attraction?.average_rating)}
+                <span>({attraction?.rating_total} reviews)</span>
+              </div>
+            </div>
+            <div className="rating-breakdown">
+              {[5, 4, 3, 2, 1].map((score) => (
+                <div key={score} className="rating-bar">
+                  <span className="rating-label">
+                    {score === 5
+                      ? "Excellent"
+                      : score === 4
+                      ? "Very good"
+                      : score === 3
+                      ? "Average"
+                      : score === 2
+                      ? "Poor"
+                      : "Very poor"}
+                  </span>
+                  <div className="bar-container">
+                    <div
+                      className="bar"
+                      style={{ width: `${score * 15}%` }}
+                    ></div>
+                  </div>
+                  <span className="count">{score * 10}</span>
+                </div>
+              ))}
             </div>
           </div>
-          <div className="review-detail">
-            <div className="new-review">
-              <textarea
-                placeholder="Write new review..."
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-              />
+          <div className="review-content">
+            <div className="write-review">
+              <h3>Write a Review</h3>
+              {isLoggedIn ? (
+                <>
+                  <div className="rating-input">
+                    <label>Your Rating:</label>
+                    <div className="star-rating">
+                      {[1, 2, 3, 4, 5].map((value) => (
+                        <FontAwesomeIcon
+                          key={value}
+                          icon={value <= rating ? solidStar : regularStar}
+                          className={`star-input ${
+                            value <= rating ? "active" : ""
+                          }`}
+                          onClick={() => setRating(value)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <div className="review-input">
+                    <textarea
+                      placeholder="Share your experience..."
+                      value={comment}
+                      onChange={(e) => setComment(e.target.value)}
+                    />
+                    <button
+                      className="submit-review"
+                      onClick={handleSubmitReview}
+                    >
+                      Submit Review
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="login-prompt">
+                  <p>Please log in to write a review.</p>
+                  <button onClick={() => navigate("/login")}>Log in</button>
+                </div>
+              )}
             </div>
-            <br />
-            <div className="submit-review">
-              <button onClick={handleSubmit}>Submit</button>
-            </div>
-            <div>
+
+            <div className="reviews-list">
               {reviews.length > 0 ? (
                 reviews.map((review, index) => (
-                  <div className="review" key={index}>
-                    <p className="review-title">
-                      <b>{review.userName}</b>
-                    </p>
-                    <p className="review-date">
-                      <i>{new Date(review.created_at).toDateString()}</i>
-                    </p>
-                    <p className="review-content">{review.comment}</p>
+                  <div className="review-card" key={index}>
+                    <div className="review-header">
+                      <div className="reviewer-info">
+                        <img
+                          src={review.profilePic}
+                          alt={review.userName}
+                          className="reviewer-avatar"
+                        />
+                        <div>
+                          <h4>{review.userName}</h4>
+                          <span className="review-date">
+                            {formatDate(review.created_at)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="review-rating">
+                        {renderStars(review.rating)}
+                      </div>
+                    </div>
+                    <div className="review-body">
+                      <p>{review.comment}</p>
+                    </div>
                   </div>
                 ))
               ) : (
-                <p>No reviews available.</p>
+                <div className="no-reviews">
+                  <p>No reviews yet. Be the first to share!</p>
+                </div>
               )}
             </div>
           </div>
         </div>
-      </div>
-
-      <div className="nearby">
-        <h2>Best nearby</h2>
-        <div className="picture-grid">
-          {nearBy?.map((place) => (
-            <div className="picture-item" key={place.id}>
-              <div className="item-image-container">
-                <img
-                  src={place.image_url}
-                  alt={place.name}
-                  onClick={() => handlenavigate_attraction(place.attraction_id)}
-                  style={{ cursor: "pointer" }}
-                />
-                <div className="save-overlay">
-                  <button
-                    className={`save-button-overlay ${
-                      place.saved ? "saved" : ""
-                    }`}
-                    onClick={() => toggleSaveNearby(place.id)}
-                  >
-                    <FontAwesomeIcon
-                      icon={place.saved ? solidHeart : regularHeart}
-                      className="heart-icon-recent"
-                    />
-                  </button>
-                </div>
-              </div>
-              <div className="item-text-content">
-                <p className="item-title">{place.name}</p>
-                <div className="item-rating">
-                  <span className="rating-score">{place.average_rating} </span>
-                  <span className="rating-dots">
-                    {renderStars(place.average_rating)}{" "}
-                  </span>
-                  <span className="review-count">{place.rating_total}</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      </section>
     </div>
   );
 };
