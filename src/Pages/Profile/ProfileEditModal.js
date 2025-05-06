@@ -14,10 +14,10 @@ import {
   faMapMarkerAlt,
   faTimesCircle,
   faInfoCircle,
+  faSpinner,
 } from "@fortawesome/free-solid-svg-icons";
 import "./ProfileEditModal.scss";
 
-// Validation schema - defined outside component to avoid recreation on each render
 const validationSchema = Yup.object({
   full_name: Yup.string()
     .required("Display name is required")
@@ -37,7 +37,6 @@ const validationSchema = Yup.object({
   about: Yup.string().max(250, "Bio must be 250 characters or less"),
 });
 
-// Popular destinations - defined outside component
 const POPULAR_DESTINATIONS = [
   "Beach",
   "Mountains",
@@ -64,11 +63,12 @@ function ProfileEditModal({
   const [avatarPreview, setAvatarPreview] = useState(
     userData?.avatar_url || "https://i.imgur.com/MO4pS2K.jpeg"
   );
+  const [selectedFile, setSelectedFile] = useState(null);
   const [uploadError, setUploadError] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
   const modalRef = useRef(null);
 
-  // Form initial values - memoized to prevent recreation on re-renders
   const initialValues = {
     full_name: userData?.full_name || "",
     username: userData?.username || "",
@@ -76,10 +76,8 @@ function ProfileEditModal({
     website: userData?.bio?.website || "",
     about: userData?.bio?.about || "",
     location_preferences: userData?.bio?.location_preferences || [],
-    avatar_url: userData?.avatar_url || "https://i.imgur.com/MO4pS2K.jpeg",
   };
 
-  // Close modal on escape key
   useEffect(() => {
     const handleEsc = (event) => {
       if (event.keyCode === 27) onClose();
@@ -88,76 +86,56 @@ function ProfileEditModal({
     return () => window.removeEventListener("keydown", handleEsc);
   }, [onClose]);
 
-  // Focus trap inside modal
   useEffect(() => {
     if (isOpen && modalRef.current) {
       modalRef.current.focus();
     }
   }, [isOpen]);
 
-  // Reset state when modal opens with new user data
   useEffect(() => {
     if (isOpen && userData) {
       setAvatarPreview(
         userData.avatar_url || "https://i.imgur.com/MO4pS2K.jpeg"
       );
+      setSelectedFile(null);
       setUploadError("");
       setActiveTab("basic");
     }
   }, [isOpen, userData]);
 
-  // Handle avatar file selection
-  const handleAvatarChange = useCallback(
-    async (event) => {
-      const file = event.target.files[0];
-      if (!file) return;
+  const handleAvatarChange = useCallback((event) => {
+    const file = event.target.files[0];
+    if (!file) return;
 
-      // Validate file
-      if (file.size > 2 * 1024 * 1024) {
-        setUploadError("Image must be less than 2MB");
-        return;
-      }
+    if (file.size > 2 * 1024 * 1024) {
+      setUploadError("Image must be less than 2MB");
+      return;
+    }
 
-      const validTypes = ["image/jpeg", "image/png", "image/gif"];
-      if (!validTypes.includes(file.type)) {
-        setUploadError("Only JPG, PNG or GIF images are allowed");
-        return;
-      }
+    const validTypes = ["image/jpeg", "image/png", "image/gif"];
+    if (!validTypes.includes(file.type)) {
+      setUploadError("Only JPG, PNG or GIF images are allowed");
+      return;
+    }
 
-      // Show preview immediately for better UX
-      const reader = new FileReader();
-      reader.onloadend = () => setAvatarPreview(reader.result);
-      reader.readAsDataURL(file);
+    setSelectedFile(file);
+    setUploadError("");
 
-      // Clear previous errors
-      setUploadError("");
+    const reader = new FileReader();
+    reader.onloadend = () => setAvatarPreview(reader.result);
+    reader.readAsDataURL(file);
+  }, []);
 
-      // Upload avatar
-      try {
-        const avatarUrl = await onAvatarUpload(file);
-        if (avatarUrl) {
-          setAvatarPreview(avatarUrl);
-        }
-      } catch (error) {
-        setUploadError("Failed to upload image. Please try again.");
-      }
-    },
-    [onAvatarUpload]
-  );
-
-  // Toggle location preference selection
   const handleLocationPreferenceToggle = useCallback(
     (preference, setFieldValue, values) => {
       const currentPreferences = [...values.location_preferences];
 
       if (currentPreferences.includes(preference)) {
-        // Remove preference
         setFieldValue(
           "location_preferences",
           currentPreferences.filter((p) => p !== preference)
         );
       } else if (currentPreferences.length < 5) {
-        // Add preference (limit to 5)
         setFieldValue("location_preferences", [
           ...currentPreferences,
           preference,
@@ -173,32 +151,48 @@ function ProfileEditModal({
     }
   }, []);
 
-  // Handle form submission
   const handleSubmit = useCallback(
     async (values, { setSubmitting }) => {
-      // Format data for API call
-      const updatedUserData = {
-        full_name: values.full_name.trim(),
-        username: values.username.trim(),
-        bio: {
-          currentCity: values.currentCity?.trim() || "",
-          website: values.website?.trim() || "",
-          about: values.about?.trim() || "",
-          location_preferences: values.location_preferences || [],
-        },
-        avatar_url: avatarPreview || userData?.avatar_url,
-      };
+      setIsUploading(true);
+      setUploadError("");
 
       try {
+        let finalAvatarUrl = userData?.avatar_url;
+
+        if (selectedFile) {
+          const response = await onAvatarUpload(selectedFile);
+          if (response && response.avatarUrl) {
+            finalAvatarUrl = response.avatarUrl;
+            console.log("Avatar uploaded, URL:", finalAvatarUrl);
+          } else {
+            throw new Error("Invalid avatar upload response");
+          }
+        }
+
+        const updatedUserData = {
+          full_name: values.full_name.trim(),
+          username: values.username.trim(),
+          bio: {
+            currentCity: values.currentCity?.trim() || "",
+            website: values.website?.trim() || "",
+            about: values.about?.trim() || "",
+            location_preferences: values.location_preferences || [],
+          },
+          avatar_url: finalAvatarUrl,
+        };
+
+        console.log("Submitting profile data:", updatedUserData);
         await onSave(updatedUserData);
         onClose();
       } catch (error) {
-        console.error("Error saving profile:", error);
+        console.error("Error saving profile:", error.message);
+        setUploadError(error.message || "Failed to save profile");
       } finally {
+        setIsUploading(false);
         setSubmitting(false);
       }
     },
-    [avatarPreview, userData, onSave, onClose]
+    [selectedFile, userData, onAvatarUpload, onSave, onClose]
   );
 
   if (!isOpen) return null;
@@ -269,7 +263,6 @@ function ProfileEditModal({
             <Form className="edit-form">
               {activeTab === "basic" && (
                 <div className="form-tab-content">
-                  {/* Avatar Section */}
                   <div className="avatar-edit-section">
                     <div className="current-avatar">
                       <img
@@ -282,6 +275,7 @@ function ProfileEditModal({
                           type="button"
                           className="change-avatar-btn"
                           onClick={triggerFileInput}
+                          disabled={isUploading}
                         >
                           <FontAwesomeIcon icon={faImage} /> Change Photo
                         </button>
@@ -302,7 +296,6 @@ function ProfileEditModal({
                     </div>
                   </div>
 
-                  {/* Full Name Field */}
                   <div className="form-group">
                     <label htmlFor="full_name">
                       <FontAwesomeIcon icon={faUser} className="field-icon" />
@@ -330,7 +323,6 @@ function ProfileEditModal({
                     />
                   </div>
 
-                  {/* Username Field */}
                   <div className="form-group">
                     <label htmlFor="username">
                       <FontAwesomeIcon icon={faAt} className="field-icon" />
@@ -364,7 +356,6 @@ function ProfileEditModal({
 
               {activeTab === "bio" && (
                 <div className="form-tab-content">
-                  {/* Current City Field */}
                   <div className="form-group">
                     <label htmlFor="currentCity">
                       <FontAwesomeIcon
@@ -392,7 +383,6 @@ function ProfileEditModal({
                     />
                   </div>
 
-                  {/* Website Field */}
                   <div className="form-group">
                     <label htmlFor="website">
                       <FontAwesomeIcon icon={faGlobe} className="field-icon" />
@@ -418,7 +408,6 @@ function ProfileEditModal({
                     />
                   </div>
 
-                  {/* About Field */}
                   <div className="form-group">
                     <label htmlFor="about">
                       <FontAwesomeIcon icon={faPen} className="field-icon" />
@@ -447,7 +436,6 @@ function ProfileEditModal({
 
               {activeTab === "preferences" && (
                 <div className="form-tab-content">
-                  {/* Travel Preferences */}
                   <div className="form-group">
                     <label className="preferences-label">
                       <FontAwesomeIcon
@@ -505,22 +493,27 @@ function ProfileEditModal({
                 </div>
               )}
 
-              {/* Form Actions */}
               <div className="form-actions">
                 <button
                   type="button"
                   className="cancel-btn"
                   onClick={onClose}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isUploading}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   className="save-btn"
-                  disabled={isSubmitting || !isValid}
+                  disabled={isSubmitting || !isValid || isUploading}
                 >
-                  {isSubmitting ? "Saving..." : "Save Changes"}
+                  {isUploading ? (
+                    <>
+                      <FontAwesomeIcon icon={faSpinner} spin /> Saving...
+                    </>
+                  ) : (
+                    "Save Changes"
+                  )}
                 </button>
               </div>
             </Form>

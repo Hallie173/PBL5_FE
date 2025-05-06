@@ -1,127 +1,123 @@
 import axios from "axios";
 import BASE_URL from "../constants/BASE_URL";
 import { authService } from "./authService";
+
 const API_URL = `${BASE_URL}/users`;
 
 class UserService {
-  // Simplified core methods
   static async getUserById(userId) {
+    if (!userId) throw new Error("User ID is required");
     return this.apiRequest(`${API_URL}/${userId}`, "GET");
   }
 
   static async updateProfile(userId, profileData) {
-    // Create a normalized structure to match backend expectations
+    if (!userId) throw new Error("User ID is required");
+    if (!profileData) throw new Error("Profile data is required");
 
     const normalizedData = this.normalizeProfileData(profileData);
-
+    console.log("Sending profile update payload:", normalizedData);
     const response = await this.apiRequest(
       `${API_URL}/${userId}`,
       "PUT",
       normalizedData
     );
 
-    // Update local storage with consistent structure
-    if (response) {
-      const currentUser = authService.getCurrentUser();
-      if (currentUser && currentUser.user_id === userId) {
-        const updatedUser = {
-          ...currentUser,
-          ...this.extractUserData(response),
-        };
-        authService.setCurrentUser(updatedUser);
-      }
+    const currentUser = authService.getCurrentUser();
+    if (currentUser && currentUser.user_id === userId) {
+      const updatedUser = {
+        ...currentUser,
+        ...this.normalizeLocalProfileData(response),
+      };
+      authService.setCurrentUser(updatedUser);
     }
 
     return response;
   }
 
   static async uploadAvatar(file) {
+    if (!file) throw new Error("No file provided");
+    const currentUser = authService.getCurrentUser();
+    if (!currentUser?.user_id)
+      throw new Error("User must be logged in to upload avatar");
+
+    const validTypes = ["image/jpeg", "image/png", "image/gif"];
+    if (!validTypes.includes(file.type)) {
+      throw new Error("Only JPG, PNG, or GIF images are allowed");
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      throw new Error("Avatar image must be less than 2MB");
+    }
+
     try {
-      if (!file) return null;
-
-      // Create a new FormData object
       const formData = new FormData();
-      formData.append("avatar", file); // Make sure this key matches what backend expects
+      formData.append("avatar", file);
 
-      // Get current user ID - this is important to include in URL or headers
-      const currentUser = authService.getCurrentUser();
-      if (!currentUser || !currentUser.user_id) {
-        throw new Error("User ID is required to upload avatar");
-      }
-
-      // Include auth token in the request
-      const token = authService.getToken();
-
-      // Make sure the URL is correct - this could be a problem point
-      const uploadUrl = `${API_URL}/upload-avatar`;
-
-      // Set up headers correctly for multipart/form-data
-      const headers = {
-        ...(token && { Authorization: `Bearer ${token}` }),
-        // Don't manually set Content-Type for FormData - browser will set it with boundary
-      };
-
-      // Debug logs
-      console.log("Uploading avatar with:", {
-        url: uploadUrl,
-        token: !!token,
-        fileSize: file.size,
-        fileType: file.type,
-      });
-
-      const response = await axios.post(uploadUrl, formData, {
-        headers,
+      const response = await axios.post(`${API_URL}/upload-avatar`, formData, {
+        headers: {},
         withCredentials: true,
       });
 
-      // If successful, return the avatar URL from the response
-      return response.data;
+      return response.data; // Đảm bảo trả về { avatarUrl: "url" }
     } catch (error) {
-      console.error("Avatar upload error:", error);
-      if (error.response) {
-        console.error("Error response data:", error.response.data);
-      }
-      throw error;
+      throw new Error(
+        error.response?.data?.message || "Failed to upload avatar"
+      );
     }
   }
 
-  // Helper methods for consistent data handling
   static normalizeProfileData(profileData) {
-    let avatar = null;
-    if (profileData.avatar_url && profileData.avatar_url.trim() !== "") {
-      avatar = profileData.avatar_url;
+    let bioString;
+    try {
+      bioString = JSON.stringify(profileData.bio || {});
+      JSON.parse(bioString);
+    } catch (error) {
+      console.error("Invalid bio data:", profileData.bio, error);
+      throw new Error("Invalid bio format");
     }
+
+    const urlRegex = /^https?:\/\/[^\s/$.?#].[^\s]*$/;
+    if (profileData.avatar_url && !urlRegex.test(profileData.avatar_url)) {
+      console.error("Invalid avatar_url:", profileData.avatar_url);
+      throw new Error("Invalid avatar_url: Must be a valid URL");
+    }
+
     return {
-      username: profileData.username,
-      full_name: profileData.full_name,
-      avatar_url: avatar,
-      // Convert bio to a string if it's an object
-      bio:
-        typeof profileData.bio === "object"
-          ? JSON.stringify(profileData.bio)
-          : profileData.bio,
+      user_id: profileData.user_id,
+      username: profileData.username || "",
+      full_name: profileData.full_name || "",
+      avatar_url: profileData.avatar_url || "",
+      bio: bioString,
     };
   }
 
-  static extractUserData(userData) {
+  static normalizeLocalProfileData(profileData) {
+    let bio;
+    try {
+      bio =
+        typeof profileData.bio === "string"
+          ? JSON.parse(profileData.bio || "{}")
+          : profileData.bio || {};
+    } catch (error) {
+      console.error("Error parsing bio:", profileData.bio, error);
+      bio = {};
+    }
+
     return {
-      username: userData.username,
-      full_name: userData.full_name,
-      avatar_url: userData.avatar_url,
-      bio: userData.bio || {},
+      user_id: profileData.user_id,
+      username: profileData.username || "",
+      full_name: profileData.full_name || "",
+      avatar_url: profileData.avatar_url || "",
+      bio,
     };
   }
 
-  // Generic API request handler with error handling
   static async apiRequest(url, method = "GET", data = null) {
     try {
-      const token = authService.getToken();
       const config = {
         method,
         url,
         headers: {
           "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` }),
         },
         withCredentials: true,
       };
@@ -131,10 +127,12 @@ class UserService {
       const response = await axios(config);
       return response.data;
     } catch (error) {
-      console.error(`API ${method} request error:`, error);
       const errorMsg =
         error.response?.data?.message ||
-        `Failed to ${method === "GET" ? "fetch" : "update"} data`;
+        error.message ||
+        `Failed to ${
+          method.toLowerCase() === "get" ? "fetch" : "update"
+        } user data`;
       throw new Error(errorMsg);
     }
   }

@@ -1,42 +1,37 @@
-// src/AuthContext.js
-import React, { createContext, useContext, useState, useEffect } from "react";
+// AuthContext.js
+import React, { createContext, useState, useEffect } from "react";
 import { authService } from "../services/authService";
-const AuthContext = createContext();
+
+export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(authService.isAuthenticated());
 
-  // Hàm đăng nhập
-  const login = async (email, password) => {
-    try {
-      const response = await authService.login(email, password);
-      if (response) {
-        const userData = authService.getCurrentUser();
-        setUser(userData);
-        setIsLoggedIn(true);
-      }
-      return response;
-    } catch (error) {
-      throw error;
+  useEffect(() => {
+    const currentUser = authService.getCurrentUser();
+    console.log("Initial user from AuthContext:", currentUser);
+    if (currentUser) {
+      setUser(currentUser);
+      setIsLoggedIn(true);
+    } else {
+      setUser(null);
+      setIsLoggedIn(false);
     }
+  }, []);
+
+  const login = async (email, password) => {
+    const userData = await authService.login(email, password);
+    setUser(userData);
+    setIsLoggedIn(true);
+    return userData;
   };
 
-  // Hàm đăng xuất
   const logout = () => {
     authService.logout();
     setUser(null);
     setIsLoggedIn(false);
   };
-
-  // Tự động tải thông tin người dùng từ localStorage khi component mount
-  useEffect(() => {
-    const currentUser = authService.getCurrentUser();
-    if (currentUser) {
-      setUser(currentUser);
-      setIsLoggedIn(true);
-    }
-  }, []);
 
   return (
     <AuthContext.Provider value={{ user, isLoggedIn, login, logout }}>
@@ -44,8 +39,10 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
-
-// Hook để sử dụng context
 export const useAuth = () => {
-  return useContext(AuthContext);
+  const context = React.useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
 };

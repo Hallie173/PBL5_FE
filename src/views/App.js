@@ -26,6 +26,9 @@ import NewTrip from "../Pages/NewTrip/NewTrip";
 import NewArticle from "../Pages/Articles/NewArticle";
 import Article from "../Pages/Articles/Article";
 import { AuthProvider } from "../contexts/AuthContext";
+import Review from "../Pages/Review/Review";
+import ReviewDetail from "../Pages/ReviewDetail/ReviewDetail";
+import Form from "../Pages/NewTrip/Form";
 
 function App() {
   return (
@@ -101,6 +104,16 @@ function App() {
               }
             />
             <Route
+              path="/tripguide/new-trip-form"
+              element={
+                <>
+                  <Navbar />
+                  <Form />
+                  <Footer />
+                </>
+              }
+            />
+            <Route
               path="/tripguide/newtrip"
               element={
                 <>
@@ -141,11 +154,31 @@ function App() {
               }
             />
             <Route
-              path="/tripguide/user-profile"
+              path="/tripguide/profile"
               element={
                 <>
                   <Navbar />
                   <Profile />
+                  <Footer />
+                </>
+              }
+            />
+            <Route
+              path="/tripguide/review"
+              element={
+                <>
+                  <Navbar />
+                  <Review />
+                  <Footer />
+                </>
+              }
+            />
+            <Route
+              path="/tripguide/review/:id"
+              element={
+                <>
+                  <Navbar />
+                  <ReviewDetail />
                   <Footer />
                 </>
               }

@@ -184,43 +184,45 @@
 
             .new-review {
                 textarea {
-                  display: block;
-                  box-sizing: border-box;
-                  border: 2px solid #2d7a61;
-                  border-radius: 90px;
-                  padding: 10px 20px;
-                  width: 80%;
-                  min-height: 35px;
-                  font-size: 16px;
-                  resize: vertical;
-                  outline: none;
+                    display: block;
+                    box-sizing: border-box;
+                    border: 2px solid #2d7a61;
+                    border-radius: 90px;
+                    padding: 10px 20px;
+                    width: 80%;
+                    min-height: 35px;
+                    font-size: 16px;
+                    resize: vertical;
+                    align-items: center;
+                    vertical-align: middle;
+                    outline: none;
                 }
-              
-                textarea:focus {
-                  border-color: #1f5a47;
-                  box-shadow: 0 0 5px rgba(45, 122, 97, 0.5);
-                }
-              }
 
-              .submit-review {
+                textarea:focus {
+                    border-color: #1f5a47;
+                    box-shadow: 0 0 5px rgba(45, 122, 97, 0.5);
+                }
+            }
+
+            .submit-review {
                 display: flex;
                 justify-content: flex-end;
-              
+
                 button {
-                  border: none;
-                  border-radius: 12px;
-                  background-color: #2d7a61;
-                  color: white;
-                  padding: 10px 25px;
-                  font-size: 16px;
-                  cursor: pointer;
-                  transition: background-color 0.3s ease;
+                    border: none;
+                    border-radius: 12px;
+                    background-color: #2d7a61;
+                    color: white;
+                    padding: 10px 25px;
+                    font-size: 16px;
+                    cursor: pointer;
+                    transition: background-color 0.3s ease;
                 }
-              
+
                 button:hover {
-                  background-color: #246350;
+                    background-color: #246350;
                 }
-              }
+            }
         }
     }
 

@@ -7,13 +7,13 @@ import { useParams } from "react-router-dom";
 import BASE_URL from "../../constants/BASE_URL";
 import axios from "axios";
 
-const Article =() => {
+const Article = () => {
     const { id: articleId } = useParams();
     const [article, setArticle] = useState(null);
     const [author, setAuthor] = useState(null);
     useEffect(() => {
-        if(!articleId) return;
-        const fetchArticle= async () =>{
+        if (!articleId) return;
+        const fetchArticle = async () => {
             try {
                 const articleRespone = await axios.get(`${BASE_URL}/articles/${articleId}`);
                 const articleData = articleRespone.data; // Dữ liệu nằm trong data.data theo controller
@@ -24,7 +24,7 @@ const Article =() => {
                 const authorData = authorRespone.data;
                 setAuthor(authorData);
 
-                console.log(author);    
+                console.log(author);
             } catch (error) {
             } finally {
             }

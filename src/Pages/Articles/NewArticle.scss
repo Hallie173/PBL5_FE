@@ -1,63 +1,391 @@
+// --- Variable Definitions ---
+
+:root {
+  --primary-color: #0078d4;
+  --primary-hover-color: #005a9e;
+  --primary-active-color: #004a85;
+  --text-color: #212529;
+  --text-light-color: #6c757d;
+  --placeholder-color: #adb5bd;
+  --border-color: #dee2e6;
+  --border-light-color: #e9ecef;
+  --background-light: #f8f9fa;
+  --background-white: #ffffff;
+  --shadow-color-light: rgba(0, 0, 0, 0.05);
+  --shadow-color-medium: rgba(0, 0, 0, 0.1);
+
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol";
+  --base-font-size: 16px;
+  --line-height-base: 1.7;
+  --line-height-heading: 1.3;
+
+  --header-height: 60px;
+  --title-input-height: 80px;
+  --toolbar-height: 55px;
+  --content-padding-x: 32px;
+  --content-padding-y: 24px;
+  --border-radius: 6px;
+}
+
+// --- Main Container ---
 .new-article-container {
-    width: 90%;
-    margin: 0 auto;
-    display: block;
-    padding: 20px 0;
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--background-light);
+  font-family: var(--font-family);
+  font-size: var(--base-font-size);
+  color: var(--text-color);
+  transition: all 0.3s ease-in-out;
 
-    .new-article {
-        font-size: 20px;
-        font-weight: bold;
-        font-style: italic;
-        color: #2d7a61;
-        margin: auto;
-        text-align: center;
-    }
+  // --- Fullscreen Mode ---
+  &.fullscreen {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    max-width: 100%;
+    padding: 0;
+    background-color: var(--background-white);
 
-    .write-page {
-        height: 100vh;
-        padding: 2rem;
-        box-sizing: border-box;
+    .write-area {
+      flex: 1;
+      border-radius: 0;
+      box-shadow: none;
+      margin: 0;
+      border: none;
+      height: calc(100vh - var(--header-height));
+
+      .quill {
+        flex: 1;
         display: flex;
         flex-direction: column;
-        background-color: #fff;
-    }
-
-    .article-title {
-        font-size: 2.5rem;
-        font-weight: bold;
-        font-style: italic;
-        margin-bottom: 1.5rem;
-        outline: none;
-        text-align: center;
-        position: relative;
-    }
-
-    .editor {
+      }
+      .ql-container {
         flex: 1;
-        font-size: 1.2rem;
-        line-height: 1.8;
-        border: none;
-        outline: none;
-        padding-right: 1rem;
-        overflow-y: auto;
-        margin-top: 1rem;
+        height: auto !important;
+      }
+      .ql-editor {
+        height: 100% !important;
+        max-height: none;
+      }
+    }
+  }
+
+  // --- Editor Header ---
+  .editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px;
+    background-color: var(--background-white);
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: 0 1px 3px var(--shadow-color-light);
+    height: var(--header-height);
+    flex-shrink: 0;
+  }
+
+  .editor-branding {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    .logo {
+      font-size: 28px;
+    }
+    .new-article-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 0;
+      color: var(--text-color);
+    }
+  }
+
+  .editor-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    .action-btn {
+      border: none;
+      border-radius: var(--border-radius);
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s ease, color 0.2s ease,
+        box-shadow 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.5;
+    }
+    .fullscreen-btn {
+      background-color: transparent;
+      color: var(--text-light-color);
+      font-size: 18px;
+      padding: 6px 10px;
+      &:hover {
+        background-color: var(--border-light-color);
+        color: var(--text-color);
+      }
+    }
+    .publish-btn {
+      background-color: var(--primary-color);
+      color: var(--background-white);
+      box-shadow: 0 2px 4px rgba(0, 120, 212, 0.2);
+      &:hover {
+        background-color: var(--primary-hover-color);
+        box-shadow: 0 3px 6px rgba(0, 120, 212, 0.3);
+      }
+      &:active {
+        background-color: var(--primary-active-color);
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+      }
+    }
+  }
+
+  // --- Writing Area (Title, Quill Editor) ---
+  .write-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--background-white);
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 15px var(--shadow-color-medium);
+    margin: 24px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+  }
+
+  // --- Article Title Input ---
+  .article-title-input {
+    width: 100%;
+    font-size: 2.2rem;
+    padding: var(--content-padding-y) var(--content-padding-x) 16px;
+    border: none;
+    border-bottom: 1px solid var(--border-color);
+    outline: none;
+    font-weight: 700;
+    color: var(--text-color);
+    background-color: transparent;
+    height: var(--title-input-height);
+    flex-shrink: 0;
+    box-sizing: border-box;
+  }
+
+  .article-title-input::placeholder {
+    color: var(--placeholder-color);
+    font-weight: 500;
+  }
+
+  // --- Quill Editor Styles ---
+  .quill {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ql-toolbar {
+    padding: 12px var(--content-padding-x);
+    background-color: var(--background-light);
+    border-bottom: 1px solid var(--border-color);
+    border-top-left-radius: var(--border-radius);
+    border-top-right-radius: var(--border-radius);
+    flex-shrink: 0;
+  }
+
+  .ql-container {
+    flex: 1;
+    min-height: 300px;
+    border: none !important;
+    border-bottom-left-radius: var(--border-radius);
+    border-bottom-right-radius: var(--border-radius);
+    overflow-y: auto;
+  }
+
+  .ql-editor {
+    padding: var(--content-padding-y) var(--content-padding-x);
+    line-height: var(--line-height-base);
+    color: var(--text-color);
+
+    &.ql-blank::before {
+      content: attr(data-placeholder);
+      color: var(--placeholder-color);
+      font-style: italic;
+      pointer-events: none;
+      position: absolute;
+      left: var(--content-padding-x);
+      top: var(--content-padding-y);
+      right: var(--content-padding-x);
     }
 
-    .editor:empty::before {
-        content: attr(placeholder);
-        color: #aaa;
-        font-style: italic;
+    p {
+      margin-bottom: 1em;
+    }
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      margin-top: 1.5em;
+      margin-bottom: 0.8em;
+      line-height: var(--line-height-heading);
+      font-weight: 600;
+    }
+    h1 {
+      font-size: 2em;
+    }
+    h2 {
+      font-size: 1.6em;
+    }
+    h3 {
+      font-size: 1.3em;
     }
 
-    .btn-submit {
-        margin-top: 1rem;
-        padding: 0.8rem 1.5rem;
-        align-self: flex-end;
-        background-color: #0f9d58;
-        color: white;
-        font-size: 1rem;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
+    ul,
+    ol {
+      margin-bottom: 1.5em;
+      padding-left: 30px;
+      li {
+        margin-bottom: 0.5em;
+      }
     }
+
+    a {
+      color: var(--primary-color);
+      text-decoration: none;
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    blockquote {
+      margin: 1.5em 0;
+      padding: 10px var(--content-padding-x);
+      border-left: 4px solid var(--border-color);
+      background-color: var(--background-light);
+      color: var(--text-light-color);
+      font-style: italic;
+    }
+
+    // Styles for images inserted by Quill
+    img {
+      display: block;
+      max-width: 90%; // Limit width, can be overridden by resize module inline styles
+      height: auto; // Maintain aspect ratio
+      margin: 24px auto;
+      border-radius: var(--border-radius);
+      box-shadow: 0 2px 8px var(--shadow-color-medium);
+      border: 1px solid var(--border-color);
+    }
+
+    .ql-size-small {
+      font-size: 0.75em;
+    } // Example smaller size
+  }
+}
+
+// --- Responsive Adjustments ---
+@media (max-width: 992px) {
+  .new-article-container {
+    .write-area {
+      margin: 16px;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .new-article-container {
+    .editor-header {
+      padding: 0 16px;
+      height: 55px;
+    }
+    .editor-branding {
+      .logo {
+        font-size: 24px;
+      }
+      .new-article-title {
+        font-size: 18px;
+      }
+    }
+    .editor-actions {
+      gap: 8px;
+      .action-btn {
+        padding: 6px 12px;
+        font-size: 13px;
+      }
+      .fullscreen-btn {
+        font-size: 16px;
+        padding: 4px 8px;
+      }
+    }
+    .write-area {
+      margin: 12px;
+      .article-title-input {
+        font-size: 1.8rem;
+        padding: 16px 20px 12px;
+        height: 70px;
+      }
+      .ql-toolbar {
+        padding: 10px 16px;
+      }
+      .ql-editor {
+        padding: 16px 20px;
+        min-height: 250px;
+        line-height: 1.6;
+        img {
+          max-width: 100%;
+          margin: 16px auto;
+        }
+        blockquote {
+          padding: 10px 16px;
+        }
+        &.ql-blank::before {
+          left: 20px;
+          top: 16px;
+          right: 20px;
+        }
+      }
+    }
+    &.fullscreen {
+      .write-area {
+        .quill {
+          height: calc(100vh - 55px - 70px);
+        }
+      }
+    }
+  }
+}
+@media (max-width: 480px) {
+  .new-article-container {
+    .write-area {
+      margin: 8px;
+      .article-title-input {
+        font-size: 1.5rem;
+        padding: 12px 16px 10px;
+        height: 60px;
+      }
+      .ql-toolbar {
+        padding: 8px 12px;
+      }
+      .ql-editor {
+        padding: 12px 16px;
+        &.ql-blank::before {
+          left: 16px;
+          top: 12px;
+          right: 16px;
+        }
+      }
+    }
+    &.fullscreen {
+      .write-area {
+        .quill {
+          height: calc(100vh - 55px - 60px);
+        }
+      }
+    }
+  }
 }

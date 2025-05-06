@@ -27,62 +27,46 @@ function NewTrip() {
             </div>
             <div className="trip-details">
                 <div className="trip-info">
-                    <div className="trip-date">
-                        <h3 className="trip-date-title">When & How Long?</h3>
-                        <div className="date-picker-container">
-                            <DatePicker
-                                selected={startDate}
-                                onChange={(date) => setStartDate(date)}
-                                dateFormat="yyyy-MM-dd"
-                                placeholderText="Select your trip start date"
-                                className="date-picker-input"
-                            />
-                            <DatePicker
-                                selected={endDate}
-                                onChange={(date) => setEndDate(date)}
-                                dateFormat="yyyy-MM-dd"
-                                placeholderText="Select your trip end date"
-                                className="date-picker-input"
-                            />
-                            <div className="save-date-btn">
-                                <button className="save-date-button">Save</button>
-                            </div>
-                        </div>
-                    </div>
                     <div className="trip-itinerary">
                         <h2 className="trip-itinerary-title">Itinerary</h2>
                         <div className="trip-day">
                             <div className="trip-day-header">
                                 <h4>Sunday, Apr 13</h4>
                             </div>
-
                             <div className="trip-day-content">
-                                <div className="timeline-line"></div>
                                 <div className="trip-timeline">
-                                    <div className="location-card">
-                                        <img src={marblemountains} alt="The Marble Mountains" className="location-img" />
-                                        <div className="location-info">
-                                            <div className="location-title">The Marble Mountains</div>
-                                            <div className="item-rating">
-                                                <span className="rating-dots">🟢🟢🟢🟢</span>
-                                                <span className="rating-number">8,124</span>
+                                    <div className="location-details">
+                                        <div className="time">8:00 AM</div>
+                                        <div className="timeline-line"></div>
+                                        <div className="location-card">
+                                            <img src={marblemountains} alt="The Marble Mountains" className="location-img" />
+                                            <div className="location-info">
+                                                <div className="location-title">The Marble Mountains</div>
+                                                <div className="item-rating">
+                                                    <span className="rating-dots">🟢🟢🟢🟢</span>
+                                                    <span className="rating-number">8,124</span>
+                                                </div>
+                                                <div className="location-type"><FontAwesomeIcon icon={faMountainSun} className="location-type-icon" />Nature</div>
                                             </div>
-                                            <div className="location-type"><FontAwesomeIcon icon={faMountainSun} className="location-type-icon" />Nature</div>
+                                            <div className="location-menu">⋯</div>
                                         </div>
-                                        <div className="location-menu">⋯</div>
                                     </div>
 
-                                    <div className="location-card">
-                                        <img src={marblemountains} alt="The Marble Mountains" className="location-img" />
-                                        <div className="location-info">
-                                            <div className="location-title">The Marble Mountains</div>
-                                            <div className="item-rating">
-                                                <span className="rating-dots">🟢🟢🟢🟢</span>
-                                                <span className="rating-number">8,124</span>
+                                    <div className="location-details">
+                                        <div className="time">8:00 AM</div>
+                                        <div className="timeline-line"></div>
+                                        <div className="location-card">
+                                            <img src={marblemountains} alt="The Marble Mountains" className="location-img" />
+                                            <div className="location-info">
+                                                <div className="location-title">The Marble Mountains</div>
+                                                <div className="item-rating">
+                                                    <span className="rating-dots">🟢🟢🟢🟢</span>
+                                                    <span className="rating-number">8,124</span>
+                                                </div>
+                                                <div className="location-type"><FontAwesomeIcon icon={faMountainSun} className="location-type-icon" />Nature</div>
                                             </div>
-                                            <div className="location-type"><FontAwesomeIcon icon={faMountainSun} className="location-type-icon" />Nature</div>
+                                            <div className="location-menu">⋯</div>
                                         </div>
-                                        <div className="location-menu">⋯</div>
                                     </div>
 
                                     <div className="timeline-add-button">
@@ -99,32 +83,39 @@ function NewTrip() {
                             </div>
 
                             <div className="trip-day-content">
-                                <div className="timeline-line"></div>
                                 <div className="trip-timeline">
-                                    <div className="location-card">
-                                        <img src={marblemountains} alt="The Marble Mountains" className="location-img" />
-                                        <div className="location-info">
-                                            <div className="location-title">The Marble Mountains</div>
-                                            <div className="item-rating">
-                                                <span className="rating-dots">🟢🟢🟢🟢</span>
-                                                <span className="rating-number">8,124</span>
+                                    <div className="location-details">
+                                        <div className="time">8:00 AM</div>
+                                        <div className="timeline-line"></div>
+                                        <div className="location-card">
+                                            <img src={marblemountains} alt="The Marble Mountains" className="location-img" />
+                                            <div className="location-info">
+                                                <div className="location-title">The Marble Mountains</div>
+                                                <div className="item-rating">
+                                                    <span className="rating-dots">🟢🟢🟢🟢</span>
+                                                    <span className="rating-number">8,124</span>
+                                                </div>
+                                                <div className="location-type"><FontAwesomeIcon icon={faMountainSun} className="location-type-icon" />Nature</div>
                                             </div>
-                                            <div className="location-type"><FontAwesomeIcon icon={faMountainSun} className="location-type-icon" />Nature</div>
+                                            <div className="location-menu">⋯</div>
                                         </div>
-                                        <div className="location-menu">⋯</div>
                                     </div>
 
-                                    <div className="location-card">
-                                        <img src={marblemountains} alt="The Marble Mountains" className="location-img" />
-                                        <div className="location-info">
-                                            <div className="location-title">The Marble Mountains</div>
-                                            <div className="item-rating">
-                                                <span className="rating-dots">🟢🟢🟢🟢</span>
-                                                <span className="rating-number">8,124</span>
+                                    <div className="location-details">
+                                        <div className="time">8:00 AM</div>
+                                        <div className="timeline-line"></div>
+                                        <div className="location-card">
+                                            <img src={marblemountains} alt="The Marble Mountains" className="location-img" />
+                                            <div className="location-info">
+                                                <div className="location-title">The Marble Mountains</div>
+                                                <div className="item-rating">
+                                                    <span className="rating-dots">🟢🟢🟢🟢</span>
+                                                    <span className="rating-number">8,124</span>
+                                                </div>
+                                                <div className="location-type"><FontAwesomeIcon icon={faMountainSun} className="location-type-icon" />Nature</div>
                                             </div>
-                                            <div className="location-type"><FontAwesomeIcon icon={faMountainSun} className="location-type-icon" />Nature</div>
+                                            <div className="location-menu">⋯</div>
                                         </div>
-                                        <div className="location-menu">⋯</div>
                                     </div>
 
                                     <div className="timeline-add-button">

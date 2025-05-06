@@ -84,43 +84,6 @@
             flex-direction: column;
         }
 
-        .trip-date {
-            display: block;
-            margin-bottom: 50px;
-
-            .date-picker-container {
-                display: flex;
-                align-items: center;
-                gap: 20px;
-
-                .date-picker-input {
-                    padding: 8px;
-                    border: 1px solid #ccc;
-                    border-radius: 8px;
-                    font-size: 16px;
-                    margin: auto;
-                    width: 100%;
-                    max-width: 300px;
-                }
-
-                .save-date-btn {
-                    background: #2d7a61;
-                    color: white;
-                    border: none;
-                    padding: 8px 20px;
-                    border-radius: 25px;
-                    cursor: pointer;
-                    font-weight: bold;
-                    transition: background-color 0.2s ease;
-                    white-space: nowrap;
-
-                    &:hover {
-                        background: #1e5c48;
-                    }
-                }
-            }
-        }
-
         .trip-itinerary {
             .trip-itinerary-title {
                 font-size: 25px;
@@ -143,73 +106,81 @@
                     position: relative;
                     display: flex;
                     flex-direction: column;
-                    margin-left: 40px;
-
-                    .timeline-line {
-                        position: absolute;
-                        left: 0;
-                        top: 0;
-                        bottom: 0;
-                        width: 1px;
-                        background-color: #000;
-                        z-index: 0;
-                    }
+                    margin: 20px 0 20px 20px;
 
                     .trip-timeline {
                         display: flex;
                         flex-direction: column;
                         justify-content: space-between;
 
-                        .location-card {
-                            width: 80%;
-                            aspect-ratio: 4/1;
-                            border-radius: 8px;
-                            border: 2px solid #ccc;
+                        .location-details {
                             display: flex;
-                            justify-content: flex-start;
-                            position: relative;
-                            margin: 5px 0 40px 40px;
+                            flex-direction: row;
 
-                            .location-img {
-                                width: 30%;
-                                object-fit: cover;
-                                border-radius: 8px 0 0 8px;
+                            .time {
+                                margin: 5px 0 40px 0;
+                                width: 100px;
+                                text-align: center;
                             }
 
-                            .location-info {
-                                margin: 10px;
-                                font-size: 15px;
-                                display: flex;
-                                flex-direction: column;
-                                justify-content: space-around;
+                            .timeline-line {
+                                width: 1px;
+                                background-color: #000;
+                                z-index: 0;
+                                margin-right: 20px;
+                            }
 
-                                .location-title {
-                                    font-size: 16px;
-                                    font-weight: bold;
-                                    margin-bottom: 5px;
+                            .location-card {
+                                width: 80%;
+                                aspect-ratio: 4/1;
+                                border-radius: 8px;
+                                border: 2px solid #ccc;
+                                display: flex;
+                                justify-content: flex-start;
+                                position: relative;
+                                margin: 5px 0 40px 0;
+
+                                .location-img {
+                                    width: 30%;
+                                    object-fit: cover;
+                                    border-radius: 8px 0 0 8px;
                                 }
 
-                                .location-type {
-                                    font-size: 14px;
-                                    color: #555;
+                                .location-info {
+                                    margin: 10px;
+                                    font-size: 15px;
+                                    display: flex;
+                                    flex-direction: column;
+                                    justify-content: space-around;
 
-                                    .location-type-icon {
-                                        margin-right: 5px;
+                                    .location-title {
+                                        font-size: 16px;
+                                        font-weight: bold;
+                                        margin-bottom: 5px;
+                                    }
+
+                                    .location-type {
+                                        font-size: 14px;
+                                        color: #555;
+
+                                        .location-type-icon {
+                                            margin-right: 5px;
+                                        }
                                     }
                                 }
-                            }
 
-                            .location-menu {
-                                position: absolute;
-                                top: 0;
-                                right: 0;
-                                margin-right: 10px;
+                                .location-menu {
+                                    position: absolute;
+                                    top: 0;
+                                    right: 0;
+                                    margin-right: 10px;
+                                }
                             }
                         }
 
                         .timeline-add-button {
                             width: 80%;
-                            margin-left: 40px;
+                            margin-left: 110px;
                             margin-bottom: 5px;
 
                             button {
