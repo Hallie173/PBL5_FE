@@ -10,14 +10,14 @@ import BASE_URL from "../../constants/BASE_URL";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 // Giả lập nhiều bài viết để thử phân trang
-const articlesData = Array.from({ length: 24 }, (_, i) => ({
-    category: "Sample Category",
-    title: `Article Title ${i + 1}`,
-    description: `Sample description for article ${i + 1}`,
-    author: `Author ${i + 1}`,
-    date: `April ${i + 1}, 2025`,
-    image: [maldives, marrakech, winterlondon, amazonrainforest][i % 4],
-}));
+// const articlesData = Array.from({ length: 24 }, (_, i) => ({
+//     category: "Sample Category",
+//     title: `Article Title ${i + 1}`,
+//     description: `Sample description for article ${i + 1}`,
+//     author: `Author ${i + 1}`,
+//     date: `April ${i + 1}, 2025`,
+//     image: [maldives, marrakech, winterlondon, amazonrainforest][i % 4],
+// }));
 
 const Pagination = ({ page, totalPages, handlePageChange }) => {
     

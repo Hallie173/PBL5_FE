@@ -14,6 +14,7 @@ import { useParams } from "react-router-dom";
 import MapComponent from "../../components/GoogleMap/GoogleMap";
 import BASE_URL from "../../constants/BASE_URL";
 import { authService } from "../../services/authService";
+import { useAuth } from "../../contexts/AuthContext";
 
 const initialNearbyPlaces = [
     { id: 1, name: "Cozy Danang Boutique Hotel", image: cozy, saved: false },
@@ -38,6 +39,7 @@ const Attraction = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [comment, setComment] = useState("");
     const [user_id, setUser_id] = useState(null);
+    const {users} = useAuth();
     useEffect(() => {
         if (!attractionId) return;
         setLoading(true);
@@ -83,7 +85,7 @@ const Attraction = () => {
                     setIsLoggedIn(true);
                     setUser(currentUser);
                 }
-                console.log(user.user.username);
+                    console.log(user.user.username);
                 // console.log(user.user.username)
                 const userIdRespone = await axios.get(`${BASE_URL}/users/email/${user.user.email}`);
                 const userIdData = userIdRespone.data;
@@ -100,6 +102,7 @@ const Attraction = () => {
                 // Lấy thông tin user cho mỗi review
                 
                 */
+               console.log(users.user_id);
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -152,7 +155,7 @@ const Attraction = () => {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    user_id: user_id?.user_id,
+                    user_id: users?.user_id,
                     attraction_id: attraction?.attraction_id,
                     restaurant_id: null,
                     comment: comment.trim(),
@@ -221,9 +224,9 @@ const Attraction = () => {
                     <h2>Overview</h2>
                     <p className="location">📍 {attraction?.address}</p>
                     <h2>Location</h2>
-                    <div>
+                    {/* <div>
                         <MapComponent address={attraction?.address} />
-                    </div>
+                    </div> */}
                 </div>
 
             </div>

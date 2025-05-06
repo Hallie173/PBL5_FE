@@ -8,7 +8,7 @@ const containerStyle = {
 
 const MapComponent = ({ address }) => {
   const [location, setLocation] = useState(null);
-  const apiKey = "AIzaSyCCnsE1CCMUcR_BiT0HRajs5buYHNXqyaE";
+  const apiKey = "";
 
   useEffect(() => {
     if (!address) return;
