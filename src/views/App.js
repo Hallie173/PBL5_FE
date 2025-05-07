@@ -29,6 +29,7 @@ import { AuthProvider } from "../contexts/AuthContext";
 import Review from "../Pages/Review/Review";
 import ReviewDetail from "../Pages/ReviewDetail/ReviewDetail";
 import Form from "../Pages/NewTrip/Form";
+import OpenStreetMap from "../components/OpenStreetMap/OpenStreetMap";
 
 function App() {
   return (
@@ -183,6 +184,16 @@ function App() {
                 </>
               }
             />
+            {/* <Route
+              path="/tripguide/map"
+              element={
+                <>
+                  <Navbar />
+                  <OpenStreetMap />
+                  <Footer />
+                </>
+              }
+            /> */}
             {/* Route admin */}
             <Route path="/tripguide/admin" element={<AdminLayout />}>
               <Route index element={<Navigate to="dashboard" replace />} />
