@@ -172,7 +172,7 @@ const Restaurant = () => {
     if (!comment.trim()) return;
 
     try {
-      const response = await fetch("http://localhost:8081/reviews", {
+      const response = await fetch(`${BASE_URL}/reviews`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
