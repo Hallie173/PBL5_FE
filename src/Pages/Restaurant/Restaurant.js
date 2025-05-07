@@ -172,7 +172,7 @@ const Restaurant = () => {
     if (!comment.trim()) return;
 
     try {
-      const response = await fetch("http://localhost:8080/reviews", {
+      const response = await fetch(`${BASE_URL}/reviews`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -338,8 +338,7 @@ const Restaurant = () => {
           </table>
         </div>
       </div>
-                    </div> */}
-                </div>
+      
                 <div className="hours-info">
                     <h2>Hours</h2>
                     <p className="open-status">Open until {restaurant.close_time}</p>
@@ -355,7 +354,6 @@ const Restaurant = () => {
                         </tbody>
                     </table>
                 </div>
-            </div>
 
       {/* Comment lại phần Reviews */}
 
