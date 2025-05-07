@@ -172,7 +172,7 @@ const Restaurant = () => {
     if (!comment.trim()) return;
 
     try {
-      const response = await fetch("http://localhost:8080/reviews", {
+      const response = await fetch("http://localhost:8081/reviews", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -338,28 +338,26 @@ const Restaurant = () => {
           </table>
         </div>
       </div>
-                    </div> */}
-                </div>
-                <div className="hours-info">
-                    <h2>Hours</h2>
-                    <p className="open-status">Open until {restaurant.close_time}</p>
-                    <table>
-                        <tbody>
-                            <tr><td>Sunday</td><td>{restaurant.open_time} - {restaurant.close_time}</td></tr>
-                            <tr><td>Monday</td><td>{restaurant.open_time} - {restaurant.close_time}</td></tr>
-                            <tr><td>Tuesday</td><td>{restaurant.open_time} - {restaurant.close_time}</td></tr>
-                            <tr><td>Wednesday</td><td>{restaurant.open_time} - {restaurant.close_time}</td></tr>
-                            <tr><td>Thursday</td><td>{restaurant.open_time} - {restaurant.close_time}</td></tr>
-                            <tr><td>Friday</td><td>{restaurant.open_time} - {restaurant.close_time}</td></tr>
-                            <tr><td>Saturday</td><td>{restaurant.open_time} - {restaurant.close_time}</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+
+      <div className="hours-info">
+        <h2>Hours</h2>
+        <p className="open-status">Open until {restaurant.close_time}</p>
+        <table>
+          <tbody>
+            <tr><td>Sunday</td><td>{restaurant.open_time} - {restaurant.close_time}</td></tr>
+            <tr><td>Monday</td><td>{restaurant.open_time} - {restaurant.close_time}</td></tr>
+            <tr><td>Tuesday</td><td>{restaurant.open_time} - {restaurant.close_time}</td></tr>
+            <tr><td>Wednesday</td><td>{restaurant.open_time} - {restaurant.close_time}</td></tr>
+            <tr><td>Thursday</td><td>{restaurant.open_time} - {restaurant.close_time}</td></tr>
+            <tr><td>Friday</td><td>{restaurant.open_time} - {restaurant.close_time}</td></tr>
+            <tr><td>Saturday</td><td>{restaurant.open_time} - {restaurant.close_time}</td></tr>
+          </tbody>
+        </table>
+      </div>
 
       {/* Comment lại phần Reviews */}
 
-      <div className="reviews">
+      < div className="reviews" >
         <h2 id="restaurant-reviews">Reviews</h2>
         <div className="reviews-div">
           <div className="review-summary">
@@ -406,7 +404,7 @@ const Restaurant = () => {
             </div>
           </div>
         </div>
-      </div>
+      </div >
 
       <div className="nearby">
         <h2>Best nearby</h2>
@@ -422,9 +420,8 @@ const Restaurant = () => {
                 />
                 <div className="save-overlay">
                   <button
-                    className={`save-button-overlay ${
-                      place.saved ? "saved" : ""
-                    }`}
+                    className={`save-button-overlay ${place.saved ? "saved" : ""
+                      }`}
                     onClick={() => toggleSaveNearby(place.id)}
                   >
                     <FontAwesomeIcon
@@ -448,7 +445,7 @@ const Restaurant = () => {
           ))}
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 
