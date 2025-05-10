@@ -1,10 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import "./Form.scss";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import formPicfrom from "../../assets/images/Cities/halong.png";
 import { Link } from "react-router-dom";
 
 const Form = () => {
+    const [active, setActive] = useState(false);
+
     return (
         <div className="form-container">
             <div className="form-header">
@@ -67,7 +67,7 @@ const Form = () => {
                             <div className="tags">
                                 <div className="tag">Seafood</div>
                                 <div className="tag">Local Specialities</div>
-                                <div className="tag">Rice</div>
+                                <div className={`tag ${active ? 'active' : ''}`} onClick={() => setActive(!active)}>Rice</div>
                             </div>
                         </div>
                     </div>
@@ -78,7 +78,7 @@ const Form = () => {
                     <Link to="/tripguide/newtrip">Next</Link>
                 </div>
             </div>
-        </div>
+        </div >
     )
 }
 
