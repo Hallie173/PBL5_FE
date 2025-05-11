@@ -1,7 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
 import "./Form.scss";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import formPicfrom from "../../assets/images/Cities/halong.png";
 import { Link } from "react-router-dom";
 import { useState } from 'react'
 const Form = () => {
