@@ -14,6 +14,7 @@ import burgerbros from "../../assets/images/FoodDrink/burgerbros.png";
 import banhxeobaduong from "../../assets/images/FoodDrink/banhxeobaduong.png";
 import madamelan from "../../assets/images/FoodDrink/madamelan.png";
 import quancomhuengon from "../../assets/images/FoodDrink/quancomhuengon.png";
+import BASE_URL from "../../constants/BASE_URL";
 
 const HomePage = () => {
   const [searchText, setSearchText] = useState("");
@@ -124,7 +125,7 @@ const HomePage = () => {
     if (!searchText.trim()) return;
     try {
       const response = await fetch(
-        `http://localhost:8080/cities/search/${encodeURIComponent(
+        `${BASE_URL}/cities/search/${encodeURIComponent(
           searchText
         )}`
       );

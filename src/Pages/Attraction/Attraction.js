@@ -225,6 +225,7 @@ const Attraction = () => {
       <div className="error-container">
         <h2>An error occurred</h2>
         <p>{error}</p>
+        <p>{mapError}</p>
         <button onClick={() => navigate(-1)}>Go back</button>
       </div>
     );

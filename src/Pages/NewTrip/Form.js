@@ -3,8 +3,26 @@ import "./Form.scss";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import formPicfrom from "../../assets/images/Cities/halong.png";
 import { Link } from "react-router-dom";
-
+import { useState } from 'react'
 const Form = () => {
+    const [selectedTags, setSelectedTags] = useState([]);
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+    const tagCategories = {
+        Nature: ['beach', 'mountain', 'cave'],
+        'Culture & History': ['museum', 'historical site', 'church'],
+        Activity: ['hiking', 'swimming', 'camping'],
+        Restaurant: ['seafood', 'local specialities', 'Buffet'],
+    };
+
+    const toggleTag = (tag) => {
+        setSelectedTags(prev =>
+            prev.includes(tag)
+                ? prev.filter(t => t !== tag)
+                : [...prev, tag]
+        );
+    };
+
     return (
         <div className="form-container">
             <div className="form-header">
@@ -25,12 +43,24 @@ const Form = () => {
                     <label className="date-select">Choose your travel dates:</label>
                     <div className="date-select">
                         <div className="start-date">
-                            <label className="start-date">Start Date:</label>
-                            <input type="date" id="start-date" name="start-date" />
+                            <label htmlFor="start-date">Start Date: </label>
+                            <input
+                                type="date"
+                                id="start-date"
+                                name="start-date"
+                                value={startDate}
+                                onChange={(e) => setStartDate(e.target.value)}
+                            />
                         </div>
                         <div className="end-date">
-                            <label className="end-date">End Date:</label>
-                            <input type="date" id="end-date" name="end-date" />
+                            <label htmlFor="end-date">End Date: </label>
+                            <input
+                                type="date"
+                                id="end-date"
+                                name="end-date"
+                                value={endDate}
+                                onChange={(e) => setEndDate(e.target.value)}
+                            />
                         </div>
                     </div>
                 </div>
@@ -38,48 +68,35 @@ const Form = () => {
                     <label className="schedule">Schedule details:</label>
                     <p className="place-search-recommend">What kind of place would you like to visit?</p>
                     <div className="place-search">
-                        <div className="nature-type">
-                            <div className="type-title">Nature:</div>
-                            <div className="tags">
-                                <div className="tag">Beach</div>
-                                <div className="tag">Mountain</div>
-                                <div className="tag">Cave</div>
+                        {Object.entries(tagCategories).map(([type, tags]) => (
+                            <div key={type} className="tag-type-group">
+                                <div className="type-title">{type}:</div>
+                                <div className="tags">
+                                    {tags.map(tag => (
+                                        <div
+                                            key={tag}
+                                            className={`tag ${selectedTags.includes(tag) ? 'selected' : ''}`}
+                                            onClick={() => toggleTag(tag)}
+                                        >
+                                            {tag}
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                        <div className="culture-history-type">
-                            <div className="type-title">Culture & History:</div>
-                            <div className="tags">
-                                <div className="tag">Museum</div>
-                                <div className="tag">Historical Site</div>
-                                <div className="tag">Church</div>
-                            </div>
-                        </div>
-                        <div className="activity-type">
-                            <div className="type-title">Activity:</div>
-                            <div className="tags">
-                                <div className="tag">Hiking</div>
-                                <div className="tag">Swimming</div>
-                                <div className="tag">Camping</div>
-                            </div>
-                        </div>
-                        <div className="restaurant-type">
-                            <div className="type-title">Activity:</div>
-                            <div className="tags">
-                                <div className="tag">Seafood</div>
-                                <div className="tag">Local Specialities</div>
-                                <div className="tag">Rice</div>
-                            </div>
-                        </div>
+                        ))}
                     </div>
                 </div>
             </div>
             <div className="form-footer">
                 <div className="next-button">
-                    <Link to="/tripguide/newtrip">Next</Link>
+                    <Link to="/tripguide/newtrip" state={{ selectedTags, startDate, endDate }}>Next</Link>
+                </div>
+                <div className="selected-tags">
+                    <strong>Selected Tags:</strong> {selectedTags}
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};
 
 export default Form;
