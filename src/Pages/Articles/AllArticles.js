@@ -62,8 +62,9 @@ const Pagination = ({ page, totalPages, handlePageChange }) => {
           <button
             key={pageNumber}
             onClick={() => handlePageChange(pageNumber)}
-            className={`pagination-page ${page === pageNumber ? "pagination-page-active" : ""
-              }`}
+            className={`pagination-page ${
+              page === pageNumber ? "pagination-page-active" : ""
+            }`}
           >
             {pageNumber}
           </button>
@@ -101,7 +102,7 @@ const AllArticles = () => {
 
   const handlenavigate_article = async (article_id) => {
     try {
-      console.log("Article_id", article_id);
+      // console.log("Article_id", article_id);
       navigate(`/tripguide/articles/${article_id}`);
     } catch (error) {
       console.error("Lỗi khi gọi API:", error);
@@ -141,11 +142,7 @@ const AllArticles = () => {
         <div className="featured-content">
           <h2>Share your experiences and advices</h2>
           <div className="new-article-button">
-            <Link
-              to="/tripguide/articles/new"
-            >
-              + New Article
-            </Link>
+            <Link to="/tripguide/articles/new">+ New Article</Link>
           </div>
         </div>
       </div>

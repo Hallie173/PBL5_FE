@@ -163,7 +163,7 @@ function ProfileEditModal({
           const response = await onAvatarUpload(selectedFile);
           if (response && response.avatarUrl) {
             finalAvatarUrl = response.avatarUrl;
-            console.log("Avatar uploaded, URL:", finalAvatarUrl);
+            // console.log("Avatar uploaded, URL:", finalAvatarUrl);
           } else {
             throw new Error("Invalid avatar upload response");
           }
@@ -181,7 +181,7 @@ function ProfileEditModal({
           avatar_url: finalAvatarUrl,
         };
 
-        console.log("Submitting profile data:", updatedUserData);
+        // console.log("Submitting profile data:", updatedUserData);
         await onSave(updatedUserData);
         onClose();
       } catch (error) {

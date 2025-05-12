@@ -27,7 +27,7 @@ function Navbar() {
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
   const location = useLocation();
-  console.log(user);
+  // console.log(user);
 
   const toggleLanguageMenu = () => {
     setLanguageMenuOpen(!languageMenuOpen);

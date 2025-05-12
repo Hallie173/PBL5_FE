@@ -52,7 +52,7 @@ export default function AttractionReview() {
         uploadedImages,
       };
 
-      console.log("Form submitted:", formData);
+      // console.log("Form submitted:", formData);
       // Here you would typically send the data to your backend
       alert("Review submitted successfully!");
     },
