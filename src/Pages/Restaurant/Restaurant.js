@@ -26,6 +26,7 @@ import PropTypes from "prop-types";
 import LocationCard from "../../components/LocationCard/LocationCard";
 import axios from "axios";
 import BASE_URL from "../../constants/BASE_URL";
+import { useAuth } from "../../contexts/AuthContext";
 
 // Breadcrumb Component (không thay đổi)
 const Breadcrumb = React.memo(({ city, restaurant, navigate }) => (
@@ -822,6 +823,56 @@ const Restaurant = () => {
     savedRestaurants,
     handleToggleSave,
   } = useRestaurant();
+  const { user } = useAuth();
+  // Hàm lưu recently viewed
+  const saveRecentlyViewed = useCallback(async () => {
+    if (!restaurant) return;
+
+    const item = {
+      id: restaurant.restaurant_id,
+      restaurant_id: restaurant.restaurant_id,
+      name: restaurant.name,
+      image: restaurant.image_url?.[0] || "https://via.placeholder.com/150",
+      rating: restaurant.average_rating || 0,
+      reviewCount: restaurant.rating_total || 0,
+      tags: restaurant.tags || [],
+      type: "restaurant",
+    };
+
+    try {
+      if (isLoggedIn && user?.user_id) {
+        // Gửi yêu cầu API để lưu recently viewed
+        await axios.post(`${BASE_URL}/recently-viewed`, {
+          user_id: user.user_id,
+          item,
+        });
+      } else {
+        // Lưu vào localStorage cho người dùng chưa đăng nhập
+        let recentItems = JSON.parse(
+          localStorage.getItem("recentlyViewedItems") || "[]"
+        );
+
+        // Xóa mục trùng lặp (dựa trên id)
+        recentItems = recentItems.filter((i) => i.id !== item.id);
+        // Thêm mục mới vào đầu danh sách
+        recentItems.unshift(item);
+        // Giới hạn tối đa 4 mục
+        recentItems = recentItems.slice(0, 4);
+        // Lưu lại vào localStorage
+        localStorage.setItem(
+          "recentlyViewedItems",
+          JSON.stringify(recentItems)
+        );
+      }
+    } catch (err) {
+      console.error("Failed to save recently viewed:", err);
+    }
+  }, [restaurant, isLoggedIn, user]);
+
+  // Gọi hàm saveRecentlyViewed khi component mount
+  useEffect(() => {
+    saveRecentlyViewed();
+  }, [saveRecentlyViewed]);
 
   if (isLoadingVisible) {
     return <Loading message="Loading restaurant details..." />;

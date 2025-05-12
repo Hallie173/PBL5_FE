@@ -13,6 +13,8 @@ import LocationCard from "../../components/LocationCard/LocationCard";
 import { useAuth } from "../../contexts/AuthContext";
 import BASE_URL from "../../constants/BASE_URL";
 import trendcast from "../../views/trendcast.png";
+
+// Hình ảnh tĩnh (giữ nguyên hoặc thay bằng URL từ API)
 import golemcafe from "../../assets/images/FoodDrink/golemcafe.png";
 import marblemountains from "../../assets/images/Cities/marblemountains.png";
 import danangmuseum from "../../assets/images/Cities/danangmuseum.png";
@@ -22,58 +24,76 @@ import banhxeobaduong from "../../assets/images/FoodDrink/banhxeobaduong.png";
 import madamelan from "../../assets/images/FoodDrink/madamelan.png";
 import quancomhuengon from "../../assets/images/FoodDrink/quancomhuengon.png";
 
+// Mapping ID với hình ảnh (nếu không lấy từ API)
+const imageMap = {
+  1: golemcafe,
+  2: marblemountains,
+  3: danangmuseum,
+  4: dragonbridge,
+  5: burgerbros,
+  6: banhxeobaduong,
+  7: madamelan,
+  8: quancomhuengon,
+};
+
 const HomePage = () => {
   const [searchText, setSearchText] = useState("");
   const [savedRestaurants, setSavedRestaurants] = useState({});
+  const [recentlyViewedItems, setRecentlyViewedItems] = useState([]);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const { user, isLoggedIn } = useAuth();
-  const [ city, setCity] = useState([]);
+  const [city, setCity] = useState([]);
 
-  // Sample data
-  const recentlyViewedItems = [
-    {
-      id: 1,
-      restaurant_id: 1, // Added for restaurant-specific routing
-      name: "Golem Cafe",
-      image: golemcafe,
-      rating: 4.5,
-      reviewCount: 123,
-      tags: ["Cafe", "Drinks"],
-      badge: "New",
-      type: "restaurant",
-    },
-    {
-      id: 2,
-      name: "The Marble Mountains",
-      image: marblemountains,
-      rating: 4.0,
-      reviewCount: 5432,
-      tags: ["Attractions", "Nature"],
-      type: "attraction",
-    },
-    {
-      id: 3,
-      name: "Bao Tang Da Nang - Da Nang Museum",
-      image: danangmuseum,
-      rating: 4.0,
-      reviewCount: 876,
-      tags: ["Museums", "History"],
-      badge: "2024",
-      type: "museum",
-    },
-    {
-      id: 4,
-      name: "Dragon Bridge",
-      image: dragonbridge,
-      rating: 4.5,
-      reviewCount: 10987,
-      tags: ["Landmarks", "Bridges"],
-      type: "landmark",
-    },
-  ];
+  // Lấy danh sách Recently Viewed
+  useEffect(() => {
+    const fetchRecentlyViewed = async () => {
+      try {
+        let recentItems = [];
 
+        // Nếu đã đăng nhập, lấy từ API
+        if (isLoggedIn && user?.user_id) {
+          const response = await axios.get(
+            `${BASE_URL}/recently-viewed?user_id=${user.user_id}`
+          );
+          recentItems = response.data.slice(0, 4); // Giới hạn 4 mục
+        } else {
+          // Nếu chưa đăng nhập, lấy từ localStorage
+          recentItems = JSON.parse(
+            localStorage.getItem("recentlyViewedItems") || "[]"
+          );
+        }
+
+        // Đảm bảo dữ liệu hợp lệ
+        recentItems = recentItems.filter(
+          (item) =>
+            item.id &&
+            item.name &&
+            item.type &&
+            (item.type === "restaurant" || item.type === "attraction")
+        );
+
+        // Ánh xạ hình ảnh nếu cần (tùy thuộc vào API của bạn)
+        recentItems = recentItems.map((item) => ({
+          ...item,
+          image:
+            item.image ||
+            imageMap[item.id] ||
+            "https://via.placeholder.com/150",
+        }));
+
+        setRecentlyViewedItems(recentItems);
+      } catch (err) {
+        console.error("Failed to fetch recently viewed items:", err);
+        setError("Failed to load recently viewed items.");
+      }
+    };
+
+    fetchRecentlyViewed();
+  }, [isLoggedIn, user]);
+
+  // Giữ nguyên recommendedItems (mảng tĩnh)
   const recommendedItems = [
     {
       id: 5,
@@ -117,13 +137,9 @@ const HomePage = () => {
     },
   ];
 
-
   useEffect(() => {
-
     const fetchData = async () => {
-      const cityResponse = await axios.get(
-        `${BASE_URL}/cities`
-      );
+      const cityResponse = await axios.get(`${BASE_URL}/cities`);
       setCity(cityResponse.data);
     };
     fetchData();
@@ -144,7 +160,6 @@ const HomePage = () => {
     // }
   }, [isLoggedIn, user]);
 
-  // Render star ratings (copied from useRestaurant.js for consistency)
   const renderStars = useCallback((rating) => {
     const numRating = parseFloat(rating);
     if (isNaN(numRating) || numRating < 0 || numRating > 5) {
@@ -159,22 +174,23 @@ const HomePage = () => {
               star <= Math.floor(numRating)
                 ? solidStar
                 : star === Math.ceil(numRating) && !Number.isInteger(numRating)
-                  ? faStarHalfStroke
-                  : regularStar
+                ? faStarHalfStroke
+                : regularStar
             }
-            className={`star-icon ${star <= Math.floor(numRating)
+            className={`star-icon ${
+              star <= Math.floor(numRating)
                 ? "filled"
                 : star === Math.ceil(numRating) && !Number.isInteger(numRating)
-                  ? "half"
-                  : "empty"
-              }`}
+                ? "half"
+                : "empty"
+            }`}
           />
         ))}
       </div>
     );
   }, []);
 
-  // Toggle save state
+  // Toggle save state (giữ nguyên)
   const toggleSave = useCallback(
     async (restaurantId) => {
       if (!isLoggedIn) {
@@ -207,19 +223,18 @@ const HomePage = () => {
     [isLoggedIn, navigate, savedRestaurants, user]
   );
 
-  // Handle item click with type-based routing
+  // Handle item click with type-based routing (cập nhật để hỗ trợ attraction)
   const handleItemClick = useCallback(
     (item) => {
-      console.log(`Navigating to item ${item.id}`);
       if (item.type === "restaurant") {
-        navigate(`/tripguide/restaurant/${item.restaurant_id}`);
-      } else {
-        navigate(`/location/${item.id}`); // Fallback for non-restaurant items
+        navigate(`/tripguide/restaurant/${item.restaurant_id || item.id}`);
+      } else if (item.type === "attraction") {
+        navigate(`/tripguide/attraction/${item.id}`);
       }
     },
     [navigate]
   );
-
+  // Giữ nguyên handleSearch, showNotification, handleKeyPress
   const handleSearch = async () => {
     if (!searchText.trim()) return;
     try {
@@ -241,7 +256,7 @@ const HomePage = () => {
   };
 
   const showNotification = (message) => {
-    alert(message); // Consider replacing with a toast library for better UX
+    alert(message);
   };
 
   const handleKeyPress = (e) => {
@@ -289,18 +304,22 @@ const HomePage = () => {
       <div className="content-section">
         <h2 className="section-title">Recently viewed</h2>
         <p className="section-subtitle">Places you explored</p>
-        <div className="picture-grid">
-          {recentlyViewedItems.map((item) => (
-            <LocationCard
-              key={item.id}
-              item={item}
-              isSaved={!!savedRestaurants[item.restaurant_id]} // Use restaurant_id for restaurants
-              onToggleSave={() => toggleSave(item.restaurant_id)} // Pass restaurant_id
-              onClick={() => handleItemClick(item)}
-              renderStars={renderStars} // Pass renderStars for consistent ratings
-            />
-          ))}
-        </div>
+        {recentlyViewedItems.length > 0 ? (
+          <div className="picture-grid">
+            {recentlyViewedItems.map((item) => (
+              <LocationCard
+                key={item.id}
+                item={item}
+                isSaved={!!savedRestaurants[item.restaurant_id]}
+                onToggleSave={() => toggleSave(item.restaurant_id)}
+                onClick={() => handleItemClick(item)}
+                renderStars={renderStars}
+              />
+            ))}
+          </div>
+        ) : (
+          <p>No recently viewed items.</p>
+        )}
       </div>
 
       {/* Recommended Section */}
