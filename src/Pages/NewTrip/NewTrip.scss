@@ -1,3 +1,13 @@
+// Color Palette - Enhanced Soft Green Palette
+$primary-color: #2d7a61;
+$secondary-color: #1f5b4a;
+$accent-color: #4caf50;
+$background-light: #f4f7f5;
+$text-dark: #2c3e50;
+$text-light: #34495e;
+$border-color: #a5d6a7;
+$hover-color: #81c784;
+
 .new-trip-container {
     width: 80%;
     padding: 20px;
@@ -131,7 +141,7 @@
                             }
 
                             .location-card {
-                                width: 80%;
+                                width: 60%;
                                 aspect-ratio: 4/1;
                                 border-radius: 8px;
                                 border: 2px solid #ccc;
@@ -178,16 +188,206 @@
                             }
                         }
 
-                        .timeline-add-button {
-                            width: 80%;
-                            margin-left: 110px;
-                            margin-bottom: 5px;
+                        .add-location {
+                            display: flex;
+                            flex-direction: row;
 
-                            button {
+                            .add-location-btn {
+                                width: 100px;
+                                height: 50px;
+                                display: flex;
+                                align-items: center;
+                                gap: 15px;
                                 padding: 10px 20px;
-                                border: 1px solid #2d7a61;
-                                border-radius: 25px;
-                                color: #2d7a61;
+                                margin-top: 20px;
+                                background: $primary-color;
+                                color: white;
+                                text-decoration: none;
+                                border-radius: 40px;
+                                font-size: 18px;
+                                font-weight: 700;
+                                transition: all 0.4s ease;
+                                letter-spacing: -0.5px;
+                                position: relative;
+                                overflow: hidden;
+
+                                &::before {
+                                    content: "";
+                                    position: absolute;
+                                    top: 0;
+                                    left: -100%;
+                                    width: 100%;
+                                    height: 100%;
+                                    background: linear-gradient(120deg,
+                                            transparent,
+                                            rgba(255, 255, 255, 0.3),
+                                            transparent);
+                                    transition: all 0.4s ease;
+                                }
+
+                                &:hover {
+                                    background: $secondary-color;
+                                    transform: translateY(-4px);
+                                    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+
+                                    &::before {
+                                        left: 100%;
+                                    }
+                                }
+
+                                svg {
+                                    font-size: 24px;
+                                }
+                            }
+
+                            .add-location-form {
+                                flex: 1;
+
+                                .form-container {
+                                    width: 65%;
+                                    margin: 20px 0 20px 20px;
+                                    padding: 20px;
+                                    background: $background-light;
+                                    border-radius: 8px;
+                                    border: 1px solid $border-color;
+                                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+                                    display: flex;
+                                    flex-direction: column;
+                                    gap: 20px;
+
+                                    //Hiệu ứng sổ xuống
+                                    max-height: 0;
+                                    overflow: hidden;
+                                    opacity: 0;
+                                    transform: scaleY(0);
+                                    transform-origin: top;
+                                    transition: all 0.5s ease;
+
+                                    &.show {
+                                        max-height: 1000px;
+                                        opacity: 1;
+                                        transform: scaleY(1);
+                                    }
+
+                                    .form-header {
+                                        display: flex;
+                                        align-items: center;
+
+                                        h4 {
+                                            font-size: 20px;
+                                            font-weight: bold;
+                                        }
+                                    }
+
+                                    .form-body {
+                                        display: flex;
+                                        flex-direction: column;
+                                        gap: 20px;
+
+                                        .form-search-group {
+                                            display: flex;
+                                            flex-direction: row;
+                                            justify-content: space-between;
+                                            align-items: center;
+                                            gap: 20px;
+
+                                            .search-box {
+                                                width: 80%;
+
+                                                input {
+                                                    width: 100%;
+                                                    padding: 10px;
+                                                    border: 1px solid $border-color;
+                                                    border-radius: 8px;
+                                                    font-size: 16px;
+                                                }
+                                            }
+
+                                            button {
+                                                flex: 1;
+                                                padding: 10px;
+                                                background: $accent-color;
+                                                color: white;
+                                                border: none;
+                                                border-radius: 25px;
+                                                font-size: 16px;
+                                                font-weight: bold;
+                                                cursor: pointer;
+                                                transition: all 0.3s ease;
+                                            }
+                                        }
+
+                                        .form-time-group {
+                                            display: flex;
+                                            flex-direction: row;
+                                            justify-content: space-between;
+                                            align-items: center;
+                                            gap: 20px;
+
+                                            .start-time,
+                                            .end-time {
+                                                width: 40%;
+                                                display: flex;
+                                                flex-direction: column;
+
+                                                label {
+                                                    font-size: 15px;
+                                                    color: $text-light;
+                                                    font-weight: 500;
+                                                }
+
+                                                input {
+                                                    width: 100%;
+                                                    padding: 15px;
+                                                    margin-top: 10px;
+                                                    border: 1px solid $border-color;
+                                                    border-radius: 12px;
+                                                    font-size: 16px;
+                                                    background: white;
+                                                    transition: all 0.3s ease;
+
+                                                    &:focus {
+                                                        border-color: $primary-color;
+                                                        outline: none;
+                                                        box-shadow: 0 0 0 3px rgba(45, 122, 97, 0.15);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    .form-footer {
+                                        display: flex;
+                                        justify-content: flex-end;
+                                        align-items: center;
+                                        gap: 20px;
+
+                                        .cancel-btn {
+                                            padding: 8px 16px;
+                                            background: transparent;
+                                            border: 1px solid $border-color;
+                                            border-radius: 15px;
+                                            transition: all 0.3s ease;
+
+                                            &:hover {
+                                                background: #ccc;
+                                            }
+                                        }
+
+                                        .save-btn {
+                                            padding: 8px 16px;
+                                            background: $primary-color;
+                                            border: 1px solid $border-color;
+                                            border-radius: 15px;
+                                            font-weight: bold;
+                                            transition: all 0.3s ease;
+
+                                            &:hover {
+                                                background: $secondary-color;
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

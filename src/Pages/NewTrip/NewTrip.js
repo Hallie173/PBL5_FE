@@ -16,11 +16,12 @@ import axios from 'axios';
 function NewTrip() {
     const location = useLocation();
     const { selectedTags = [], startDate = '', endDate = '', selectedCity = '', selectedResTags = '' } = location.state || {};
-
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [city, setCity] = useState(null);
     const [itineraryData, setitinararyData] = useState([]);
+    const [addLocation, setAddLocation] = useState(false);
+
     useEffect(() => {
         setLoading(true);
         const fetchData = async () => {
@@ -62,7 +63,13 @@ function NewTrip() {
         fetchData();
     }, [])
 
-    
+    const handleAddLocation = () => {
+        setAddLocation(!addLocation);
+    }
+
+    const handleCancel = () => {
+        setAddLocation(false);
+    }
 
     return (
         <div className="new-trip-container">
@@ -99,7 +106,6 @@ function NewTrip() {
                                                 <div className="location-info">
                                                     <div className="location-title">{item.name}</div>
                                                     <div className="item-rating">
-                                                        {/* Nếu bạn không có rating thì có thể bỏ đoạn này */}
                                                         <span className="rating-dots">🟢🟢🟢🟢</span>
                                                         <span className="rating-number">{item.rating_total}</span>
                                                     </div>
@@ -112,7 +118,38 @@ function NewTrip() {
                                             </div>
                                         </div>
                                     ))}
-
+                                    <div className="add-location">
+                                        <button className="add-location-btn" onClick={handleAddLocation}>+ Add</button>
+                                        <div className="add-location-form">
+                                            <div className={`form-container ${addLocation ? 'show' : ''}`}>
+                                                <div className="form-header">
+                                                    <h4>Add location</h4>
+                                                </div>
+                                                <div className="form-body">
+                                                    <div className="form-search-group">
+                                                        <div className="search-box">
+                                                            <input type="text" placeholder="Search for location..." />
+                                                        </div>
+                                                        <button className="search-btn">Search</button>
+                                                    </div>
+                                                    <div className="form-time-group">
+                                                        <div className="start-time">
+                                                            <label>Start Time</label>
+                                                            <input type="time" />
+                                                        </div>
+                                                        <div className="end-time">
+                                                            <label>End Time</label>
+                                                            <input type="time" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="form-footer">
+                                                    <button className="cancel-btn" onClick={handleCancel}>Cancel</button>
+                                                    <button className="save-btn">Save</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
