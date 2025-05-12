@@ -57,7 +57,7 @@ const Form = () => {
                     <label className="choose-city">Choose your destination:</label>
                     <div>
                         <select id="city-select" name="city-select" value={selectedCity} onChange={(e) => setselectedCity(Number(e.target.value))}>
-                            <option value = "">
+                            <option value="">
                                 -- Select a city --
                             </option>
                             {city.map(city => (

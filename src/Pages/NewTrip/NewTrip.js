@@ -25,14 +25,14 @@ function NewTrip() {
         setLoading(true);
         const fetchData = async () => {
             try {
-                
+
                 const startTime = "09:00";
                 const endTime = "20:00";
                 console.log(selectedCity);
                 const tagParams = selectedTags.map(tag => `tags=${tag}`).join('&');
                 const restagParams = selectedResTags.map(tag => `${tag}`).join('&');
-                
-                
+
+
                 const url = `${BASE_URL}/attractions/tags?city=${selectedCity}&${tagParams}&startTime=${startTime}&endTime=${endTime}&res_tag=${restagParams}`;
 
                 const Itiresponse = await axios.get(url);
