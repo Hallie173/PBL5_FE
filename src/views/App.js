@@ -13,7 +13,7 @@ import Dashboard from "../Pages/Admin/Dashboard/Dashboard";
 import AdminLayout from "../components/AdminLayout/AdminLayout";
 import Restaurant from "../Pages/Restaurant/Restaurant";
 import Users from "../Pages/Admin/Users/Users";
-import Cities from "../Pages/Admin/Cities/Citites"; // Có vẻ như có lỗi chính tả ở đây, nên sửa thành "Cities"
+import Cities from "../Pages/Admin/Cities/Citites";
 import MyTrips from "../Pages/Mytrips/Mytrips";
 import Attractions from "../Pages/Admin/Attractions/Attractions";
 import CityDetail from "../Pages/City Detail/CityDetail";

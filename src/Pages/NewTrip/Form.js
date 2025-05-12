@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import "./Form.scss";
 import { Link } from "react-router-dom";
-import { useState } from 'react'
 const Form = () => {
     const [selectedTags, setSelectedTags] = useState([]);
     const [startDate, setStartDate] = useState('');
@@ -88,9 +87,6 @@ const Form = () => {
             <div className="form-footer">
                 <div className="next-button">
                     <Link to="/tripguide/newtrip" state={{ selectedTags, startDate, endDate }}>Next</Link>
-                </div>
-                <div className="selected-tags">
-                    <strong>Selected Tags:</strong> {selectedTags}
                 </div>
             </div>
         </div>
