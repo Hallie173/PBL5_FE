@@ -15,7 +15,7 @@ import BASE_URL from '../../constants/BASE_URL';
 import axios from 'axios';
 function NewTrip() {
     const location = useLocation();
-    const { selectedTags = [], startDate = '', endDate = '' } = location.state || {};
+    const { selectedTags = [], startDate = '', endDate = '', selectedCity = '' } = location.state || {};
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -25,14 +25,15 @@ function NewTrip() {
         setLoading(true);
         const fetchData = async () => {
             try {
-                const city = 3;
                 const res_tag = 'Buffet'
                 const startTime = "09:00";
                 const endTime = "20:00";
-
+                console.log(selectedCity);
                 const tagParams = selectedTags.map(tag => `tags=${tag}`).join('&');
-
-                const url = `${BASE_URL}/attractions/tags?city=${city}&${tagParams}&startTime=${startTime}&endTime=${endTime}&res_tag=${res_tag}`;
+                
+                
+                
+                const url = `${BASE_URL}/attractions/tags?city=${selectedCity}&${tagParams}&startTime=${startTime}&endTime=${endTime}&res_tag=${res_tag}`;
 
                 const Itiresponse = await axios.get(url);
                 console.log('URL used:', url); // debug

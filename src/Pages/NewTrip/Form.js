@@ -1,11 +1,25 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./Form.scss";
 import { Link } from "react-router-dom";
-import { useState } from 'react'
+import BASE_URL from '../../constants/BASE_URL';
+import axios from 'axios';
 const Form = () => {
+
+
     const [selectedTags, setSelectedTags] = useState([]);
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
+    const [city, setCity] = useState([]);
+    const [selectedCity, setselectedCity] = useState('');
+    useEffect(() => {
+        const fetchData = async () => {
+            const cityResponse = await axios.get(
+                `${BASE_URL}/cities`
+            );
+            setCity(cityResponse.data);
+        };
+        fetchData();
+    }, []);
     const tagCategories = {
         Nature: ['beach', 'mountain', 'cave'],
         'Culture & History': ['museum', 'historical site', 'church'],
@@ -31,8 +45,15 @@ const Form = () => {
                 <div className="city-select">
                     <label className="choose-city">Choose your destination:</label>
                     <div>
-                        <select id="city-select" name="city-select">
-                            <option value="danang">Da Nang</option>
+                        <select id="city-select" name="city-select" value={selectedCity} onChange={(e) => setselectedCity(Number(e.target.value))}>
+                            <option value = "">
+                                -- Select a city --
+                            </option>
+                            {city.map(city => (
+                                <option key={city.city_id} value={city.city_id}>
+                                    {city.name}
+                                </option>
+                            ))}
                         </select>
                         <button>Add Destination</button>
                     </div>
@@ -87,10 +108,10 @@ const Form = () => {
             </div>
             <div className="form-footer">
                 <div className="next-button">
-                    <Link to="/tripguide/newtrip" state={{ selectedTags, startDate, endDate }}>Next</Link>
+                    <Link to="/tripguide/newtrip" state={{ selectedTags, startDate, endDate, selectedCity }}>Next</Link>
                 </div>
                 <div className="selected-tags">
-                    <strong>Selected Tags:</strong> {selectedTags}
+                    <strong>Selected Tags:</strong> {selectedCity}
                 </div>
             </div>
         </div>
