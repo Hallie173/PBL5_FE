@@ -13,7 +13,7 @@ import Dashboard from "../Pages/Admin/Dashboard/Dashboard";
 import AdminLayout from "../components/AdminLayout/AdminLayout";
 import Restaurant from "../Pages/Restaurant/Restaurant";
 import Users from "../Pages/Admin/Users/Users";
-import Cities from "../Pages/Admin/Cities/Citites"; // Có vẻ như có lỗi chính tả ở đây, nên sửa thành "Cities"
+import Cities from "../Pages/Admin/Cities/Citites";
 import MyTrips from "../Pages/Mytrips/Mytrips";
 import Attractions from "../Pages/Admin/Attractions/Attractions";
 import CityDetail from "../Pages/City Detail/CityDetail";
@@ -27,7 +27,8 @@ import NewArticle from "../Pages/Articles/NewArticle";
 import Article from "../Pages/Articles/Article";
 import { AuthProvider } from "../contexts/AuthContext";
 import Review from "../Pages/Review/Review";
-import ReviewDetail from "../Pages/ReviewDetail/ReviewDetail";
+import AttractionReview from "../Pages/ReviewDetail/AttractionReview";
+import RestaurantReview from "../Pages/ReviewDetail/RestaurantReview";
 import Form from "../Pages/NewTrip/Form";
 import OpenStreetMap from "../components/OpenStreetMap/OpenStreetMap";
 
@@ -175,15 +176,26 @@ function App() {
               }
             />
             <Route
-              path="/tripguide/review/:id"
+              path="/tripguide/review/restaurant/:id"
               element={
                 <>
                   <Navbar />
-                  <ReviewDetail />
+                  <RestaurantReview />
                   <Footer />
                 </>
               }
             />
+            <Route
+              path="/tripguide/review/attraction/:id"
+              element={
+                <>
+                  <Navbar />
+                  <AttractionReview />
+                  <Footer />
+                </>
+              }
+            />
+
             {/* <Route
               path="/tripguide/map"
               element={
