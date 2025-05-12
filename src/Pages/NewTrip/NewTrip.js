@@ -62,6 +62,7 @@ function NewTrip() {
         fetchData();
     }, [])
 
+    
 
     return (
         <div className="new-trip-container">

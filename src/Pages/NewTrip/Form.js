@@ -140,9 +140,9 @@ const Form = () => {
                 <div className="next-button">
                     <Link to="/tripguide/newtrip" state={{ selectedTags, startDate, endDate, selectedCity, selectedResTags }}>Next</Link>
                 </div>
-                <div className="selected-tags">
+                {/* <div className="selected-tags">
                     <strong>Selected Tags:</strong> {selectedResTags}
-                </div>
+                </div> */}
             </div>
         </div>
     );
