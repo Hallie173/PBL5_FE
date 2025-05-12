@@ -12,9 +12,10 @@ import {
   Check,
   ChevronDown,
   AlertCircle,
+  Utensils,
 } from "lucide-react";
 
-export default function ReviewForm() {
+export default function RestaurantReview({ id }) {
   const [uploadedImages, setUploadedImages] = useState([]);
   const fileInputRef = useRef(null);
 
@@ -25,14 +26,15 @@ export default function ReviewForm() {
       .min(1, "Please rate your experience"),
     visitType: Yup.string().required("Please select when you visited"),
     companion: Yup.string().required("Please select who you went with"),
+    purpose: Yup.string().required("Please select your visit purpose"),
     title: Yup.string()
-      .required("Please add a title to your review")
+      .required("Please add a title for your review")
       .min(5, "Title must be at least 5 characters")
-      .max(100, "Title must be less than 100 characters"),
+      .max(100, "Title must be under 100 characters"),
     review: Yup.string()
       .required("Please write your review")
       .min(20, "Your review is too short. Please provide more details.")
-      .max(300, "Your review must be less than 300 characters"),
+      .max(300, "Review must be under 300 characters"),
   });
 
   // Initialize formik
@@ -41,20 +43,31 @@ export default function ReviewForm() {
       rating: 5,
       visitType: "",
       companion: "",
+      purpose: "",
       title: "",
       review: "",
     },
     validationSchema,
-    onSubmit: (values) => {
-      // Add images to form data
+    onSubmit: async (values) => {
       const formData = {
         ...values,
         uploadedImages,
       };
-
-      console.log("Form submitted:", formData);
-      // Here you would typically send the data to your backend
-      alert("Review submitted successfully!");
+      try {
+        const response = await fetch(`/restaurants/${id}/reviews`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
+        if (response.ok) {
+          alert("Review submitted successfully!");
+        } else {
+          throw new Error("Failed to submit review");
+        }
+      } catch (error) {
+        console.error("Error submitting review:", error);
+        alert("An error occurred while submitting your review.");
+      }
     },
   });
 
@@ -89,11 +102,22 @@ export default function ReviewForm() {
   };
 
   const companions = ["Business", "Couples", "Family", "Friends", "Solo"];
-
   const visitTypes = [
     { value: "recent", label: "Last week" },
     { value: "month", label: "Last month" },
     { value: "year", label: "Last year" },
+  ];
+  const purposes = [
+    "Breakfast",
+    "Lunch",
+    "Dinner",
+    "Brunch",
+    "Late Night",
+    "Dine-in",
+    "Takeout",
+    "Business Meeting",
+    "Casual Dining",
+    "Celebration",
   ];
 
   // Helper function to show error message
@@ -117,8 +141,8 @@ export default function ReviewForm() {
         <div className="flex flex-col items-center bg-white rounded-lg shadow-sm border border-gray-100 p-4">
           <div className="mb-4 overflow-hidden shadow-sm relative group">
             <img
-              src="https://d2e5ushqwiltxm.cloudfront.net/wp-content/uploads/sites/48/2024/08/16031426/Marble-Mountains-Da-Nang.png"
-              alt="The Marble Mountains"
+              src="https://via.placeholder.com/150"
+              alt="Restaurant"
               className="w-full h-48 object-cover transition-transform group-hover:scale-105 duration-300"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -126,11 +150,11 @@ export default function ReviewForm() {
 
           <div className="mt-2 text-center">
             <div className="font-semibold text-gray-800 text-lg">
-              The Marble Mountains
+              Sample Restaurant
             </div>
             <div className="text-gray-500 text-sm flex items-center justify-center mt-1">
               <MapPin size={16} className="mr-1" />
-              Đà Nẵng, Ngũ Hành Sơn, Việt Nam
+              123 Food Street, City
             </div>
           </div>
         </div>
@@ -166,16 +190,50 @@ export default function ReviewForm() {
               {formik.values.rating === 4 && "Good"}
               {formik.values.rating === 3 && "Average"}
               {formik.values.rating === 2 && "Fair"}
-              {formik.values.rating === 1 && "Bad"}
+              {formik.values.rating === 1 && "Poor"}
             </span>
             <ErrorMessage name="rating" />
+          </div>
+
+          {/* What was your visit purpose? section */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium mb-2 text-gray-700 flex items-center">
+              <Utensils size={16} className="mr-2 text-gray-500" />
+              What was your visit purpose?
+            </label>
+            <div className="relative">
+              <select
+                className={`w-full px-4 py-3 border rounded-lg text-sm appearance-none focus:ring-2 focus:ring-[#00a568] outline-none bg-white ${
+                  formik.touched.purpose && formik.errors.purpose
+                    ? "border-red-500 focus:border-red-500"
+                    : "border-gray-300 focus:border-[#00a568]"
+                }`}
+                name="purpose"
+                value={formik.values.purpose}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+              >
+                <option value="" disabled>
+                  Select your visit purpose
+                </option>
+                {purposes.map((purpose) => (
+                  <option key={purpose} value={purpose}>
+                    {purpose}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <ChevronDown className="h-5 w-5 text-gray-400" />
+              </div>
+            </div>
+            <ErrorMessage name="purpose" />
           </div>
 
           {/* When did you go section */}
           <div className="mb-6">
             <label className="block text-sm font-medium mb-2 text-gray-700 flex items-center">
               <Calendar size={16} className="mr-2 text-gray-500" />
-              When did you go?
+              When did you visit?
             </label>
             <div className="relative">
               <select
@@ -245,14 +303,14 @@ export default function ReviewForm() {
                   ? "border-red-500 focus:border-red-500"
                   : "border-gray-300 focus:border-[#00a568]"
               }`}
-              placeholder="Sum up your experience in a few words"
+              placeholder="Summarize your experience in a few words"
               value={formik.values.title}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
             />
             <div className="flex justify-between mt-1">
               <div className="text-xs text-gray-500">
-                Be concise and descriptive
+                Keep it short and descriptive
               </div>
               <div
                 className="text-xs font-medium"
@@ -280,7 +338,7 @@ export default function ReviewForm() {
                   : "border-gray-300 focus:border-[#00a568]"
               }`}
               rows="5"
-              placeholder="Share details about your experience: What did you like or dislike? What stood out to you the most?"
+              placeholder="Share details about your experience: What did you like or dislike? What stood out?"
               value={formik.values.review}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
@@ -296,7 +354,7 @@ export default function ReviewForm() {
                     formik.values.review.length > 250 ? "#f43f5e" : "#6b7280",
                 }}
               >
-                {formik.values.review.length}/300
+                drinken {formik.values.review.length}/300
               </div>
             </div>
             <ErrorMessage name="review" />
@@ -370,7 +428,7 @@ export default function ReviewForm() {
                     Click to add photos
                   </div>
                   <div className="text-xs text-gray-500">
-                    or drag and drop images here
+                    or drag and drop photos here
                   </div>
                 </div>
               </div>

@@ -1,67 +1,89 @@
-import React from 'react';
-import PropTypes from 'prop-types'; // Import PropTypes for prop validation
-import "./LocationCard.scss"; // Import the SCSS file for styles
+import React, { useCallback } from "react";
+import PropTypes from "prop-types";
+import "./LocationCard.scss";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faHeart as solidHeart,
-  faCircle as solidCircle
-} from "@fortawesome/free-solid-svg-icons";
-import {
-  faHeart as regularHeart,
-  faCircle as regularCircle
-} from "@fortawesome/free-regular-svg-icons";
+import { faHeart as solidHeart } from "@fortawesome/free-solid-svg-icons";
+import { faHeart as regularHeart } from "@fortawesome/free-regular-svg-icons";
 
-// Helper function moved here as it's specific to this card's display logic
-const renderRatingDots = (rating) => {
-  const totalDots = 5;
-  const roundedRating = Math.round(rating);
-  const dots = [];
-  for (let i = 0; i < roundedRating; i++) {
-    dots.push(<FontAwesomeIcon key={`full-${i}`} icon={solidCircle} />);
-  }
-  for (let i = roundedRating; i < totalDots; i++) {
-    dots.push(<FontAwesomeIcon key={`empty-${i}`} icon={regularCircle} />);
-  }
-  return <span className="rating-dots">{dots}</span>;
-};
+const LocationCard = ({
+  item,
+  isSaved,
+  onToggleSave,
+  onClick,
+  renderStars,
+}) => {
+  const { id, name, image, rating, reviewCount, tags } = item;
 
-const LocationCard = ({ item, isSaved, onToggleSave, onClick }) => {
-  // Destructure item properties for easier access (optional)
-  const { id, name, image, rating, reviewCount, tags, badge } = item;
+  const handleSaveClick = useCallback(
+    (e) => {
+      e.stopPropagation();
+      onToggleSave(id);
+    },
+    [id, onToggleSave]
+  );
 
-  const handleSaveClick = (e) => {
-      e.stopPropagation(); // Prevent triggering onClick when clicking save
-      onToggleSave(e); // Call the passed function
-  };
+  // Safely format rating
+  const formattedRating =
+    typeof rating === "number" && !isNaN(rating) ? rating.toFixed(1) : "N/A";
+
+  // Split tags string into array, handle empty or invalid cases
+  const tagList = tags
+    ? typeof tags === "string"
+      ? tags.split(", ").filter((tag) => tag.trim())
+      : Array.isArray(tags)
+      ? tags
+      : []
+    : [];
 
   return (
-    <div className="picture-item" onClick={onClick}> {/* Use the passed onClick handler */}
+    <div
+      className="picture-item"
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyPress={(e) => {
+        if (e.key === "Enter" || e.key === " ") onClick();
+      }}
+    >
       <div className="item-image-container">
-        <img src={image} alt={name} />
+        <img
+          src={image}
+          alt={name}
+          loading="lazy"
+          onError={(e) => (e.target.src = "https://via.placeholder.com/150")}
+        />
         <div className="save-overlay">
           <button
             className={`save-button-overlay ${isSaved ? "saved" : ""}`}
-            onClick={handleSaveClick} // Use the internal handler
+            onClick={handleSaveClick}
             aria-label={isSaved ? "Remove from saved" : "Save to favorites"}
           >
             <FontAwesomeIcon
               icon={isSaved ? solidHeart : regularHeart}
-              className="heart-icon-recent" // Keep class name consistent with SCSS
+              className="heart-icon"
             />
           </button>
         </div>
       </div>
       <div className="item-text-content">
-        <p className="item-title">{name}</p>
-        {rating !== undefined && reviewCount !== undefined && ( // Check if rating data exists
-            <div className="item-rating">
-                 <span className="rating-score">{rating.toFixed(1)}</span>
-                 {renderRatingDots(rating)}
-                 <span className="review-count">({reviewCount.toLocaleString()})</span>
-            </div>
+        <h3 className="item-title">{name}</h3>
+        {rating !== undefined && reviewCount !== undefined && (
+          <div className="item-rating">
+            <span className="rating-score">{formattedRating}</span>
+            <div className="stars-wrapper">{renderStars(rating)}</div>
+            <span className="review-count">
+              ({reviewCount.toLocaleString()})
+            </span>
+          </div>
         )}
-        {tags && ( // Check if tags data exists
-            <p className="item-category">{tags}</p>
+        {tagList.length > 0 && (
+          <div className="item-tags">
+            {tagList.map((tag, index) => (
+              <span key={index} className="tag">
+                {tag}
+              </span>
+            ))}
+          </div>
         )}
       </div>
     </div>
@@ -75,11 +97,15 @@ LocationCard.propTypes = {
     image: PropTypes.string.isRequired,
     rating: PropTypes.number,
     reviewCount: PropTypes.number,
-    tags: PropTypes.string,
+    tags: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.arrayOf(PropTypes.string),
+    ]),
   }).isRequired,
   isSaved: PropTypes.bool.isRequired,
   onToggleSave: PropTypes.func.isRequired,
   onClick: PropTypes.func.isRequired,
+  renderStars: PropTypes.func.isRequired,
 };
 
-export default LocationCard;
+export default React.memo(LocationCard);

@@ -1,248 +1,82 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+  useState,
+} from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import "./Attraction.scss";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faSquareShareNodes,
   faPen,
   faLocationDot,
-  faStar as solidStar,
-  faStarHalfStroke,
   faCircleInfo,
-} from "@fortawesome/free-solid-svg-icons";
-import {
-  faImages,
-  faHeart as regularHeart,
-  faStar as regularStar,
-} from "@fortawesome/free-regular-svg-icons";
-import {
-  faHeart as solidHeart,
   faChevronRight,
+  faHeart,
+  faImages,
+  faExpand,
+  faStar as solidStar,
+  faStar as regularStar,
 } from "@fortawesome/free-solid-svg-icons";
-import { useParams } from "react-router-dom";
-import BASE_URL from "../../constants/BASE_URL";
-import { useAuth } from "../../contexts/AuthContext";
 import OpenStreetMap from "../../components/OpenStreetMap/OpenStreetMap";
+import useAttraction from "./hooks/useAttraction";
+import LocationCard from "../../components/LocationCard/LocationCard";
+import Loading from "../../components/Loading/Loading";
 
-const Attraction = () => {
-  const { id: attractionId } = useParams();
-  const { user, isLoggedIn } = useAuth();
-  const [attraction, setAttraction] = useState(null);
-  const [city, setCity] = useState(null);
-  const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [saved, setSaved] = useState(false);
-  const [comment, setComment] = useState("");
-  const [user_id, setUser_id] = useState(null);
-  const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const [rating, setRating] = useState(5);
-  const [mapCenter, setMapCenter] = useState(null);
-  const [mapError, setMapError] = useState(null);
+// Skeleton Loader Component
+// const SkeletonLoader = () => (
+//   <div className="skeleton-loader">
+//     <div
+//       className="skeleton-header"
+//       style={{ height: "100px", background: "#eee" }}
+//     ></div>
+//     <div
+//       className="skeleton-gallery"
+//       style={{ height: "500px", background: "#eee" }}
+//     ></div>
+//     <div
+//       className="skeleton-info"
+//       style={{ height: "300px", background: "#eee" }}
+//     ></div>
+//     <div
+//       className="skeleton-reviews"
+//       style={{ height: "400px", background: "#eee" }}
+//     ></div>
+//   </div>
+// );
+
+// Error Message Component
+const ErrorMessage = ({ error }) => {
   const navigate = useNavigate();
-
-  // Fetch attraction data and geocode address
-  const fetchAttraction = useCallback(async () => {
-    if (!attractionId) return;
-    setLoading(true);
-    setMapError(null);
-    try {
-      // Fetch attraction data
-      const attractionResponse = await axios.get(
-        `${BASE_URL}/attractions/${attractionId}`
-      );
-      const attractionData = attractionResponse.data;
-      const processedAttraction = {
-        ...attractionData,
-        average_rating: parseFloat(attractionData.average_rating) || 0,
-      };
-      setAttraction(processedAttraction);
-
-      // Fetch city data
-      const cityResponse = await axios.get(
-        `${BASE_URL}/cities/${attractionData.city_id}`
-      );
-      setCity(cityResponse.data);
-
-      // Fetch reviews
-      const reviewResponse = await axios.get(
-        `${BASE_URL}/reviews/attraction/${attractionId}`
-      );
-      const reviewData = Array.isArray(reviewResponse.data)
-        ? reviewResponse.data
-        : [];
-      const reviewsWithUser = await Promise.all(
-        reviewData.map(async (review) => {
-          const userResponse = await axios.get(
-            `${BASE_URL}/users/${review.user_id}`
-          );
-          return {
-            ...review,
-            userName: userResponse.data.username,
-            profilePic:
-              userResponse.data.profile_image ||
-              "https://via.placeholder.com/40",
-          };
-        })
-      );
-      setReviews(reviewsWithUser);
-
-      // Geocode address
-      const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-        attractionData.address
-      )}`;
-      const geocodeResponse = await axios.get(geocodeUrl, {
-        headers: { Accept: "application/json" },
-      });
-
-      if (geocodeResponse.data && geocodeResponse.data.length > 0) {
-        const { lat, lon } = geocodeResponse.data[0];
-        const coords = [parseFloat(lat), parseFloat(lon)];
-        if (!isNaN(coords[0]) && !isNaN(coords[1])) {
-          setMapCenter(coords);
-        } else {
-          setMapError("Tọa độ không hợp lệ từ địa chỉ.");
-        }
-      } else {
-        setMapError("Không thể tìm thấy vị trí trên bản đồ.");
-      }
-    } catch (err) {
-      setError(err.message);
-      setMapError("Lỗi khi tải vị trí: " + err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [attractionId]);
-
-  useEffect(() => {
-    fetchAttraction();
-  }, [fetchAttraction]);
-
-  // Render rating stars
-  const renderStars = (rating) => {
-    const numRating = parseFloat(rating);
-    if (isNaN(numRating) || numRating < 0 || numRating > 5) {
-      return <div className="stars-container">Invalid rating</div>;
-    }
-
-    return (
-      <div className="stars-container">
-        {[1, 2, 3, 4, 5].map((star) => {
-          if (star <= Math.floor(numRating)) {
-            return (
-              <FontAwesomeIcon
-                key={star}
-                icon={solidStar}
-                className="star-icon filled"
-              />
-            );
-          } else if (
-            star === Math.ceil(numRating) &&
-            !Number.isInteger(numRating)
-          ) {
-            return (
-              <FontAwesomeIcon
-                key={star}
-                icon={faStarHalfStroke}
-                className="star-icon half"
-              />
-            );
-          } else {
-            return (
-              <FontAwesomeIcon
-                key={star}
-                icon={regularStar}
-                className="star-icon empty"
-              />
-            );
-          }
-        })}
-      </div>
-    );
-  };
-
-  // Handle review submission
-  const handleSubmitReview = async () => {
-    if (!comment.trim()) {
-      alert("Please enter a comment before submitting.");
-      return;
-    }
-    if (!isLoggedIn) {
-      alert("Please log in to submit a review.");
-      return;
-    }
-    try {
-      await axios.post(`${BASE_URL}/reviews`, {
-        user_id: user_id?.user_id,
-        attraction_id: attraction?.attraction_id,
-        restaurant_id: null,
-        comment: comment.trim(),
-        rating,
-        photos: null,
-      });
-      alert("Your review has been submitted!");
-      setComment("");
-      setRating(5);
-      window.location.reload();
-    } catch (error) {
-      console.error("Error submitting review:", error);
-      alert("An error occurred. Please try again.");
-    }
-  };
-
-  // Format date
-  const formatDate = (dateString) => {
-    const options = { year: "numeric", month: "long", day: "numeric" };
-    return new Date(dateString).toLocaleDateString(undefined, options);
-  };
-
-  // Handle sharing
-  const handleShareClick = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: attraction?.name,
-        text: `Discover ${attraction?.name} in ${city?.name}!`,
-        url: window.location.href,
-      });
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      alert("Liên kết đã được sao chép vào clipboard!");
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p>Loading attraction information...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="error-container">
-        <h2>An error occurred</h2>
-        <p>{error}</p>
-        <p>{mapError}</p>
-        <button onClick={() => navigate(-1)}>Go back</button>
-      </div>
-    );
-  }
-
   return (
-    <div className="attraction-container">
-      {/* Header and breadcrumb */}
+    <div className="error-container">
+      <h2>{error ? "Error" : "Not Found"}</h2>
+      <p>{error || "Attraction not found."}</p>
+      <button onClick={() => navigate(-1)}>Go Back</button>
+    </div>
+  );
+};
+
+// Attraction Header Component
+const AttractionHeader = ({
+  attraction,
+  city,
+  saved,
+  handleSaveToggle,
+  handleShareClick,
+  handleReviewClick,
+  renderStars,
+  ratingBreakdown,
+}) => {
+  const navigate = useNavigate();
+  return (
+    <header className="attraction-header">
       <nav className="breadcrumb" aria-label="Breadcrumb">
         <ol className="breadcrumb-list">
           <li className="breadcrumb-item">
-            <button
-              onClick={() => navigate("/tripguide")}
-              aria-label="Go to Vietnam"
-            >
-              Vietnam
-            </button>
+            <button onClick={() => navigate("/tripguide")}>Vietnam</button>
           </li>
           <li className="breadcrumb-separator" aria-hidden="true">
             <FontAwesomeIcon icon={faChevronRight} />
@@ -250,9 +84,8 @@ const Attraction = () => {
           <li className="breadcrumb-item">
             <button
               onClick={() => navigate(`/tripguide/city/${city?.city_id}`)}
-              aria-label={`Go to ${city?.name}`}
             >
-              {city?.name}
+              {city?.name || "City"}
             </button>
           </li>
           <li className="breadcrumb-separator" aria-hidden="true">
@@ -263,119 +96,357 @@ const Attraction = () => {
               onClick={() =>
                 navigate(`/tripguide/city/${city?.city_id}/attractions`)
               }
-              aria-label={`Go to ${city?.name} attractions`}
             >
-              {city?.name} Attractions
+              {city?.name ? `${city.name} Attractions` : "Attractions"}
             </button>
           </li>
           <li className="breadcrumb-separator" aria-hidden="true">
             <FontAwesomeIcon icon={faChevronRight} />
           </li>
           <li className="breadcrumb-item current" aria-current="page">
-            {attraction?.name}
+            {attraction.name}
           </li>
         </ol>
       </nav>
-
-      <header className="attraction-header">
-        <div className="name-and-action">
-          <h1>{attraction?.name}</h1>
-          <div className="attraction-action">
-            <button
-              className="action-button share-attraction"
-              onClick={handleShareClick}
-            >
-              <FontAwesomeIcon
-                icon={faSquareShareNodes}
-                className="action-icon"
-              />
-              <span>Share</span>
-            </button>
-            <a href="#review-section">
-              <button className="action-button review-attraction">
-                <FontAwesomeIcon icon={faPen} className="action-icon" />
-                <span>Review</span>
-              </button>
-            </a>
-            <button
-              className={`action-button save-attraction ${
-                saved ? "saved" : ""
-              }`}
-            >
-              <FontAwesomeIcon
-                icon={saved ? solidHeart : regularHeart}
-                className="action-icon"
-              />
-              <span>{saved ? "Saved" : "Save"}</span>
-            </button>
-          </div>
+      <div className="name-and-action">
+        <div className="name-container">
+          <h1>{attraction.name}</h1>
         </div>
-        <div className="attraction-rating">
-          <div className="rating-stars">
-            {renderStars(attraction?.average_rating)}
-            <span className="rating-value">
-              {attraction?.average_rating !== null &&
-              !isNaN(attraction?.average_rating)
-                ? attraction.average_rating.toFixed(1)
-                : "0.0"}
-            </span>
-          </div>
-          <span className="rating-count">
-            {attraction?.rating_total}{" "}
-            {attraction?.rating_total === 1 ? "đánh giá" : "đánh giá"}
+        <div className="attraction-action">
+          <button
+            className="action-button share-attraction"
+            onClick={handleShareClick}
+            aria-label="Share this attraction"
+          >
+            <FontAwesomeIcon
+              icon={faSquareShareNodes}
+              className="action-icon"
+            />
+            <span>Share</span>
+          </button>
+          <button
+            className="action-button review-attraction"
+            aria-label="Write a review for this attraction"
+            onClick={handleReviewClick}
+          >
+            <FontAwesomeIcon icon={faPen} className="action-icon" />
+            <span>Review</span>
+          </button>
+          <button
+            className={`action-button save-attraction ${saved ? "saved" : ""}`}
+            onClick={handleSaveToggle}
+            aria-label={saved ? "Remove from saved" : "Save attraction"}
+          >
+            <FontAwesomeIcon icon={faHeart} className="action-icon" />
+            <span>{saved ? "Saved" : "Save"}</span>
+          </button>
+        </div>
+      </div>
+      <div className="attraction-rating">
+        <div className="rating-stars">
+          {renderStars(ratingBreakdown.average)}
+          <span className="rating-value">
+            {Number(ratingBreakdown.average).toFixed(1)}
           </span>
         </div>
-      </header>
+        <span className="rating-count">
+          ({ratingBreakdown.totalReviews}{" "}
+          {ratingBreakdown.totalReviews === 1 ? "review" : "reviews"})
+        </span>
+      </div>
+    </header>
+  );
+};
+// (prevProps, nextProps) =>
+//   prevProps.attraction?.id === nextProps.attraction?.id &&
+//   prevProps.city?.id === nextProps.city?.id &&
+//   prevProps.saved === nextProps.saved);
 
-      {/* Attraction images */}
-      <div className="attraction-gallery">
-        {attraction?.image_url && attraction.image_url.length > 0 ? (
+// Attraction Gallery Component
+const AttractionGallery = React.memo(
+  ({
+    images,
+    activeImageIndex,
+    setActiveImageIndex,
+    isFullScreen,
+    setIsFullScreen,
+    handlePrevImage,
+    handleNextImage,
+    attractionName,
+  }) => {
+    const thumbnailContainerRef = useRef(null);
+    const galleryRef = useRef(null);
+    const touchStartX = useRef(null);
+    const [imageError, setImageError] = useState(null);
+    const [thumbnailErrors, setThumbnailErrors] = useState({});
+    const [isImageLoaded, setIsImageLoaded] = useState(false);
+
+    useEffect(() => {
+      if (!images?.length) {
+        setImageError("No images available");
+      } else if (!Array.isArray(images)) {
+        setImageError("Invalid image data");
+      } else {
+        images.forEach((url, idx) => {
+          if (typeof url !== "string" || !url.trim()) {
+            setThumbnailErrors((prev) => ({ ...prev, [idx]: "Invalid URL" }));
+          }
+        });
+      }
+    }, [images]);
+
+    useEffect(() => {
+      if (thumbnailContainerRef.current) {
+        const thumbnails =
+          thumbnailContainerRef.current.querySelectorAll(".thumbnail img");
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                const img = entry.target;
+                if (img.dataset.src) {
+                  img.src = img.dataset.src;
+                }
+                observer.unobserve(img);
+              }
+            });
+          },
+          { rootMargin: "0px" }
+        );
+        thumbnails.forEach((img) => observer.observe(img));
+        return () => observer.disconnect();
+      }
+    }, [images]);
+
+    useEffect(() => {
+      const activeThumbnail = thumbnailContainerRef.current?.querySelector(
+        `.thumbnail:nth-child(${activeImageIndex + 1})`
+      );
+      if (activeThumbnail) {
+        activeThumbnail.scrollIntoView({
+          behavior: "smooth",
+          inline: "center",
+        });
+      }
+    }, [activeImageIndex]);
+
+    useEffect(() => {
+      if (isFullScreen) {
+        galleryRef.current?.focus();
+      }
+    }, [isFullScreen]);
+
+    const handleTouchStart = (e) => {
+      touchStartX.current = e.touches[0].clientX;
+    };
+
+    const handleTouchMove = (e) => {
+      if (touchStartX.current === null) return;
+      const touchEndX = e.touches[0].clientX;
+      const diffX = touchStartX.current - touchEndX;
+      if (Math.abs(diffX) > 50) {
+        if (diffX > 0) handleNextImage();
+        else handlePrevImage();
+        touchStartX.current = null;
+      }
+    };
+
+    const handleTouchEnd = () => {
+      touchStartX.current = null;
+    };
+
+    const handleThumbnailClick = useCallback(
+      (index) => setActiveImageIndex(index),
+      [setActiveImageIndex]
+    );
+
+    const handleThumbnailKeyDown = useCallback(
+      (e, index) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          setActiveImageIndex(index);
+        }
+      },
+      [setActiveImageIndex]
+    );
+
+    const handleImageError = (e, index) => {
+      e.target.src = "https://via.placeholder.com/120x80?text=Image+Not+Found";
+      setThumbnailErrors((prev) => ({ ...prev, [index]: "Failed to load" }));
+    };
+
+    if (imageError) {
+      return (
+        <div className="attraction-gallery error">
+          <div className="image-error">
+            <FontAwesomeIcon icon={faImages} className="no-image-icon" />
+            <p>{imageError}</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div
+        className="attraction-gallery"
+        role="region"
+        aria-label="Image gallery"
+        ref={galleryRef}
+        tabIndex={isFullScreen ? 0 : -1}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        {images?.length > 0 && Array.isArray(images) ? (
           <>
-            <div className="main-image-container">
+            <div
+              className="main-image-container"
+              onClick={() => setIsFullScreen(true)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) =>
+                (e.key === "Enter" || e.key === " ") && setIsFullScreen(true)
+              }
+              aria-label="View images in fullscreen"
+            >
               <img
-                src={attraction.image_url[activeImageIndex]}
-                alt={attraction.name}
+                src={images[activeImageIndex]}
+                alt={`${attractionName || "Attraction"} - Image ${
+                  activeImageIndex + 1
+                }`}
                 className="main-image"
+                loading="lazy"
+                onLoad={() => setIsImageLoaded(true)}
+                onError={(e) => {
+                  handleImageError(e, activeImageIndex);
+                  setIsImageLoaded(true);
+                }}
+                style={{ opacity: isImageLoaded ? 1 : 0 }}
               />
-              {attraction.image_url.length > 1 && (
-                <div className="gallery-controls">
+              {images.length > 1 && (
+                <>
+                  <div className="image-counter">
+                    {activeImageIndex + 1}/{images.length}
+                  </div>
                   <button
-                    className="gallery-nav prev"
-                    onClick={() =>
-                      setActiveImageIndex((prev) =>
-                        prev === 0 ? attraction.image_url.length - 1 : prev - 1
-                      )
-                    }
+                    className="fullscreen-button"
+                    aria-label="View image in fullscreen"
                   >
-                    ‹
+                    <FontAwesomeIcon icon={faExpand} />
                   </button>
-                  <button
-                    className="gallery-nav next"
-                    onClick={() =>
-                      setActiveImageIndex((prev) =>
-                        prev === attraction.image_url.length - 1 ? 0 : prev + 1
-                      )
-                    }
-                  >
-                    ›
-                  </button>
-                </div>
+                  <div className="gallery-controls">
+                    <button
+                      className="gallery-nav prev"
+                      onClick={handlePrevImage}
+                      aria-label="Previous image"
+                    >
+                      ‹
+                    </button>
+                    <button
+                      className="gallery-nav next"
+                      onClick={handleNextImage}
+                      aria-label="Next image"
+                    >
+                      ›
+                    </button>
+                  </div>
+                </>
               )}
             </div>
-            {attraction.image_url.length > 1 && (
-              <div className="thumbnail-gallery">
-                {attraction.image_url.map((img, idx) => (
+            {isFullScreen && (
+              <div
+                className="fullscreen-gallery"
+                onClick={() => setIsFullScreen(false)}
+                role="dialog"
+                aria-label="Fullscreen image gallery"
+                tabIndex={0}
+              >
+                <img
+                  src={images[activeImageIndex]}
+                  alt={`${attractionName || "Attraction"} - Image ${
+                    activeImageIndex + 1
+                  }`}
+                  className="fullscreen-image"
+                  onError={(e) => handleImageError(e, activeImageIndex)}
+                />
+                <div className="image-caption">
+                  {attractionName} - Image {activeImageIndex + 1}
+                </div>
+                <div className="image-counter">
+                  {activeImageIndex + 1}/{images.length}
+                </div>
+                <button
+                  className="close-fullscreen"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsFullScreen(false);
+                  }}
+                  aria-label="Close fullscreen gallery"
+                >
+                  ×
+                </button>
+                {images.length > 1 && (
+                  <div className="gallery-controls">
+                    <button
+                      className="gallery-nav prev"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePrevImage();
+                      }}
+                      aria-label="Previous image"
+                    >
+                      ‹
+                    </button>
+                    <button
+                      className="gallery-nav next"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleNextImage();
+                      }}
+                      aria-label="Next image"
+                    >
+                      ›
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+            {images.length > 1 && (
+              <div
+                className="thumbnail-gallery"
+                role="tablist"
+                ref={thumbnailContainerRef}
+              >
+                {images.map((img, idx) => (
                   <div
                     key={idx}
                     className={`thumbnail ${
                       activeImageIndex === idx ? "active" : ""
-                    }`}
-                    onClick={() => setActiveImageIndex(idx)}
+                    } ${thumbnailErrors[idx] ? "error" : ""}`}
+                    role="tab"
+                    tabIndex={0}
+                    onClick={() => handleThumbnailClick(idx)}
+                    onKeyDown={(e) => handleThumbnailKeyDown(e, idx)}
+                    aria-label={`View image ${idx + 1}`}
+                    aria-selected={activeImageIndex === idx}
                   >
-                    <img
-                      src={img}
-                      alt={`${attraction.name} thumbnail ${idx + 1}`}
-                    />
+                    {thumbnailErrors[idx] ? (
+                      <div className="thumbnail-error">
+                        <FontAwesomeIcon
+                          icon={faImages}
+                          className="error-icon"
+                        />
+                        <span>{thumbnailErrors[idx]}</span>
+                      </div>
+                    ) : (
+                      <img
+                        data-src={img}
+                        src={img}
+                        alt={`Thumbnail ${idx + 1}`}
+                        loading="lazy"
+                        onError={(e) => handleImageError(e, idx)}
+                      />
+                    )}
                   </div>
                 ))}
               </div>
@@ -388,76 +459,85 @@ const Attraction = () => {
           </div>
         )}
       </div>
+    );
+  },
+  (prevProps, nextProps) =>
+    prevProps.images === nextProps.images &&
+    prevProps.activeImageIndex === nextProps.activeImageIndex &&
+    prevProps.isFullScreen === nextProps.isFullScreen
+);
 
-      {/* Attraction content */}
+// Attraction Info Component
+const AttractionInfo = React.memo(
+  ({ attraction, city, mapCenter, mapError, fetchAttraction }) => {
+    return (
       <div className="attraction-content">
         <div className="attraction-info">
           <section className="info-section">
             <h2>
-              <FontAwesomeIcon icon={faCircleInfo} className="section-icon" />
-              Overview
+              <FontAwesomeIcon icon={faCircleInfo} className="section-icon" />{" "}
+              About
             </h2>
-            <div className="description">
-              {attraction?.description ? (
-                <p>{attraction.description}</p>
-              ) : (
-                <p className="no-content">No description available.</p>
-              )}
-            </div>
-            {attraction?.tags && attraction.tags.length > 0 && (
-              <div className="tags">
-                {attraction.tags.map((tag, idx) => (
-                  <span key={idx} className="tag">
-                    {tag}
-                  </span>
-                ))}
+            <div className="info-card">
+              <div className="description">
+                {attraction.description || (
+                  <p className="no-content">No description.</p>
+                )}
               </div>
-            )}
+              {attraction.tags?.length > 0 && (
+                <div className="tags">
+                  {attraction.tags.map((tag, idx) => (
+                    <span key={idx} className="tag">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+              <div className="contact-details">
+                {attraction.website && (
+                  <p>
+                    <strong>Website:</strong>{" "}
+                    <a
+                      href={attraction.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {attraction.website}
+                    </a>
+                  </p>
+                )}
+                {attraction.phone_number && (
+                  <p>
+                    <strong>Phone:</strong>{" "}
+                    <a href={`tel:${attraction.phone_number}`}>
+                      {attraction.phone_number}
+                    </a>
+                  </p>
+                )}
+              </div>
+            </div>
           </section>
-
-          {/* Map section */}
           <section className="info-section">
             <h2>
-              <FontAwesomeIcon icon={faLocationDot} className="section-icon" />
+              <FontAwesomeIcon icon={faLocationDot} className="section-icon" />{" "}
               Location
             </h2>
-            <p className="location-address">{attraction?.address}</p>
+            <p className="location-address">
+              {attraction.address || "No address."}
+            </p>
             <div className="map-container">
               {mapError ? (
                 <div className="map-error" role="alert">
                   {mapError}
-                  <button
-                    onClick={() => fetchAttraction()}
-                    style={{
-                      marginTop: "10px",
-                      padding: "5px 10px",
-                      background: "#2d7a61",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "5px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    Retry
-                  </button>
+                  <button onClick={fetchAttraction}>Retry</button>
                 </div>
-              ) : mapCenter &&
-                Array.isArray(mapCenter) &&
-                mapCenter.length === 2 &&
-                !isNaN(mapCenter[0]) &&
-                !isNaN(mapCenter[1]) ? (
+              ) : mapCenter ? (
                 <OpenStreetMap
                   center={mapCenter}
                   zoom={15}
-                  markers={[
-                    {
-                      position: mapCenter,
-                      popup: attraction?.name || "Địa điểm này",
-                    },
-                  ]}
+                  markers={[{ position: mapCenter, popup: attraction.name }]}
                   height="400px"
                   width="100%"
-                  showCurrentLocation
                 />
               ) : (
                 <div className="map-error" role="alert">
@@ -467,48 +547,84 @@ const Attraction = () => {
             </div>
           </section>
         </div>
-
-        {/* Sidebar quick info */}
         <div className="attraction-sidebar">
           <div className="quick-info">
             <h3>Quick Info</h3>
             <ul>
               <li>
-                <strong>Location:</strong> {city?.name}, Vietnam
+                <strong>Location:</strong> {city?.name || "Unknown"}, Vietnam
               </li>
               <li>
                 <strong>Rating:</strong>{" "}
-                {attraction?.average_rating !== null &&
-                !isNaN(attraction?.average_rating)
-                  ? `${attraction.average_rating.toFixed(1)}/5`
-                  : `0.0/5`}{" "}
-                ({attraction?.rating_total} reviews)
+                {Number(attraction.average_rating).toFixed(1)}/5
               </li>
-              {attraction?.tags && attraction.tags.length > 0 && (
+              {attraction.tags?.length > 0 && (
                 <li>
                   <strong>Type:</strong> {attraction.tags.join(", ")}
                 </li>
               )}
             </ul>
+            {attraction.website && (
+              <button
+                className="book-now-button"
+                onClick={() => window.open(attraction.website, "_blank")}
+                aria-label="Visit attraction website"
+              >
+                Visit Website
+              </button>
+            )}
           </div>
         </div>
       </div>
+    );
+  },
+  (prevProps, nextProps) =>
+    prevProps.attraction?.id === nextProps.attraction?.id &&
+    prevProps.city?.id === nextProps.city?.id &&
+    prevProps.mapCenter === nextProps.mapCenter &&
+    prevProps.mapError === nextProps.mapError
+);
 
-      {/* Reviews section */}
+// Attraction Reviews Component
+const AttractionReviews = React.memo(
+  ({
+    reviews,
+    reviewSort,
+    setReviewSort,
+    reviewForm,
+    setReviewForm,
+    submitting,
+    reviewError,
+    isLoggedIn,
+    ratingBreakdown,
+    renderStars,
+    formatDate,
+    navigate,
+  }) => {
+    const sortedReviews = useMemo(() => {
+      const sorted = [...reviews];
+      if (reviewSort === "newest") {
+        sorted.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      } else if (reviewSort === "highest") {
+        sorted.sort((a, b) => b.rating - a.rating);
+      } else if (reviewSort === "lowest") {
+        sorted.sort((a, b) => a.rating - b.rating);
+      }
+      return sorted;
+    }, [reviews, reviewSort]);
+
+    return (
       <section id="review-section" className="reviews-section">
         <h2>Reviews</h2>
         <div className="reviews-container">
           <div className="review-stats">
             <div className="average-rating">
               <span className="big-rating">
-                {attraction?.average_rating !== null &&
-                !isNaN(attraction?.average_rating)
-                  ? attraction.average_rating.toFixed(1)
-                  : "0.0"}
+                {Number(ratingBreakdown.average).toFixed(1)}
               </span>
               <div className="rating-label">
-                {renderStars(attraction?.average_rating)}
-                <span>({attraction?.rating_total} reviews)</span>
+                {renderStars(ratingBreakdown.average)}
+                <span>({ratingBreakdown.totalReviews} reviews)</span>
               </div>
             </div>
             <div className="rating-breakdown">
@@ -518,76 +634,63 @@ const Attraction = () => {
                     {score === 5
                       ? "Excellent"
                       : score === 4
-                      ? "Very good"
+                      ? "Very Good"
                       : score === 3
                       ? "Average"
                       : score === 2
                       ? "Poor"
-                      : "Very poor"}
+                      : "Very Poor"}
                   </span>
                   <div className="bar-container">
                     <div
                       className="bar"
-                      style={{ width: `${score * 15}%` }}
+                      style={{
+                        width: `${
+                          (reviews.filter((r) => r.rating === score).length /
+                            reviews.length) *
+                            100 || 0
+                        }%`,
+                      }}
                     ></div>
                   </div>
-                  <span className="count">{score * 10}</span>
+                  <span className="count">
+                    {reviews.filter((r) => r.rating === score).length}
+                  </span>
                 </div>
               ))}
             </div>
           </div>
           <div className="review-content">
-            <div className="write-review">
-              <h3>Write a Review</h3>
-              {isLoggedIn ? (
-                <>
-                  <div className="rating-input">
-                    <label>Your Rating:</label>
-                    <div className="star-rating">
-                      {[1, 2, 3, 4, 5].map((value) => (
-                        <FontAwesomeIcon
-                          key={value}
-                          icon={value <= rating ? solidStar : regularStar}
-                          className={`star-input ${
-                            value <= rating ? "active" : ""
-                          }`}
-                          onClick={() => setRating(value)}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                  <div className="review-input">
-                    <textarea
-                      placeholder="Share your experience..."
-                      value={comment}
-                      onChange={(e) => setComment(e.target.value)}
-                    />
-                    <button
-                      className="submit-review"
-                      onClick={handleSubmitReview}
-                    >
-                      Submit Review
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <div className="login-prompt">
-                  <p>Please log in to write a review.</p>
-                  <button onClick={() => navigate("/login")}>Log in</button>
-                </div>
-              )}
-            </div>
-
             <div className="reviews-list">
-              {reviews.length > 0 ? (
-                reviews.map((review, index) => (
-                  <div className="review-card" key={index}>
+              <div className="review-controls">
+                <label htmlFor="sort-reviews">Sort by:</label>
+                <select
+                  id="sort-reviews"
+                  value={reviewSort}
+                  onChange={(e) => setReviewSort(e.target.value)}
+                >
+                  <option value="newest">Newest</option>
+                  <option value="highest">Highest Rating</option>
+                  <option value="lowest">Lowest Rating</option>
+                </select>
+              </div>
+              {sortedReviews.length > 0 ? (
+                sortedReviews.map((review, index) => (
+                  <div
+                    className={`review-card ${
+                      review.isCurrentUser ? "current-user" : ""
+                    }`}
+                    key={index}
+                  >
                     <div className="review-header">
                       <div className="reviewer-info">
                         <img
                           src={review.profilePic}
-                          alt={review.userName}
+                          alt={`Avatar of ${review.userName}`}
                           className="reviewer-avatar"
+                          onError={(e) =>
+                            (e.target.src = "https://via.placeholder.com/40")
+                          }
                         />
                         <div>
                           <h4>{review.userName}</h4>
@@ -614,6 +717,290 @@ const Attraction = () => {
           </div>
         </div>
       </section>
+    );
+  },
+  (prevProps, nextProps) =>
+    prevProps.reviews === nextProps.reviews &&
+    prevProps.reviewSort === nextProps.reviewSort &&
+    prevProps.reviewForm === nextProps.reviewForm &&
+    prevProps.submitting === nextProps.submitting &&
+    prevProps.reviewError === nextProps.reviewError &&
+    prevProps.isLoggedIn === nextProps.isLoggedIn
+);
+
+// Nearby Attractions Component
+const NearbyAttractions = React.memo(
+  ({
+    nearbyAttractions,
+    city,
+    renderStars,
+    handleToggleSave,
+    savedAttractions,
+  }) => {
+    const navigate = useNavigate();
+
+    // Chuẩn hóa image_url
+    const getValidImageUrl = (imageUrl) => {
+      if (Array.isArray(imageUrl) && imageUrl.length > 0) {
+        return imageUrl[0]; // Lấy ảnh đầu tiên nếu là mảng
+      }
+      if (typeof imageUrl === "string" && imageUrl.trim()) {
+        return imageUrl; // Trả về nếu là chuỗi hợp lệ
+      }
+      return "https://via.placeholder.com/280x200?text=Image+Not+Found"; // Placeholder mặc định
+    };
+
+    return (
+      <section className="nearby-section">
+        <h2>Featured Nearby</h2>
+        {nearbyAttractions.length > 0 ? (
+          <div className="nearby-grid">
+            {nearbyAttractions.slice(0, 4).map((place) => (
+              <LocationCard
+                key={place.attraction_id}
+                item={{
+                  id: place.attraction_id,
+                  name: place.name,
+                  image: getValidImageUrl(place.image_url),
+                  rating: parseFloat(place.average_rating) || 0,
+                  reviewCount: place.rating_total || 0,
+                  tags: place.tags || [],
+                }}
+                isSaved={!!savedAttractions[place.attraction_id]}
+                onToggleSave={handleToggleSave}
+                onClick={() =>
+                  navigate(`/tripguide/attraction/${place.attraction_id}`)
+                }
+                renderStars={renderStars}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="no-nearby">
+            <p>No nearby attractions found.</p>
+          </div>
+        )}
+        {nearbyAttractions.length > 4 && (
+          <button
+            className="view-more-button"
+            onClick={() =>
+              navigate(`/tripguide/city/${city?.city_id}/attractions`)
+            }
+          >
+            View more nearby attractions
+          </button>
+        )}
+      </section>
+    );
+  },
+  (prevProps, nextProps) =>
+    prevProps.nearbyAttractions === nextProps.nearbyAttractions &&
+    prevProps.city?.id === nextProps.city?.id &&
+    prevProps.savedAttractions === nextProps.savedAttractions
+);
+
+// Main Attraction Component
+const Attraction = () => {
+  const {
+    attraction,
+    city,
+    reviews,
+    nearbyAttractions,
+    loading,
+    error,
+    savedAttractions,
+    reviewForm,
+    setReviewForm,
+    handleShareClick,
+    handleReviewClick,
+    handleToggleSave,
+    reviewError,
+    isLoggedIn,
+    fetchAttraction,
+    renderStars,
+    formatDate,
+  } = useAttraction();
+
+  const navigate = useNavigate();
+  const [activeImageIndex, setActiveImageIndex] = React.useState(0);
+  const [isFullScreen, setIsFullScreen] = React.useState(false);
+  const [reviewSort, setReviewSort] = React.useState("newest");
+  const [isLoadingVisible, setIsLoadingVisible] = React.useState(false);
+  // Validate and prepare images
+  const images = useMemo(() => {
+    const imageUrls = attraction?.image_url;
+    if (!imageUrls) {
+      console.warn("No image_url provided in attraction data");
+      return [];
+    }
+    if (!Array.isArray(imageUrls)) {
+      console.warn("image_url is not an array:", imageUrls);
+      return typeof imageUrls === "string" ? [imageUrls] : [];
+    }
+    return imageUrls.filter(
+      (url) => typeof url === "string" && url.trim() !== ""
+    );
+  }, [attraction?.image_url]);
+
+  const mapCenter = useMemo(
+    () =>
+      attraction?.latitude && attraction?.longitude
+        ? [attraction.latitude, attraction.longitude]
+        : null,
+    [attraction?.latitude, attraction?.longitude]
+  );
+
+  const ratingBreakdown = useMemo(
+    () => ({
+      average: Number(attraction?.average_rating) || 0,
+      totalReviews: attraction?.rating_total || 0,
+    }),
+    [attraction?.average_rating, attraction?.rating_total]
+  );
+
+  const handlePrevImage = useCallback(() => {
+    setActiveImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  }, [images.length]);
+
+  const handleNextImage = useCallback(() => {
+    setActiveImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+  }, [images.length]);
+
+  const preloadNextImage = useCallback(
+    (index) => {
+      if (images.length > 1 && Array.isArray(images)) {
+        const nextIndex = index === images.length - 1 ? 0 : index + 1;
+        const img = new Image();
+        img.src = images[nextIndex];
+      }
+    },
+    [images]
+  );
+
+  const handleKeyDown = useCallback(
+    (e) => {
+      if (e.key === "ArrowLeft") handlePrevImage();
+      else if (e.key === "ArrowRight") handleNextImage();
+      else if (e.key === "Escape") setIsFullScreen(false);
+    },
+    [handlePrevImage, handleNextImage]
+  );
+
+  useEffect(() => {
+    if (isFullScreen) {
+      window.addEventListener("keydown", handleKeyDown);
+      return () => window.removeEventListener("keydown", handleKeyDown);
+    }
+  }, [isFullScreen, handleKeyDown]);
+
+  // Quản lý hiển thị Loading với độ trễ tối thiểu 500ms
+  useEffect(() => {
+    let timeout;
+    if (loading) {
+      setIsLoadingVisible(true); // Hiển thị Loading ngay khi bắt đầu fetch
+    } else {
+      // Chỉ ẩn Loading sau ít nhất 500ms
+      timeout = setTimeout(() => {
+        setIsLoadingVisible(false);
+      }, 500);
+    }
+    return () => clearTimeout(timeout); // Xóa timeout khi component unmount
+  }, [loading]);
+
+  // Hiển thị Loading khi isLoadingVisible là true
+  if (isLoadingVisible) {
+    return <Loading message="Loading attraction details..." />;
+  }
+
+  // Hiển thị ErrorMessage nếu có lỗi hoặc không có dữ liệu
+  if (error || !attraction) {
+    return <ErrorMessage error={error} />;
+  }
+  return (
+    <div className="attraction-container">
+      <div className="sticky-action-bar">
+        <button
+          className="action-button share-attraction"
+          onClick={handleShareClick}
+          aria-label="Share this attraction"
+        >
+          <FontAwesomeIcon icon={faSquareShareNodes} className="action-icon" />
+          <span>Share</span>
+        </button>
+        <button
+          className="action-button review-attraction"
+          onClick={handleReviewClick}
+          aria-label="Write a review for this attraction"
+        >
+          <FontAwesomeIcon icon={faPen} className="action-icon" />
+          <span>Review</span>
+        </button>
+        <button
+          className={`action-button save-attraction ${
+            savedAttractions[attraction.attraction_id] ? "saved" : ""
+          }`}
+          onClick={() => handleToggleSave(attraction.attraction_id)}
+          aria-label={
+            savedAttractions[attraction.attraction_id]
+              ? "Remove from saved"
+              : "Save attraction"
+          }
+        >
+          <FontAwesomeIcon icon={faHeart} className="action-icon" />
+          <span>
+            {savedAttractions[attraction.attraction_id] ? "Saved" : "Save"}
+          </span>
+        </button>
+      </div>
+      <AttractionHeader
+        attraction={attraction}
+        city={city}
+        saved={savedAttractions[attraction.attraction_id]}
+        handleSaveToggle={() => handleToggleSave(attraction.attraction_id)}
+        handleShareClick={handleShareClick}
+        handleReviewClick={handleReviewClick}
+        renderStars={renderStars}
+        ratingBreakdown={ratingBreakdown}
+      />
+      <AttractionGallery
+        images={images}
+        activeImageIndex={activeImageIndex}
+        setActiveImageIndex={setActiveImageIndex}
+        isFullScreen={isFullScreen}
+        setIsFullScreen={setIsFullScreen}
+        handlePrevImage={handlePrevImage}
+        handleNextImage={handleNextImage}
+        preloadNextImage={preloadNextImage}
+        attractionName={attraction.name}
+      />
+      <AttractionInfo
+        attraction={attraction}
+        city={city}
+        mapCenter={mapCenter}
+        mapError={error}
+        fetchAttraction={fetchAttraction}
+      />
+      <AttractionReviews
+        reviews={reviews}
+        reviewSort={reviewSort}
+        setReviewSort={setReviewSort}
+        reviewForm={reviewForm}
+        setReviewForm={setReviewForm}
+        submitting={false}
+        reviewError={reviewError}
+        isLoggedIn={isLoggedIn}
+        ratingBreakdown={ratingBreakdown}
+        renderStars={renderStars}
+        formatDate={formatDate}
+        navigate={navigate}
+      />
+      <NearbyAttractions
+        nearbyAttractions={nearbyAttractions}
+        city={city}
+        renderStars={renderStars}
+        handleToggleSave={handleToggleSave}
+        savedAttractions={savedAttractions}
+      />
     </div>
   );
 };

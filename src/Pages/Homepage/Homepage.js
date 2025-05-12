@@ -1,10 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import "./Homepage.scss"; // Main homepage styles
+import "./Homepage.scss";
 import { FaSearch } from "react-icons/fa";
-
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faStar as solidStar,
+  faStarHalfStroke,
+} from "@fortawesome/free-solid-svg-icons";
+import { faStar as regularStar } from "@fortawesome/free-regular-svg-icons";
+import axios from "axios";
 import LocationCard from "../../components/LocationCard/LocationCard";
-// Import images (giữ nguyên)
+import { useAuth } from "../../contexts/AuthContext";
+import BASE_URL from "../../constants/BASE_URL";
 import trendcast from "../../views/trendcast.png";
 import golemcafe from "../../assets/images/FoodDrink/golemcafe.png";
 import marblemountains from "../../assets/images/Cities/marblemountains.png";
@@ -14,24 +21,27 @@ import burgerbros from "../../assets/images/FoodDrink/burgerbros.png";
 import banhxeobaduong from "../../assets/images/FoodDrink/banhxeobaduong.png";
 import madamelan from "../../assets/images/FoodDrink/madamelan.png";
 import quancomhuengon from "../../assets/images/FoodDrink/quancomhuengon.png";
-import BASE_URL from "../../constants/BASE_URL";
 
 const HomePage = () => {
   const [searchText, setSearchText] = useState("");
-  const [savedItems, setSavedItems] = useState({});
+  const [savedRestaurants, setSavedRestaurants] = useState({});
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const { user, isLoggedIn } = useAuth();
 
-  // Dữ liệu mẫu (giữ nguyên)
+  // Sample data
   const recentlyViewedItems = [
     {
       id: 1,
+      restaurant_id: 1, // Added for restaurant-specific routing
       name: "Golem Cafe",
       image: golemcafe,
       rating: 4.5,
       reviewCount: 123,
-      tags: "Cafe, Drinks",
+      tags: ["Cafe", "Drinks"],
       badge: "New",
+      type: "restaurant",
     },
     {
       id: 2,
@@ -39,7 +49,8 @@ const HomePage = () => {
       image: marblemountains,
       rating: 4.0,
       reviewCount: 5432,
-      tags: "Attractions, Nature",
+      tags: ["Attractions", "Nature"],
+      type: "attraction",
     },
     {
       id: 3,
@@ -47,8 +58,9 @@ const HomePage = () => {
       image: danangmuseum,
       rating: 4.0,
       reviewCount: 876,
-      tags: "Museums, History",
+      tags: ["Museums", "History"],
       badge: "2024",
+      type: "museum",
     },
     {
       id: 4,
@@ -56,85 +68,158 @@ const HomePage = () => {
       image: dragonbridge,
       rating: 4.5,
       reviewCount: 10987,
-      tags: "Landmarks, Bridges",
+      tags: ["Landmarks", "Bridges"],
+      type: "landmark",
     },
   ];
 
   const recommendedItems = [
     {
       id: 5,
+      restaurant_id: 5,
       name: "Burger Bros",
       image: burgerbros,
       rating: 4.5,
       reviewCount: 1567,
-      tags: "Restaurants, Burgers",
+      tags: ["Restaurants", "Burgers"],
+      type: "restaurant",
     },
     {
       id: 6,
+      restaurant_id: 6,
       name: "Banh Xeo Ba Duong",
       image: banhxeobaduong,
       rating: 4.0,
       reviewCount: 987,
-      tags: "Local Food, Restaurants",
+      tags: ["Local Food", "Restaurants"],
+      type: "restaurant",
     },
     {
       id: 7,
+      restaurant_id: 7,
       name: "Madame Lân",
       image: madamelan,
       rating: 4.0,
       reviewCount: 4321,
-      tags: "Restaurants, Vietnamese",
+      tags: ["Restaurants", "Vietnamese"],
+      type: "restaurant",
     },
     {
       id: 8,
+      restaurant_id: 8,
       name: "Quan Com Hue Ngon",
       image: quancomhuengon,
       rating: 3.5,
       reviewCount: 765,
-      tags: "Local Food, Budget",
+      tags: ["Local Food", "Budget"],
+      type: "restaurant",
     },
   ];
 
-  useEffect(() => {
-    const savedItemsFromStorage = localStorage.getItem("savedItems");
-    if (savedItemsFromStorage) {
-      setSavedItems(JSON.parse(savedItemsFromStorage));
+  // Fetch saved restaurants
+  // useEffect(() => {
+  //   if (isLoggedIn && user?.user_id) {
+  //     axios
+  //       .get(`${BASE_URL}/favorites?user_id=${user.user_id}`)
+  //       .then((response) => {
+  //         const saved = response.data.reduce((acc, item) => {
+  //           acc[item.restaurant_id] = true;
+  //           return acc;
+  //         }, {});
+  //         setSavedRestaurants(saved);
+  //       })
+  //       .catch((err) => {
+  //         console.error("Failed to fetch favorites:", err);
+  //         setError("Failed to load saved restaurants.");
+  //       });
+  //   }
+  // }, [isLoggedIn, user]);
+
+  // Render star ratings (copied from useRestaurant.js for consistency)
+  const renderStars = useCallback((rating) => {
+    const numRating = parseFloat(rating);
+    if (isNaN(numRating) || numRating < 0 || numRating > 5) {
+      return <div className="stars-container">Invalid rating</div>;
     }
+    return (
+      <div className="stars-container">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <FontAwesomeIcon
+            key={star}
+            icon={
+              star <= Math.floor(numRating)
+                ? solidStar
+                : star === Math.ceil(numRating) && !Number.isInteger(numRating)
+                ? faStarHalfStroke
+                : regularStar
+            }
+            className={`star-icon ${
+              star <= Math.floor(numRating)
+                ? "filled"
+                : star === Math.ceil(numRating) && !Number.isInteger(numRating)
+                ? "half"
+                : "empty"
+            }`}
+          />
+        ))}
+      </div>
+    );
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem("savedItems", JSON.stringify(savedItems));
-  }, [savedItems]);
+  // Toggle save state
+  const toggleSave = useCallback(
+    async (restaurantId) => {
+      if (!isLoggedIn) {
+        navigate("/login");
+        return;
+      }
+      try {
+        if (savedRestaurants[restaurantId]) {
+          await axios.delete(`${BASE_URL}/favorites/${restaurantId}`);
+          setSavedRestaurants((prev) => {
+            const newSaved = { ...prev };
+            delete newSaved[restaurantId];
+            return newSaved;
+          });
+        } else {
+          await axios.post(`${BASE_URL}/favorites`, {
+            user_id: user?.user_id,
+            restaurant_id: restaurantId,
+          });
+          setSavedRestaurants((prev) => ({
+            ...prev,
+            [restaurantId]: true,
+          }));
+        }
+      } catch (err) {
+        setError("Failed to update favorites: " + err.message);
+        showNotification("Failed to save restaurant. Please try again.");
+      }
+    },
+    [isLoggedIn, navigate, savedRestaurants, user]
+  );
 
-  // toggleSave function remains here as it manages the state of Homepage
-  const toggleSave = (itemId) => {
-    // Removed 'e' as it's handled in LocationCard
-    setSavedItems((prev) => ({
-      ...prev,
-      [itemId]: !prev[itemId],
-    }));
-  };
-
-  // handleItemClick remains here for navigation logic
-  const handleItemClick = (itemId) => {
-    console.log(`Navigating to item ${itemId}`);
-    // navigate(`/location/${itemId}`);
-  };
+  // Handle item click with type-based routing
+  const handleItemClick = useCallback(
+    (item) => {
+      console.log(`Navigating to item ${item.id}`);
+      if (item.type === "restaurant") {
+        navigate(`/tripguide/restaurant/${item.restaurant_id}`);
+      } else {
+        navigate(`/location/${item.id}`); // Fallback for non-restaurant items
+      }
+    },
+    [navigate]
+  );
 
   const handleSearch = async () => {
     if (!searchText.trim()) return;
     try {
-      const response = await fetch(
-        `${BASE_URL}/cities/search/${encodeURIComponent(
-          searchText
-        )}`
+      const response = await axios.get(
+        `${BASE_URL}/cities/search/${encodeURIComponent(searchText)}`
       );
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
+      const data = response.data;
       if (data && data.city_id) {
-        //const firstLocation = data[0];
         navigate(`/tripguide/citydetail/${data.city_id}`);
       } else {
         showNotification("Không tìm thấy địa điểm!");
@@ -148,7 +233,7 @@ const HomePage = () => {
   };
 
   const showNotification = (message) => {
-    alert(message);
+    alert(message); // Consider replacing with a toast library for better UX
   };
 
   const handleKeyPress = (e) => {
@@ -156,8 +241,6 @@ const HomePage = () => {
       handleSearch();
     }
   };
-
-  // --- Removed LocationItem Component Definition ---
 
   return (
     <div className="homepage">
@@ -179,6 +262,7 @@ const HomePage = () => {
             Search
           </button>
         </div>
+        {error && <div className="error-message">{error}</div>}
       </div>
 
       {/* Featured Image */}
@@ -199,13 +283,13 @@ const HomePage = () => {
         <p className="section-subtitle">Places you explored</p>
         <div className="picture-grid">
           {recentlyViewedItems.map((item) => (
-            // Use the new LocationCard component and pass props
             <LocationCard
               key={item.id}
               item={item}
-              isSaved={!!savedItems[item.id]} // Ensure boolean value
-              onToggleSave={() => toggleSave(item.id)} // Pass specific toggle function
-              onClick={() => handleItemClick(item.id)} // Pass specific click function
+              isSaved={!!savedRestaurants[item.restaurant_id]} // Use restaurant_id for restaurants
+              onToggleSave={() => toggleSave(item.restaurant_id)} // Pass restaurant_id
+              onClick={() => handleItemClick(item)}
+              renderStars={renderStars} // Pass renderStars for consistent ratings
             />
           ))}
         </div>
@@ -220,9 +304,10 @@ const HomePage = () => {
             <LocationCard
               key={item.id}
               item={item}
-              isSaved={!!savedItems[item.id]} // Ensure boolean value
-              onToggleSave={() => toggleSave(item.id)} // Pass specific toggle function
-              onClick={() => handleItemClick(item.id)} // Pass specific click function
+              isSaved={!!savedRestaurants[item.restaurant_id]}
+              onToggleSave={() => toggleSave(item.restaurant_id)}
+              onClick={() => handleItemClick(item)}
+              renderStars={renderStars}
             />
           ))}
         </div>
