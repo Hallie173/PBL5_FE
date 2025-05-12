@@ -24,7 +24,9 @@ import OpenStreetMap from "../../components/OpenStreetMap/OpenStreetMap";
 import useAttraction from "./hooks/useAttraction";
 import LocationCard from "../../components/LocationCard/LocationCard";
 import Loading from "../../components/Loading/Loading";
-
+import { useAuth } from "../../contexts/AuthContext";
+import axios from "axios";
+import BASE_URL from "../../constants/BASE_URL";
 // Skeleton Loader Component
 // const SkeletonLoader = () => (
 //   <div className="skeleton-loader">
@@ -826,6 +828,58 @@ const Attraction = () => {
   const [isFullScreen, setIsFullScreen] = React.useState(false);
   const [reviewSort, setReviewSort] = React.useState("newest");
   const [isLoadingVisible, setIsLoadingVisible] = React.useState(false);
+  const { user } = useAuth();
+
+  const saveRecentlyViewed = useCallback(async () => {
+    if (!attraction) return;
+
+    const item = {
+      id: attraction.attraction_id,
+      name: attraction.name,
+      image: Array.isArray(attraction.image_url)
+        ? attraction.image_url[0]
+        : attraction.image_url || "https://via.placeholder.com/150",
+      rating: parseFloat(attraction.average_rating) || 0,
+      reviewCount: attraction.rating_total || 0,
+      tags: attraction.tags || [],
+      type: "attraction",
+    };
+
+    try {
+      if (isLoggedIn && user?.user_id) {
+        // Gửi yêu cầu API để lưu recently viewed
+        await axios.post(`${BASE_URL}/recently-viewed`, {
+          user_id: user.user_id,
+          item,
+        });
+      } else {
+        // Lưu vào localStorage cho người dùng chưa đăng nhập
+        let recentItems = JSON.parse(
+          localStorage.getItem("recentlyViewedItems") || "[]"
+        );
+
+        // Xóa mục trùng lặp (dựa trên id)
+        recentItems = recentItems.filter((i) => i.id !== item.id);
+        // Thêm mục mới vào đầu danh sách
+        recentItems.unshift(item);
+        // Giới hạn tối đa 4 mục
+        recentItems = recentItems.slice(0, 4);
+        // Lưu lại vào localStorage
+        localStorage.setItem(
+          "recentlyViewedItems",
+          JSON.stringify(recentItems)
+        );
+      }
+    } catch (err) {
+      console.error("Failed to save recently viewed:", err);
+    }
+  }, [attraction, isLoggedIn, user]);
+
+  // Gọi hàm saveRecentlyViewed khi component mount
+  useEffect(() => {
+    saveRecentlyViewed();
+  }, [saveRecentlyViewed]);
+
   // Validate and prepare images
   const images = useMemo(() => {
     const imageUrls = attraction?.image_url;
