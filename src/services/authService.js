@@ -71,7 +71,7 @@ export const authService = {
   // Lấy thông tin người dùng hiện tại
   getCurrentUser: () => {
     const userData = localStorage.getItem("data");
-    console.log("Raw userData from localStorage:", userData);
+    // console.log("Raw userData from localStorage:", userData);
     if (!userData) {
       console.log("No user data in localStorage");
       return null;
@@ -79,7 +79,7 @@ export const authService = {
 
     try {
       const parsedData = JSON.parse(userData);
-      console.log("Parsed userData:", parsedData);
+      // console.log("Parsed userData:", parsedData);
 
       // Kiểm tra nếu dữ liệu từ Google auth
       if (parsedData.token && parsedData.user) {

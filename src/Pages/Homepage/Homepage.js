@@ -226,7 +226,6 @@ const HomePage = () => {
   // Handle item click with type-based routing (cập nhật để hỗ trợ attraction)
   const handleItemClick = useCallback(
     (item) => {
-      console.log(`Navigating to item ${item.id}`);
       if (item.type === "restaurant") {
         navigate(`/tripguide/restaurant/${item.restaurant_id || item.id}`);
       } else if (item.type === "attraction") {

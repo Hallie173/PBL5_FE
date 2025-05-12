@@ -175,8 +175,6 @@ const useAttraction = () => {
   }, [attraction?.name, city?.name]);
 
   const handleReviewClick = useCallback(() => {
-    console.log("Review button clicked" + attractionId);
-
     if (!isLoggedIn) {
       navigate("/login");
       return;
