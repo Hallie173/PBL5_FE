@@ -1,166 +1,169 @@
 .homepage {
-    width: 90%;
-    max-width: 1200px;
-    margin: 0 auto;
-    display: block;
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: block;
+  padding: 20px 0;
+  $container-max-width: 100%;
+  $primary-color: #2d7a61;
+  $primary-hover-color: #1e5c48;
+  $grid-gap: 20px; // Keep grid gap definition if used elsewhere, or define in LocationCard.scss
+  $card-border-radius: 8px; // Keep if used elsewhere
+  $text-color: #333;
+  $text-color-light: #555;
+  $rating-color: #00aa6c; // Keep if used elsewhere
+
+  .search-container,
+  .featured-container,
+  .content-section,
+  hr {
+    max-width: $container-max-width;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 40px;
+  }
+
+  .search-container {
+    text-align: center;
     padding: 20px 0;
-    $container-max-width: 100%;
-    $primary-color: #2d7a61;
-    $primary-hover-color: #1e5c48;
-    $grid-gap: 20px; // Keep grid gap definition if used elsewhere, or define in LocationCard.scss
-    $card-border-radius: 8px; // Keep if used elsewhere
-    $text-color: #333;
-    $text-color-light: #555;
-    $rating-color: #00AA6C; // Keep if used elsewhere
+    margin-bottom: 30px;
 
-    .search-container,
-    .featured-container,
-    .content-section,
-    hr {
-        max-width: $container-max-width;
-        margin-left: auto;
-        margin-right: auto;
-        margin-bottom: 40px;
+    .search-title {
+      font-size: 32px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: $text-color;
     }
 
-    .search-container {
-        text-align: center;
-        padding: 20px 0;
-        margin-bottom: 30px;
+    .search-box {
+      display: flex;
+      align-items: center;
+      background: white;
+      border-radius: 30px;
+      border: 1px solid #ddd;
+      padding: 10px 20px;
+      max-width: 600px;
+      margin: 0 auto;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 
-        .search-title {
-            font-size: 32px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            color: $text-color;
-        }
+      .search-icon {
+        margin-right: 10px;
+        color: gray;
+      }
 
-        .search-box {
-            display: flex;
-            align-items: center;
-            background: white;
-            border-radius: 30px;
-            border: 1px solid #ddd;
-            padding: 10px 20px;
-            max-width: 600px;
-            margin: 0 auto;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-
-            .search-icon {
-                margin-right: 10px;
-                color: gray;
-            }
-
-            input {
-                border: none;
-                outline: none;
-                flex-grow: 1;
-                padding: 8px 5px;
-                font-size: 16px;
-                background: transparent;
-            }
-
-            .search-button {
-                background: $primary-color;
-                color: white;
-                border: none;
-                padding: 8px 20px;
-                border-radius: 25px;
-                cursor: pointer;
-                font-weight: bold;
-                transition: background-color 0.2s ease;
-                margin-left: 10px;
-                white-space: nowrap;
-
-                &:hover {
-                    background: $primary-hover-color;
-                }
-            }
-        }
-    }
-
-    .featured-container {
-        position: relative;
-        overflow: hidden;
-        border-radius: $card-border-radius; // Using variable defined above
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-
-        .featured-image {
-            display: block;
-            width: 100%;
-            aspect-ratio: 16 / 7;
-            object-fit: cover;
-            border-radius: $card-border-radius; // Using variable defined above
-        }
-
-        .featured-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 25px 30px;
-            background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 80%);
-            color: white;
-            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
-            text-align: left;
-
-            h2 {
-                font-size: 28px;
-                margin-bottom: 8px;
-                line-height: 1.2;
-                font-weight: bold;
-            }
-
-            p {
-                font-size: 1rem;
-                margin-bottom: 15px;
-            }
-
-
-            .featured-button {
-                background: white;
-                color: $text-color;
-                border: none;
-                padding: 8px 15px;
-                margin-top: 10px;
-                border-radius: 5px;
-                cursor: pointer;
-                font-weight: 600;
-                transition: background-color 0.2s ease;
-
-                &:hover {
-                    background-color: #eee;
-                }
-            }
-        }
-    }
-
-    hr {
-        height: 1px;
+      input {
         border: none;
-        background-color: #e0e0e0;
-        margin-top: 50px;
-        margin-bottom: 50px;
+        outline: none;
+        flex-grow: 1;
+        padding: 8px 5px;
+        font-size: 16px;
+        background: transparent;
+      }
+
+      .search-button {
+        background: $primary-color;
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 25px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.2s ease;
+        margin-left: 10px;
+        white-space: nowrap;
+
+        &:hover {
+          background: $primary-hover-color;
+        }
+      }
+    }
+  }
+
+  .featured-container {
+    position: relative;
+    overflow: hidden;
+    border-radius: $card-border-radius; // Using variable defined above
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+
+    .featured-image {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 7;
+      object-fit: cover;
+      border-radius: $card-border-radius; // Using variable defined above
     }
 
-    .content-section {
-        max-width: $container-max-width;
-        margin: 40px auto;
+    .featured-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 25px 30px;
+      background: linear-gradient(
+        to top,
+        rgba(0, 0, 0, 0.7) 0%,
+        rgba(0, 0, 0, 0) 80%
+      );
+      color: white;
+      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+      text-align: left;
 
-        .section-title {
-            font-size: 1.75rem;
-            margin-bottom: 8px;
-            text-align: left;
-            font-weight: 700;
-            color: $text-color;
-        }
+      h2 {
+        font-size: 28px;
+        margin-bottom: 8px;
+        line-height: 1.2;
+        font-weight: bold;
+      }
 
-        .section-subtitle {
-            margin: 0 0 25px 0;
-            font-style: normal;
-            text-align: left;
-            color: $text-color-light;
-            font-size: 1rem;
+      p {
+        font-size: 1rem;
+        margin-bottom: 15px;
+      }
+
+      .featured-button {
+        background: white;
+        color: $text-color;
+        border: none;
+        padding: 8px 15px;
+        margin-top: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: background-color 0.2s ease;
+
+        &:hover {
+          background-color: #eee;
         }
+      }
     }
+  }
+
+  hr {
+    height: 1px;
+    border: none;
+    background-color: #e0e0e0;
+    margin-top: 50px;
+    margin-bottom: 50px;
+  }
+
+  .content-section {
+    max-width: $container-max-width;
+    margin: 40px auto;
+
+    .section-title {
+      font-size: 1.75rem;
+      margin-bottom: 8px;
+      text-align: left;
+      font-weight: 700;
+      color: $text-color;
+    }
+
+    .section-subtitle {
+      margin: 0 0 25px 0;
+      font-style: normal;
+      text-align: left;
+      color: $text-color-light;
+      font-size: 1rem;
+    }
+  }
 }

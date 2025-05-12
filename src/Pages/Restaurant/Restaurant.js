@@ -1,451 +1,943 @@
-import React, { useState, useEffect } from "react";
+import React, { Suspense, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { useEffect, useState } from "react";
 import "./Restaurant.scss";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSquareShareNodes, faPen } from "@fortawesome/free-solid-svg-icons";
 import {
+  faSquareShareNodes,
+  faPen,
+  faHeart as solidHeart,
+  faCircleInfo,
+  faLocationDot,
+  faExpand,
   faImages,
+  faStar as solidStar,
+  faStarHalfStroke,
+  faChevronRight,
+} from "@fortawesome/free-solid-svg-icons";
+import {
+  faStar as regularStar,
   faHeart as regularHeart,
 } from "@fortawesome/free-regular-svg-icons";
-import { faHeart as solidHeart } from "@fortawesome/free-solid-svg-icons";
-import cozy from "../../assets/images/Hotel/cozy.png";
-import wink from "../../assets/images/Hotel/wink.png";
-import big3 from "../../assets/images/FoodDrink/3big.png";
-import tuongtheater from "../../assets/images/Cities/tuongtheater.png";
-import { useParams } from "react-router-dom";
-// import MapComponent from "../../components/GoogleMap/GoogleMap";
+import OpenStreetMap from "../../components/OpenStreetMap/OpenStreetMap";
+import Loading from "../../components/Loading/Loading";
+import useRestaurant from "./hooks/useRestaurant";
+import PropTypes from "prop-types";
+import LocationCard from "../../components/LocationCard/LocationCard";
+import axios from "axios";
 import BASE_URL from "../../constants/BASE_URL";
-import { authService } from "../../services/authService";
-const initialNearbyPlaces = [
-  { id: 1, name: "Cozy Danang Boutique Hotel", image: cozy, saved: false },
-  { id: 2, name: "Wink Hotel Danang Centre", image: wink, saved: false },
-  { id: 3, name: "3 Big - Nuong & Lau", image: big3, saved: false },
-  {
-    id: 4,
-    name: "Nguyen Hien Dinh Theatre",
-    image: tuongtheater,
-    saved: false,
-  },
-];
 
-const Restaurant = () => {
-  const { id: restaurantId } = useParams(); // Lấy restaurantId từ URL
-  const [restaurant, setRestaurant] = useState(null); // Đổi thành null để kiểm tra dễ hơn
-  const [city, setCity] = useState(null);
-  const [resRank, setresRank] = useState(null);
-  const [nearBy, setnearBy] = useState([]);
-  const [reviews, setReviews] = useState([]); // Comment lại state reviews
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [nearbyPlaces, setNearbyPlaces] = useState(initialNearbyPlaces);
-  const navigate = useNavigate();
-  const [saved, setSaved] = useState(false);
-  const [user, setUser] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [comment, setComment] = useState("");
-  const [user_id, setUser_id] = useState(null);
-  useEffect(() => {
-    if (!restaurantId) return;
-    setLoading(true);
-    console.log(restaurantId);
-    const fetchRestaurant = async () => {
-      try {
-        // Lấy thông tin nhà hàng
-        const restaurantResponse = await axios.get(
-          `${BASE_URL}/restaurants/${restaurantId}`
-        );
-        const restaurantData = restaurantResponse.data; // Dữ liệu nằm trong data.data theo controller
-        setRestaurant(restaurantData);
+// Breadcrumb Component (không thay đổi)
+const Breadcrumb = React.memo(({ city, restaurant, navigate }) => (
+  <nav className="breadcrumb" aria-label="Breadcrumb">
+    <ol className="breadcrumb-list">
+      <li className="breadcrumb-item">
+        <button
+          onClick={() => navigate("/tripguide")}
+          aria-label="Go to Vietnam"
+        >
+          Vietnam
+        </button>
+      </li>
+      <li className="breadcrumb-separator" aria-hidden="true">
+        <FontAwesomeIcon icon={faChevronRight} />
+      </li>
+      <li className="breadcrumb-item">
+        <button
+          onClick={() => navigate(`/tripguide/city/${city?.city_id}`)}
+          aria-label={`Go to ${city?.name}`}
+        >
+          {city?.name || "City"}
+        </button>
+      </li>
+      <li className="breadcrumb-separator" aria-hidden="true">
+        <FontAwesomeIcon icon={faChevronRight} />
+      </li>
+      <li className="breadcrumb-item">
+        <button
+          onClick={() =>
+            navigate(`/tripguide/city/${city?.city_id}/restaurants`)
+          }
+          aria-label={`Go to restaurants in ${city?.name}`}
+        >
+          Restaurants in {city?.name || "City"}
+        </button>
+      </li>
+      <li className="breadcrumb-separator" aria-hidden="true">
+        <FontAwesomeIcon icon={faChevronRight} />
+      </li>
+      <li className="breadcrumb-item current" aria-current="page">
+        {restaurant.name}
+      </li>
+    </ol>
+  </nav>
+));
 
-        const cityRespone = await axios.get(
-          `${BASE_URL}/cities/${restaurantData.city_id}`
-        );
-        const cityData = cityRespone.data;
-        setCity(cityData);
+Breadcrumb.propTypes = {
+  city: PropTypes.shape({
+    city_id: PropTypes.number,
+    name: PropTypes.string,
+  }),
+  restaurant: PropTypes.shape({
+    name: PropTypes.string.isRequired,
+  }).isRequired,
+  navigate: PropTypes.func.isRequired,
+};
 
-        const restaurantRankRespone = await axios.get(
-          `${BASE_URL}/restaurants/rank/${restaurantId}`
-        );
-        const restaurantRankData = restaurantRankRespone.data;
-        setresRank(restaurantRankData);
-
-        const nearByRespone = await axios.get(
-          `${BASE_URL}/restaurants/topnearby/${restaurantId}`
-        );
-        const nearByData = nearByRespone.data.nearbyTopRestaurant;
-        setnearBy(nearByData);
-
-        console.log("nearByData:", nearByData);
-
-        const reviewResponse = await axios.get(
-          `${BASE_URL}/reviews/restaurant/${restaurantId}`
-        );
-        const reviewData = reviewResponse.data;
-        if (!Array.isArray(reviewData)) {
-          console.error("Lỗi: API reviews không trả về mảng", reviewData);
-          setReviews([]);
-          return;
-        }
-        const reviewsWithUser = await Promise.all(
-          reviewData.map(async (review) => {
-            const userResponse = await axios.get(
-              `${BASE_URL}/users/${review.user_id}`
-            );
-            //console.log(userResponse.data.username);
-            return { ...review, userName: userResponse.data.username };
-          })
-        );
-
-        setReviews(reviewsWithUser);
-        const currentUser = authService.getCurrentUser();
-        if (currentUser) {
-          setIsLoggedIn(true);
-          setUser(currentUser);
-        }
-        // console.log(user.user.username)
-        const userIdRespone = await axios.get(
-          `${BASE_URL}/users/email/${user.user.email}`
-        );
-        const userIdData = userIdRespone.data;
-        setUser_id(userIdData);
-        console.log(userIdData.user_id);
-
-        // Comment lại phần lấy reviews
-        /*
-                // Lấy danh sách reviews
-                const reviewResponse = await axios.get(`${BASE_URL}/reviews/${restaurantId}`);
-                const reviewData = reviewResponse.data; // Giả sử API reviews trả về mảng trực tiếp
-
-                if (!Array.isArray(reviewData)) {
-                    console.error("Lỗi: API reviews không trả về mảng", reviewData);
-                    setReviews([]);
-                    return;
-                }
-
-                // Lấy thông tin user cho mỗi review
-                const reviewsWithUser = await Promise.all(
-                    reviewData.map(async (review) => {
-                        const userResponse = await axios.get(`${BASE_URL}/users/${review.user_id}`);
-                        return { ...review, userName: userResponse.data.username };
-                    })
-                );
-                setReviews(reviewsWithUser);
-                */
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRestaurant();
-  }, [restaurantId]);
-
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error}</p>;
-  if (!restaurant) return <p>No restaurant found</p>;
-
-  const renderStars = (rating) => {
-    const fullStars = Math.floor(rating);
-    const halfStar = rating % 1 !== 0;
-    const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
-    return (
-      <>
-        {"★".repeat(fullStars)}
-        {halfStar && "☆"}
-        {"☆".repeat(emptyStars)}
-      </>
-    );
-  };
-
-  const handlenavigate_attraction = async (attraction_id) => {
-    try {
-      console.log("Attraction_id", attraction_id);
-      navigate(`/tripguide/foodpage/${attraction_id}`);
-    } catch (error) {
-      console.error("Lỗi khi gọi API:", error);
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (!comment.trim()) return;
-
-    try {
-      const response = await fetch(`${BASE_URL}/reviews`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          user_id: user_id?.user_id,
-          attraction_id: null,
-          restaurant_id: restaurant?.restaurant_id,
-          comment: comment.trim(),
-          rating: 5,
-          photos: null,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log(response.json);
-      console.log("Đã tạo review:", data);
-      alert("Đánh giá đã được gửi!");
-      setComment(""); // Reset form
-    } catch (error) {
-      console.error("Lỗi khi gửi review:", error);
-      alert("Có lỗi xảy ra. Vui lòng thử lại.");
-    }
-  };
-
-  const toggleSaveNearby = (id) => {
-    const updatedPlaces = nearbyPlaces.map((place) =>
-      place.id === id ? { ...place, saved: !place.saved } : place
-    );
-    setNearbyPlaces(updatedPlaces);
-  };
-
-  const toggleSaveRestaurant = () => {
-    setSaved(!saved);
-  };
-
-  return (
-    <div className="restaurant-container">
-      <nav className="breadcrumb">
-        <span>
-          Vietnam &gt; {city?.name} &gt; {city?.name} Restaurants &gt;{" "}
-          {restaurant.name}
+// RestaurantHeader Component (không thay đổi)
+const RestaurantHeader = React.memo(
+  ({
+    restaurant,
+    isVerified,
+    renderStars,
+    city,
+    resRank,
+    handleShareClick,
+    handleReviewClick,
+    savedRestaurants,
+    handleToggleSave,
+  }) => (
+    <header className="restaurant-header">
+      <div className="name-and-action">
+        <div className="name-container">
+          <h1>
+            {restaurant.name}
+            {isVerified && <span className="verified-badge">Verified</span>}
+          </h1>
+        </div>
+        <div className="restaurant-action">
+          <button
+            className="action-button share-restaurant"
+            onClick={handleShareClick}
+          >
+            <FontAwesomeIcon
+              icon={faSquareShareNodes}
+              className="action-icon"
+            />
+            <span>Share</span>
+          </button>
+          <button
+            className="action-button review-restaurant"
+            onClick={handleReviewClick}
+            aria-label="Write a review"
+          >
+            <FontAwesomeIcon icon={faPen} className="action-icon" />
+            <span>Review</span>
+          </button>
+          <button
+            className={`action-button save-restaurant ${
+              savedRestaurants[restaurant.restaurant_id] ? "saved" : ""
+            }`}
+            onClick={() => handleToggleSave(restaurant.restaurant_id)}
+            aria-label={
+              savedRestaurants[restaurant.restaurant_id]
+                ? "Remove from saved"
+                : "Save to favorites"
+            }
+          >
+            <FontAwesomeIcon
+              icon={
+                savedRestaurants[restaurant.restaurant_id]
+                  ? solidHeart
+                  : regularHeart
+              }
+              className="action-icon"
+            />
+            <span>Save</span>
+          </button>
+        </div>
+      </div>
+      <div className="restaurant-rating">
+        <div className="rating-stars">
+          {renderStars(restaurant.average_rating)}
+          <span className="rating-value">
+            {restaurant.average_rating?.toFixed(1) || "0.0"}
+          </span>
+        </div>
+        <span className="rating-count">
+          {restaurant.rating_total}{" "}
+          {restaurant.rating_total === 1 ? "review" : "reviews"}
         </span>
-      </nav>
+        {resRank && (
+          <span className="rating-rank">
+            #{resRank.rank} among restaurants in {city?.name || "City"}
+          </span>
+        )}
+      </div>
+    </header>
+  )
+);
 
-      <header className="restaurant-header">
-        <div className="name-and-action">
-          <h1>{restaurant.name}</h1>
-          <div className="restaurant-action">
-            <button className="share-restaurant">
-              <FontAwesomeIcon
-                icon={faSquareShareNodes}
-                className="share-icon"
-              />
-              Share
-            </button>
-            <a href="#restaurant-reviews">
-              <button className="review-restaurant">
-                <FontAwesomeIcon icon={faPen} className="review-icon" />
-                Review
-              </button>
-            </a>
-            <button
-              className={`save-restaurant ${saved ? "saved" : ""}`}
-              onClick={toggleSaveRestaurant}
+RestaurantHeader.propTypes = {
+  restaurant: PropTypes.object.isRequired,
+  isVerified: PropTypes.bool,
+  renderStars: PropTypes.func.isRequired,
+  city: PropTypes.object,
+  resRank: PropTypes.object,
+  handleShareClick: PropTypes.func.isRequired,
+  handleReviewClick: PropTypes.func.isRequired,
+  savedRestaurants: PropTypes.object.isRequired,
+  handleToggleSave: PropTypes.func.isRequired,
+};
+
+// RestaurantGallery Component (không thay đổi)
+const RestaurantGallery = React.memo(
+  ({
+    images,
+    activeImageIndex,
+    setActiveImageIndex,
+    isFullScreen,
+    setIsFullScreen,
+    restaurantName,
+  }) => {
+    const handlePrevImage = useCallback(() => {
+      setActiveImageIndex((prev) =>
+        prev === 0 ? images.length - 1 : prev - 1
+      );
+    }, [images.length, setActiveImageIndex]);
+
+    const handleNextImage = useCallback(() => {
+      setActiveImageIndex((prev) =>
+        prev === images.length - 1 ? 0 : prev + 1
+      );
+    }, [images.length, setActiveImageIndex]);
+
+    useEffect(() => {
+      if (images && images.length > 0) {
+        const link = document.createElement("link");
+        link.rel = "preload";
+        link.as = "image";
+        link.href = images[0];
+        document.head.appendChild(link);
+        return () => {
+          document.head.removeChild(link);
+        };
+      }
+    }, [images]);
+
+    return (
+      <div className="restaurant-gallery">
+        {images && images.length > 0 ? (
+          <>
+            <div
+              className="main-image-container"
+              onClick={() => setIsFullScreen(true)}
             >
-              <FontAwesomeIcon
-                icon={saved ? solidHeart : regularHeart}
-                className="save-restaurant-icon"
+              <img
+                src={images[activeImageIndex]}
+                alt={`${restaurantName} - Image ${activeImageIndex + 1}`}
+                className="main-image"
+                onError={(e) => (e.target.src = "/assets/fallback-image.jpg")}
+                srcSet={`${images[activeImageIndex]} 1x`}
+                sizes="100vw"
               />
-              {saved ? "Saved" : "Save"}
-            </button>
-          </div>
-        </div>
-        <div className="restaurant-rating">
-          <span className="rate-star">
-            {restaurant.average_rating} &gt;
-            {renderStars(restaurant.average_rating)}
-          </span>
-          <span className="rate-reviews">
-            {restaurant.rating_total} reviews
-          </span>
-          <span className="rate-rank">
-            #{resRank?.rank} of {city?.name}'s restaurant.
-          </span>
-        </div>
-      </header>
-
-      <div className="restaurant-images">
-        <img
-          src={restaurant.image_url[0]}
-          alt="Main Dish"
-          className="main-image"
-        />{" "}
-        {/* Lấy ảnh đầu tiên */}
-      </div>
-
-      <div className="restaurant-info">
-        <div className="location-info">
-          <h2>Overview</h2>
-          <p className="open-status">Open until {restaurant.close_time}</p>
-          <p className="location">📍 {restaurant.address}</p>
-
-          <h2>Location</h2>
-          {/* <div>
-                    <h2>Location</h2>
-                    {/* <div>
-                        <MapComponent address={restaurant.address} />
-                    </div> */}
-        </div>
-        <div className="hours-info">
-          <h2>Hours</h2>
-          <p className="open-status">Open until {restaurant.close_time}</p>
-          <table>
-            <tbody>
-              <tr>
-                <td>Sunday</td>
-                <td>
-                  {restaurant.open_time} - {restaurant.close_time}
-                </td>
-              </tr>
-              <tr>
-                <td>Monday</td>
-                <td>
-                  {restaurant.open_time} - {restaurant.close_time}
-                </td>
-              </tr>
-              <tr>
-                <td>Tuesday</td>
-                <td>
-                  {restaurant.open_time} - {restaurant.close_time}
-                </td>
-              </tr>
-              <tr>
-                <td>Wednesday</td>
-                <td>
-                  {restaurant.open_time} - {restaurant.close_time}
-                </td>
-              </tr>
-              <tr>
-                <td>Thursday</td>
-                <td>
-                  {restaurant.open_time} - {restaurant.close_time}
-                </td>
-              </tr>
-              <tr>
-                <td>Friday</td>
-                <td>
-                  {restaurant.open_time} - {restaurant.close_time}
-                </td>
-              </tr>
-              <tr>
-                <td>Saturday</td>
-                <td>
-                  {restaurant.open_time} - {restaurant.close_time}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div className="hours-info">
-        <h2>Hours</h2>
-        <p className="open-status">Open until {restaurant.close_time}</p>
-        <table>
-          <tbody>
-            <tr><td>Sunday</td><td>{restaurant.open_time} - {restaurant.close_time}</td></tr>
-            <tr><td>Monday</td><td>{restaurant.open_time} - {restaurant.close_time}</td></tr>
-            <tr><td>Tuesday</td><td>{restaurant.open_time} - {restaurant.close_time}</td></tr>
-            <tr><td>Wednesday</td><td>{restaurant.open_time} - {restaurant.close_time}</td></tr>
-            <tr><td>Thursday</td><td>{restaurant.open_time} - {restaurant.close_time}</td></tr>
-            <tr><td>Friday</td><td>{restaurant.open_time} - {restaurant.close_time}</td></tr>
-            <tr><td>Saturday</td><td>{restaurant.open_time} - {restaurant.close_time}</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      {/* Comment lại phần Reviews */}
-
-      < div className="reviews" >
-        <h2 id="restaurant-reviews">Reviews</h2>
-        <div className="reviews-div">
-          <div className="review-summary">
-            <span className="rate-star">
-              {renderStars(restaurant.average_rating)}
-            </span>
-            <div className="reviews-score">
-              <p>75 Excellent</p>
-              <p>66 Very Good</p>
-              <p>29 Average</p>
-              <p>8 Poor</p>
-              <p>3 Terrible</p>
+              <div className="image-counter">
+                {activeImageIndex + 1} / {images.length}
+              </div>
+              <button
+                className="fullscreen-button"
+                aria-label="View image in fullscreen"
+              >
+                <FontAwesomeIcon icon={faExpand} />
+              </button>
+              <div className="gallery-controls">
+                <button
+                  className="gallery-nav prev"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePrevImage();
+                  }}
+                  aria-label="Previous image"
+                >
+                  ‹
+                </button>
+                <button
+                  className="gallery-nav next"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleNextImage();
+                  }}
+                  aria-label="Next image"
+                >
+                  ›
+                </button>
+              </div>
             </div>
-          </div>
-          <div className="review-detail">
-            <div className="new-review">
-              <textarea
-                placeholder="Write new review..."
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-              />
-            </div>
-            <br />
-            <div className="submit-review">
-              <button onClick={handleSubmit}>Submit</button>
-            </div>
-            <div>
-              {reviews.length > 0 ? (
-                reviews.map((review, index) => (
-                  <div className="review" key={index}>
-                    <p className="review-title">
-                      <b>{review.userName}</b>
-                    </p>
-                    <p className="review-date">
-                      <i>{new Date(review.created_at).toDateString()}</i>
-                    </p>
-                    <p className="review-content">{review.comment}</p>
-                    <button>Read more</button>
-                  </div>
-                ))
-              ) : (
-                <p>No reviews available.</p>
-              )}
-            </div>
-          </div>
-        </div>
-      </div >
-
-      <div className="nearby">
-        <h2>Best nearby</h2>
-        <div className="picture-grid">
-          {nearBy?.map((place) => (
-            <div className="picture-item" key={place.id}>
-              <div className="item-image-container">
+            {isFullScreen && (
+              <div
+                className="fullscreen-gallery"
+                onClick={() => setIsFullScreen(false)}
+              >
                 <img
-                  src={place.image_url}
-                  alt={place.name}
-                  onClick={() => handlenavigate_attraction(place.restaurant_id)}
-                  style={{ cursor: "pointer" }}
+                  src={images[activeImageIndex]}
+                  alt={`${restaurantName} - Fullscreen Image ${
+                    activeImageIndex + 1
+                  }`}
+                  className="fullscreen-image"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") setIsFullScreen(false);
+                    if (e.key === "ArrowLeft") handlePrevImage();
+                    if (e.key === "ArrowRight") handleNextImage();
+                  }}
                 />
-                <div className="save-overlay">
+                <button
+                  className="close-fullscreen"
+                  aria-label="Close fullscreen"
+                >
+                  ×
+                </button>
+                <div className="fullscreen-controls">
                   <button
-                    className={`save-button-overlay ${place.saved ? "saved" : ""
-                      }`}
-                    onClick={() => toggleSaveNearby(place.id)}
+                    className="gallery-nav prev"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePrevImage();
+                    }}
+                    aria-label="Previous image"
                   >
-                    <FontAwesomeIcon
-                      icon={place.saved ? solidHeart : regularHeart}
-                      className="heart-icon-recent"
-                    />
+                    ‹
+                  </button>
+                  <button
+                    className="gallery-nav next"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleNextImage();
+                    }}
+                    aria-label="Next image"
+                  >
+                    ›
                   </button>
                 </div>
               </div>
-              <div className="item-text-content">
-                <p className="item-title">{place.name}</p>
-                <div className="item-rating">
-                  <span className="rating-score">{place.average_rating} </span>
-                  <span className="rating-dots">
-                    {renderStars(place.average_rating)}{" "}
-                  </span>
-                  <span className="review-count">{place.rating_total}</span>
+            )}
+            {images.length > 1 && (
+              <div className="thumbnail-gallery">
+                {images.map((img, idx) => (
+                  <div
+                    key={idx}
+                    className={`thumbnail ${
+                      activeImageIndex === idx ? "active" : ""
+                    }`}
+                    onClick={() => setActiveImageIndex(idx)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyPress={(e) => {
+                      if (e.key === "Enter" || e.key === " ")
+                        setActiveImageIndex(idx);
+                    }}
+                    aria-label={`Select image ${idx + 1}`}
+                  >
+                    <img
+                      src={img}
+                      alt={`${restaurantName} thumbnail ${idx + 1}`}
+                      loading="lazy"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="no-image">
+            <FontAwesomeIcon icon={faImages} className="no-image-icon" />
+            <p>No images available</p>
+          </div>
+        )}
+      </div>
+    );
+  }
+);
+
+RestaurantGallery.propTypes = {
+  images: PropTypes.arrayOf(PropTypes.string),
+  activeImageIndex: PropTypes.number.isRequired,
+  setActiveImageIndex: PropTypes.func.isRequired,
+  isFullScreen: PropTypes.bool.isRequired,
+  setIsFullScreen: PropTypes.func.isRequired,
+  restaurantName: PropTypes.string.isRequired,
+};
+
+// RestaurantContent Component (không thay đổi)
+const RestaurantContent = React.memo(
+  ({
+    restaurant,
+    city,
+    hoursInfo,
+    showHours,
+    setShowHours,
+    mapCenter,
+    mapError,
+    fetchRestaurant,
+  }) => {
+    const MapComponent = useCallback(() => {
+      if (mapError) {
+        return (
+          <div className="map-error" role="alert">
+            {mapError}
+            <button onClick={fetchRestaurant} aria-label="Retry loading map">
+              Retry
+            </button>
+          </div>
+        );
+      }
+      if (!mapCenter || !Array.isArray(mapCenter) || mapCenter.length !== 2) {
+        return (
+          <div className="map-error" role="alert">
+            Loading map...
+          </div>
+        );
+      }
+      return (
+        <OpenStreetMap
+          center={mapCenter}
+          zoom={15}
+          markers={[{ position: mapCenter, popup: restaurant.name }]}
+          height="400px"
+          width="100%"
+          showCurrentLocation
+        />
+      );
+    }, [mapCenter, mapError, fetchRestaurant, restaurant.name]);
+
+    return (
+      <div className="restaurant-content">
+        <div className="restaurant-info">
+          <section className="info-section">
+            <h2>
+              <FontAwesomeIcon icon={faCircleInfo} className="section-icon" />
+              About
+            </h2>
+            <div className="info-card">
+              <div className="description">
+                {restaurant.description ? (
+                  <p>{restaurant.description}</p>
+                ) : (
+                  <p className="no-content">No description available.</p>
+                )}
+              </div>
+              {restaurant.tags?.length > 0 && (
+                <div className="tags">
+                  {restaurant.tags.map((tag, idx) => (
+                    <span key={idx} className="tag">
+                      {tag}
+                    </span>
+                  ))}
                 </div>
+              )}
+              <div className="contact-details">
+                {restaurant.email && (
+                  <p>
+                    <strong>Email:</strong>{" "}
+                    <a href={`mailto:${restaurant.email}`}>
+                      {restaurant.email}
+                    </a>
+                  </p>
+                )}
+                {restaurant.website && (
+                  <p>
+                    <strong>Website:</strong>{" "}
+                    <a
+                      href={restaurant.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {restaurant.website}
+                    </a>
+                  </p>
+                )}
+                {restaurant.phone_number && (
+                  <p>
+                    <strong>Phone:</strong>{" "}
+                    <a href={`tel:${restaurant.phone_number}`}>
+                      {restaurant.phone_number}
+                    </a>
+                  </p>
+                )}
+                <p>
+                  <strong>Reservation:</strong>{" "}
+                  {restaurant.reservation_required
+                    ? "Required"
+                    : "Not required"}
+                </p>
+                <p>
+                  <strong>Status:</strong>{" "}
+                  {restaurant.status === "open" ? "Open" : "Closed"}
+                </p>
               </div>
             </div>
-          ))}
+          </section>
+          <section className="info-section">
+            <h2>
+              <FontAwesomeIcon icon={faLocationDot} className="section-icon" />
+              Location
+            </h2>
+            <p className="location-address">
+              {restaurant.address || "Address not available"}
+            </p>
+            <div className="map-container">
+              <MapComponent />
+            </div>
+          </section>
+          <section className="info-section">
+            <h2
+              className="collapsible-header"
+              onClick={() => setShowHours(!showHours)}
+              onKeyPress={(e) => {
+                if (e.key === "Enter" || e.key === " ")
+                  setShowHours(!showHours);
+              }}
+              tabIndex={0}
+              role="button"
+              aria-expanded={showHours}
+              aria-controls="hours-content"
+            >
+              Opening Hours {showHours ? "▲" : "▼"}
+            </h2>
+            <div
+              id="hours-content"
+              className={`hours-content ${showHours ? "open" : ""}`}
+            >
+              <p className="open-status">{hoursInfo.status}</p>
+              <table className="hours-table">
+                <tbody>
+                  {hoursInfo.formatted.map(({ day, hours }, idx) => (
+                    <tr
+                      key={idx}
+                      className={idx === new Date().getDay() ? "today" : ""}
+                    >
+                      <td>{day}</td>
+                      <td>{hours}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+        <div className="restaurant-sidebar">
+          <div className="quick-info">
+            <h3>Quick Info</h3>
+            <ul>
+              <li>
+                <strong>Location:</strong> {city?.name || "Unknown"}, Vietnam
+              </li>
+              <li>
+                <strong>Rating:</strong>{" "}
+                {restaurant.average_rating?.toFixed(1) || "0.0"}/5 (
+                {restaurant.rating_total} reviews)
+              </li>
+              {restaurant.tags?.length > 0 && (
+                <li>
+                  <strong>Cuisine:</strong> {restaurant.tags.join(", ")}
+                </li>
+              )}
+              <li>
+                <strong>Reservation:</strong>{" "}
+                {restaurant.reservation_required ? "Required" : "Not required"}
+              </li>
+              <li>
+                <strong>Status:</strong>{" "}
+                {restaurant.status === "open" ? "Open" : "Closed"}
+              </li>
+            </ul>
+            {restaurant.reservation_required && (
+              <button
+                className="book-now-button"
+                onClick={() =>
+                  window.open(
+                    restaurant.website || `mailto:${restaurant.email}`,
+                    "_blank"
+                  )
+                }
+              >
+                Book Now
+              </button>
+            )}
+          </div>
         </div>
       </div>
-    </div >
+    );
+  }
+);
+
+RestaurantContent.propTypes = {
+  restaurant: PropTypes.object.isRequired,
+  city: PropTypes.object,
+  hoursInfo: PropTypes.object.isRequired,
+  showHours: PropTypes.bool.isRequired,
+  setShowHours: PropTypes.func.isRequired,
+  mapCenter: PropTypes.array,
+  mapError: PropTypes.string,
+  fetchRestaurant: PropTypes.func.isRequired,
+};
+
+// ReviewsSection Component (không thay đổi)
+const ReviewsSection = React.memo(
+  ({
+    reviews,
+    restaurant,
+    renderStars,
+    formatDate,
+    reviewSort,
+    handleSortChange,
+    handleSubmitReview,
+    comment,
+    setComment,
+    rating,
+    setRating,
+    submitting,
+    error,
+    isLoggedIn,
+    navigate,
+  }) => (
+    <section id="review-section" className="reviews-section">
+      <h2>Reviews</h2>
+      <div className="reviews-container">
+        <div className="review-stats">
+          <div className="average-rating">
+            <span className="big-rating">
+              {restaurant.average_rating?.toFixed(1) || "0.0"}
+            </span>
+            <div className="rating-label">
+              {renderStars(restaurant.average_rating)}
+              <span>({restaurant.rating_total} reviews)</span>
+            </div>
+          </div>
+          <div className="rating-breakdown">
+            {[5, 4, 3, 2, 1].map((score) => (
+              <div key={score} className="rating-bar">
+                <span className="rating-label">
+                  {score === 5
+                    ? "Excellent"
+                    : score === 4
+                    ? "Very Good"
+                    : score === 3
+                    ? "Average"
+                    : score === 2
+                    ? "Poor"
+                    : "Very Poor"}
+                </span>
+                <div className="bar-container">
+                  <div
+                    className="bar"
+                    style={{
+                      width: `${
+                        reviews.filter((r) => Math.floor(r.rating) === score)
+                          .length * 10
+                      }%`,
+                    }}
+                  ></div>
+                </div>
+                <span className="count">
+                  {reviews.filter((r) => Math.floor(r.rating) === score).length}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="review-content">
+          <div className="reviews-list">
+            <div className="review-controls">
+              <label htmlFor="sort-reviews">Sort by:</label>
+              <select
+                id="sort-reviews"
+                value={reviewSort}
+                onChange={handleSortChange}
+              >
+                <option value="newest">Newest</option>
+                <option value="highest">Highest Rating</option>
+                <option value="lowest">Lowest Rating</option>
+              </select>
+            </div>
+            {reviews.length > 0 ? (
+              reviews.map((review, index) => (
+                <div
+                  className={`review-card ${
+                    review.isCurrentUser ? "current-user" : ""
+                  }`}
+                  key={index}
+                >
+                  <div className="review-header">
+                    <div className="reviewer-info">
+                      <img
+                        src={review.profilePic}
+                        alt={`Avatar of ${review.userName}`}
+                        className="reviewer-avatar"
+                        onError={(e) =>
+                          (e.target.src = "https://via.placeholder.com/40")
+                        }
+                      />
+                      <div>
+                        <h4>{review.userName}</h4>
+                        <span className="review-date">
+                          {formatDate(review.created_at)}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="review-rating">
+                      {renderStars(review.rating)}
+                    </div>
+                  </div>
+                  <div className="review-body">
+                    <p>{review.comment}</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="no-reviews">
+                <p>No reviews yet. Be the first to share!</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+);
+
+ReviewsSection.propTypes = {
+  reviews: PropTypes.array.isRequired,
+  restaurant: PropTypes.object.isRequired,
+  renderStars: PropTypes.func.isRequired,
+  formatDate: PropTypes.func.isRequired,
+  reviewSort: PropTypes.string.isRequired,
+  handleSortChange: PropTypes.func.isRequired,
+  handleSubmitReview: PropTypes.func.isRequired,
+  comment: PropTypes.string.isRequired,
+  setComment: PropTypes.func.isRequired,
+  rating: PropTypes.number.isRequired,
+  setRating: PropTypes.func.isRequired,
+  submitting: PropTypes.bool.isRequired,
+  error: PropTypes.string,
+  isLoggedIn: PropTypes.bool.isRequired,
+  navigate: PropTypes.func.isRequired,
+};
+
+// NearbySection Component (không thay đổi)
+const NearbySection = React.memo(
+  ({ nearbyRestaurants, navigate, city, renderStars }) => {
+    const [savedRestaurants, setSavedRestaurants] = useState({});
+
+    const handleToggleSave = useCallback((restaurantId) => {
+      setSavedRestaurants((prev) => ({
+        ...prev,
+        [restaurantId]: !prev[restaurantId],
+      }));
+      axios
+        .post(`${BASE_URL}/favorites`, { restaurant_id: restaurantId })
+        .catch((err) => console.error("Failed to save restaurant:", err));
+    }, []);
+
+    return (
+      <section className="nearby-section">
+        <h2>Featured Nearby</h2>
+        {nearbyRestaurants.length > 0 ? (
+          <div className="nearby-grid">
+            {nearbyRestaurants.slice(0, 4).map((place) => (
+              <LocationCard
+                key={place.restaurant_id}
+                item={{
+                  id: place.restaurant_id,
+                  name: place.name,
+                  image:
+                    place.image_url[0] || "https://via.placeholder.com/150",
+                  rating: place.average_rating,
+                  reviewCount: place.rating_total,
+                  tags:
+                    place.tags.length > 0
+                      ? place.tags.join(", ")
+                      : "No cuisines available",
+                }}
+                isSaved={!!savedRestaurants[place.restaurant_id]}
+                onToggleSave={() => handleToggleSave(place.restaurant_id)}
+                onClick={() =>
+                  navigate(`/tripguide/restaurant/${place.restaurant_id}`)
+                }
+                renderStars={renderStars}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="no-nearby">
+            <p>No nearby restaurants found.</p>
+          </div>
+        )}
+        {nearbyRestaurants.length > 4 && (
+          <button
+            className="view-more-button"
+            onClick={() =>
+              navigate(`/tripguide/city/${city?.city_id}/restaurants`)
+            }
+          >
+            View more nearby restaurants
+          </button>
+        )}
+      </section>
+    );
+  }
+);
+
+NearbySection.propTypes = {
+  nearbyRestaurants: PropTypes.array.isRequired,
+  navigate: PropTypes.func.isRequired,
+  city: PropTypes.object,
+  renderStars: PropTypes.func.isRequired,
+};
+
+// Main Restaurant Component
+const Restaurant = () => {
+  const navigate = useNavigate();
+  const {
+    restaurant,
+    city,
+    resRank,
+    nearbyRestaurants,
+    reviews,
+    isLoadingVisible, // Sử dụng isLoadingVisible thay vì loading
+    submitting,
+    error,
+    comment,
+    rating,
+    activeImageIndex,
+    isFullScreen,
+    mapCenter,
+    mapError,
+    showHours,
+    reviewSort,
+    isLoggedIn,
+    setComment,
+    setRating,
+    setActiveImageIndex,
+    setIsFullScreen,
+    setShowHours,
+    handleSortChange,
+    handleSubmitReview,
+    handleShareClick,
+    handleReviewClick,
+    fetchRestaurant,
+    renderStars,
+    formatDate,
+    hoursInfo,
+    savedRestaurants,
+    handleToggleSave,
+  } = useRestaurant();
+
+  if (isLoadingVisible) {
+    return <Loading message="Loading restaurant details..." />;
+  }
+
+  if (error || !restaurant) {
+    return (
+      <div className="error-container">
+        <h2>{error ? "An error occurred" : "Restaurant not found"}</h2>
+        <p>{error || "The requested restaurant could not be found."}</p>
+        <button
+          onClick={() => navigate(-1)}
+          aria-label="Go back to previous page"
+        >
+          Go back
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="restaurant-container">
+      <div className="sticky-action-bar">
+        <button
+          className="action-button share-restaurant"
+          onClick={handleShareClick}
+        >
+          <FontAwesomeIcon icon={faSquareShareNodes} className="action-icon" />
+          <span>Share</span>
+        </button>
+        <button
+          className="action-button review-restaurant"
+          onClick={handleReviewClick}
+          aria-label="Write a review for this restaurant"
+        >
+          <FontAwesomeIcon icon={faPen} className="action-icon" />
+          <span>Review</span>
+        </button>
+        <button
+          className={`action-button save-restaurant ${
+            savedRestaurants[restaurant.restaurant_id] ? "saved" : ""
+          }`}
+          onClick={() => handleToggleSave(restaurant.restaurant_id)}
+          aria-label={
+            savedRestaurants[restaurant.restaurant_id]
+              ? "Remove from saved"
+              : "Save to favorites"
+          }
+        >
+          <FontAwesomeIcon
+            icon={
+              savedRestaurants[restaurant.restaurant_id]
+                ? solidHeart
+                : regularHeart
+            }
+            className="action-icon"
+          />
+          <span>Save</span>
+        </button>
+      </div>
+
+      <Breadcrumb city={city} restaurant={restaurant} navigate={navigate} />
+      <RestaurantHeader
+        restaurant={restaurant}
+        renderStars={renderStars}
+        city={city}
+        resRank={resRank}
+        handleShareClick={handleShareClick}
+        handleReviewClick={handleReviewClick}
+        savedRestaurants={savedRestaurants}
+        handleToggleSave={handleToggleSave}
+      />
+      <RestaurantGallery
+        images={restaurant.image_url}
+        activeImageIndex={activeImageIndex}
+        setActiveImageIndex={setActiveImageIndex}
+        isFullScreen={isFullScreen}
+        setIsFullScreen={setIsFullScreen}
+        restaurantName={restaurant.name}
+      />
+      <RestaurantContent
+        restaurant={restaurant}
+        city={city}
+        hoursInfo={hoursInfo}
+        showHours={showHours}
+        setShowHours={setShowHours}
+        mapCenter={mapCenter}
+        mapError={mapError}
+        fetchRestaurant={fetchRestaurant}
+      />
+      <Suspense fallback={<Loading />}>
+        <ReviewsSection
+          reviews={reviews}
+          restaurant={restaurant}
+          renderStars={renderStars}
+          formatDate={formatDate}
+          reviewSort={reviewSort}
+          handleSortChange={handleSortChange}
+          handleSubmitReview={handleSubmitReview}
+          comment={comment}
+          setComment={setComment}
+          rating={rating}
+          setRating={setRating}
+          submitting={submitting}
+          error={error}
+          isLoggedIn={isLoggedIn}
+          navigate={navigate}
+        />
+        <NearbySection
+          nearbyRestaurants={nearbyRestaurants}
+          navigate={navigate}
+          city={city}
+          renderStars={renderStars}
+        />
+      </Suspense>
+    </div>
   );
 };
 

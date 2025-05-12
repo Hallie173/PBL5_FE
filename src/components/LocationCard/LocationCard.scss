@@ -1,105 +1,150 @@
-// Define variables locally or import from a global variables file
-$grid-gap: 20px;
-$card-border-radius: 12px;
+// Sync with Restaurant.scss variables
+$primary-color: #2d7a61;
+$secondary-color: #e67e22;
 $text-color: #333;
 $text-color-light: #555;
-$rating-color: #00aa6c;
+$card-background: #ffffff;
+$background-light: #f9f9f9;
+$card-border-radius: 12px;
+$shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+$transition: all 0.3s ease;
+
+// Lighten function for creating lighter shades
+@function lighten($color, $amount) {
+  @return mix(white, $color, $amount);
+}
 
 .picture-item {
   max-width: 280px;
-  text-align: left;
-  cursor: pointer;
-  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
-  background-color: #fff;
+  width: 100%;
+  background-color: $card-background;
   border-radius: $card-border-radius;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: $shadow;
   overflow: hidden;
+  cursor: pointer;
+  transition: $transition;
+  position: relative;
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-6px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 
     .item-image-container img {
-      transform: scale(1.03);
+      transform: scale(1.05);
     }
+  }
+
+  &:focus {
+    outline: 2px solid $primary-color;
+    outline-offset: 2px;
   }
 
   .item-image-container {
     position: relative;
     overflow: hidden;
+    background: $background-light;
+
+    img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+      background: linear-gradient(180deg, #f0f0f0, #e0e0e0);
+    }
 
     .save-overlay {
       position: absolute;
-      top: 10px;
-      right: 10px;
+      top: 12px;
+      right: 12px;
       z-index: 2;
 
       .save-button-overlay {
-        width: 36px;
-        height: 36px;
-        padding: 0;
+        width: 40px;
+        height: 40px;
         border-radius: 50%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
         background: rgba(255, 255, 255, 0.95);
         border: none;
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
         cursor: pointer;
-        transition: transform 0.2s ease, background-color 0.2s ease;
+        transition: $transition;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 
         &:hover {
-          transform: scale(1.08);
-          background-color: white;
+          transform: scale(1.1);
+          background: white;
         }
 
-        .heart-icon-recent {
-          font-size: 18px;
-          color: #333;
+        &.saved {
+          background: $primary-color;
+          animation: pulse 0.3s ease;
+
+          .heart-icon {
+            color: white;
+          }
         }
 
-        &.saved .heart-icon-recent {
-          color: #d32f2f;
+        .heart-icon {
+          font-size: 20px;
+          color: $text-color;
+          transition: color 0.3s ease;
         }
       }
     }
   }
 
-  img {
-    display: block;
-    width: 100%;
-    aspect-ratio: 4 / 3;
-    object-fit: cover;
-    transition: transform 0.35s ease;
-    background-color: #eee;
+  .item-text-content {
+    padding: 16px;
   }
 
-  .item-text-content {
-    padding: 12px 15px 15px 15px;
+  .item-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: $text-color;
+    margin: 0 0 8px 0;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: 2.8em;
   }
 
   .item-rating {
     display: flex;
     align-items: center;
-    font-size: 0.9rem;
-    color: $text-color-light;
+    gap: 8px;
     margin-bottom: 8px;
 
     .rating-score {
+      font-size: 1rem;
       font-weight: 600;
-      color: $text-color;
-      margin-right: 5px;
+      color: $primary-color;
     }
 
-    .rating-dots {
-      margin-right: 5px;
-      color: $rating-color;
-      line-height: 1;
+    .stars-wrapper {
+      display: flex;
+      align-items: center;
 
-      svg {
-        margin: 0 1px;
-        font-size: 0.85em;
-        vertical-align: baseline;
+      .star-icon {
+        font-size: 0.9rem;
+        margin-right: 2px;
+
+        &.filled {
+          color: $primary-color;
+          filter: drop-shadow(0 0 2px rgba(45, 122, 97, 0.3));
+        }
+
+        &.half {
+          color: $primary-color;
+        }
+
+        &.empty {
+          color: $text-color-light;
+        }
       }
     }
 
@@ -109,30 +154,49 @@ $rating-color: #00aa6c;
     }
   }
 
-  .item-category {
-    font-size: 0.8rem !important;
-    color: $text-color-light;
-    line-height: 1.3;
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    min-height: 1.3em;
+  .item-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+
+    .tag {
+      background: $primary-color; // Light green (~#b3d8cc)
+      color: white;
+      padding: 5px 10px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: $transition;
+      cursor: default;
+      line-height: 1.2;
+    }
+  }
+
+  // Animation for saved button
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.2);
+    }
+    100% {
+      transform: scale(1);
+    }
   }
 }
 
+// Responsive adjustments
+@media (max-width: 768px) {
+  .picture-item {
+    max-width: 100%;
 
-.item-title {
-  font-size: 1rem !important;
-  font-weight: 700;
-  color: $text-color;
-  margin: 0 0 6px 0;
-  line-height: 1.3;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-height: 2.6em;
+    .item-tags {
+      .tag {
+        font-size: 0.8rem;
+        padding: 4px 8px;
+      }
+    }
+  }
 }
