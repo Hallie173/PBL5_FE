@@ -29,6 +29,7 @@ const HomePage = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const { user, isLoggedIn } = useAuth();
+  const [ city, setCity] = useState([]);
 
   // Sample data
   const recentlyViewedItems = [
@@ -116,24 +117,32 @@ const HomePage = () => {
     },
   ];
 
-  // Fetch saved restaurants
-  // useEffect(() => {
-  //   if (isLoggedIn && user?.user_id) {
-  //     axios
-  //       .get(`${BASE_URL}/favorites?user_id=${user.user_id}`)
-  //       .then((response) => {
-  //         const saved = response.data.reduce((acc, item) => {
-  //           acc[item.restaurant_id] = true;
-  //           return acc;
-  //         }, {});
-  //         setSavedRestaurants(saved);
-  //       })
-  //       .catch((err) => {
-  //         console.error("Failed to fetch favorites:", err);
-  //         setError("Failed to load saved restaurants.");
-  //       });
-  //   }
-  // }, [isLoggedIn, user]);
+
+  useEffect(() => {
+
+    const fetchData = async () => {
+      const cityResponse = await axios.get(
+        `${BASE_URL}/cities`
+      );
+      setCity(cityResponse.data);
+    };
+    fetchData();
+    // if (isLoggedIn && user?.user_id) {
+    //   axios
+    //     .get(`${BASE_URL}/favorites?user_id=${user.user_id}`)
+    //     .then((response) => {
+    //       const saved = response.data.reduce((acc, item) => {
+    //         acc[item.restaurant_id] = true;
+    //         return acc;
+    //       }, {});
+    //       setSavedRestaurants(saved);
+    //     })
+    //     .catch((err) => {
+    //       console.error("Failed to fetch favorites:", err);
+    //       setError("Failed to load saved restaurants.");
+    //     });
+    // }
+  }, [isLoggedIn, user]);
 
   // Render star ratings (copied from useRestaurant.js for consistency)
   const renderStars = useCallback((rating) => {
@@ -150,16 +159,15 @@ const HomePage = () => {
               star <= Math.floor(numRating)
                 ? solidStar
                 : star === Math.ceil(numRating) && !Number.isInteger(numRating)
-                ? faStarHalfStroke
-                : regularStar
+                  ? faStarHalfStroke
+                  : regularStar
             }
-            className={`star-icon ${
-              star <= Math.floor(numRating)
+            className={`star-icon ${star <= Math.floor(numRating)
                 ? "filled"
                 : star === Math.ceil(numRating) && !Number.isInteger(numRating)
-                ? "half"
-                : "empty"
-            }`}
+                  ? "half"
+                  : "empty"
+              }`}
           />
         ))}
       </div>

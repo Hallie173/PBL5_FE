@@ -7,6 +7,7 @@ const Form = () => {
 
 
     const [selectedTags, setSelectedTags] = useState([]);
+    const [selectedResTags, setSelectedResTags] = useState([]);
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [city, setCity] = useState([]);
@@ -24,11 +25,21 @@ const Form = () => {
         Nature: ['beach', 'mountain', 'cave'],
         'Culture & History': ['museum', 'historical site', 'church'],
         Activity: ['hiking', 'swimming', 'camping'],
-        Restaurant: ['seafood', 'local specialities', 'Buffet'],
     };
+    const restagCategories = {
+        Restaurant: ['seafood', 'local specialities', 'Buffet'],
+    }
 
     const toggleTag = (tag) => {
         setSelectedTags(prev =>
+            prev.includes(tag)
+                ? prev.filter(t => t !== tag)
+                : [...prev, tag]
+        );
+    };
+
+    const res_toggleTag = (tag) => {
+        setSelectedResTags(prev =>
             prev.includes(tag)
                 ? prev.filter(t => t !== tag)
                 : [...prev, tag]
@@ -104,14 +115,33 @@ const Form = () => {
                             </div>
                         ))}
                     </div>
+                    <div className="place-search">
+                        {Object.entries(restagCategories).map(([type, tags]) => (
+                            <div key={type} className="tag-type-group">
+                                <div className="type-title">{type}:</div>
+                                <div className="tags">
+                                    {tags.map(tag => (
+                                        <div
+                                            key={tag}
+                                            className={`tag ${selectedResTags.includes(tag) ? 'selected' : ''}`}
+                                            onClick={() => res_toggleTag(tag)}
+                                        >
+                                            {tag}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
                 </div>
             </div>
             <div className="form-footer">
                 <div className="next-button">
-                    <Link to="/tripguide/newtrip" state={{ selectedTags, startDate, endDate, selectedCity }}>Next</Link>
+                    <Link to="/tripguide/newtrip" state={{ selectedTags, startDate, endDate, selectedCity, selectedResTags }}>Next</Link>
                 </div>
                 <div className="selected-tags">
-                    <strong>Selected Tags:</strong> {selectedCity}
+                    <strong>Selected Tags:</strong> {selectedResTags}
                 </div>
             </div>
         </div>
