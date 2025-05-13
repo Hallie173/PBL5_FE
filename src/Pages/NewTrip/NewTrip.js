@@ -25,15 +25,15 @@ function NewTrip() {
         setLoading(true);
         const fetchData = async () => {
             try {
-                
+                console.log("tags", selectedTags);
+                console.log("res", selectedResTags);
                 const startTime = "09:00";
-                const endTime = "20:00";
+                const endTime = "15:00";
                 console.log(selectedCity);
                 const tagParams = selectedTags.map(tag => `tags=${tag}`).join('&');
                 const restagParams = selectedResTags.map(tag => `${tag}`).join('&');
-                
-                
                 const url = `${BASE_URL}/attractions/tags?city=${selectedCity}&${tagParams}&startTime=${startTime}&endTime=${endTime}&res_tag=${restagParams}`;
+                //const url = `${BASE_URL}/attractions/tags?city=${selectedCity}&${tagParams}&startTime=${startTime}&endTime=${endTime}`;
 
                 const Itiresponse = await axios.get(url);
                 console.log('URL used:', url); // debug
@@ -62,7 +62,24 @@ function NewTrip() {
         fetchData();
     }, [])
 
-    
+    // const addNewAttraction = async (attraction, arrival_time, depature_time) => {
+    //     const attractionRespone = await axios.get(`${BASE_URL}/attraction/name/${attraction}/cityid/${selectedCity}`);
+    //     const newAttraction = attractionRespone.data;
+    //     itineraryData.push({
+    //         type: "attraction",
+    //         name: attraction,
+    //         arrival_time: minutesToTime(arrival_time),
+    //         departure_time: minutesToTime(depature_time),
+    //         duration_minutes: visit,
+    //         travel_from_prev_minutes: Math.round(travel),
+    //         average_rating: curr.average_rating,
+    //         rating_total: curr.rating_total,
+    //         tags: curr.tags,
+    //         image_url: curr.image_url,
+    //         latitude: curr.latitude,
+    //         longitude: curr.longitude,
+    //     })
+    // }
 
     return (
         <div className="new-trip-container">
