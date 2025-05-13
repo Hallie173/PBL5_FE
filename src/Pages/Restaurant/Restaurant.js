@@ -524,16 +524,6 @@ const RestaurantContent = React.memo(
                 <strong>Location:</strong> {city?.name || "Unknown"}, Vietnam
               </li>
               <li>
-                <strong>Rating:</strong>{" "}
-                {restaurant.average_rating?.toFixed(1) || "0.0"}/5 (
-                {restaurant.rating_total} reviews)
-              </li>
-              {restaurant.tags?.length > 0 && (
-                <li>
-                  <strong>Cuisine:</strong> {restaurant.tags.join(", ")}
-                </li>
-              )}
-              <li>
                 <strong>Reservation:</strong>{" "}
                 {restaurant.reservation_required ? "Required" : "Not required"}
               </li>

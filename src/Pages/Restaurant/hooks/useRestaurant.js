@@ -39,22 +39,48 @@ const fetchRestaurantDetails = async (restaurantId) => {
       fetchWithRetry(`${BASE_URL}/reviews/restaurant/${restaurantId}`),
     ]);
 
-    // Helper function to normalize tags to cuisines only
-    const normalizeTags = (tags) => {
-      return tags?.cuisines || [];
-    };
-
     // Helper function to normalize rating
     const normalizeRating = (rating) => {
       const parsed = parseFloat(rating);
       return isNaN(parsed) ? 0 : parsed;
     };
 
-    // Normalize tags and rating for main restaurant
-    const normalizedRestaurantTags = normalizeTags(restaurantData.tags);
+    // Helper function to normalize tags
+    const normalizeTags = (tags) => {
+      if (!tags) return [];
+      if (Array.isArray(tags)) return tags;
+      if (typeof tags === "string") {
+        try {
+          const parsed = JSON.parse(tags);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+          console.error("Failed to parse tags:", e);
+          return [];
+        }
+      }
+      return [];
+    };
+
+    // Normalize rating for main restaurant
     const normalizedRestaurantRating = normalizeRating(
       restaurantData.average_rating
     );
+
+    // Normalize tags and rating for main restaurant
+    const normalizedRestaurant = {
+      ...restaurantData,
+      hours:
+        typeof restaurantData.hours === "string"
+          ? JSON.parse(restaurantData.hours)
+          : restaurantData.hours || {},
+      average_rating: normalizedRestaurantRating,
+      image_url: Array.isArray(restaurantData.image_url)
+        ? restaurantData.image_url
+        : [],
+      rating_total: restaurantData.rating_total || 0,
+      tags: normalizeTags(restaurantData.tags),
+      status: restaurantData.status || "unknown",
+    };
 
     // Normalize tags and rating for nearbyRestaurants
     const normalizedNearby = nearbyData.nearbyTopRestaurant.map(
@@ -66,20 +92,7 @@ const fetchRestaurantDetails = async (restaurantId) => {
     );
 
     return {
-      restaurant: {
-        ...restaurantData,
-        hours:
-          typeof restaurantData.hours === "string"
-            ? JSON.parse(restaurantData.hours)
-            : restaurantData.hours || {},
-        average_rating: normalizedRestaurantRating,
-        image_url: Array.isArray(restaurantData.image_url)
-          ? restaurantData.image_url
-          : [],
-        rating_total: restaurantData.rating_total || 0,
-        tags: normalizedRestaurantTags,
-        status: restaurantData.status || "unknown",
-      },
+      restaurant: normalizedRestaurant,
       city: cityData,
       resRank: rankData,
       nearbyRestaurants: normalizedNearby,
@@ -98,7 +111,6 @@ const useRestaurant = () => {
   const { id: restaurantId } = useParams();
   const { user, isLoggedIn } = useAuth();
   const navigate = useNavigate();
-  const [reviewForm, setReviewForm] = useState({ comment: "", rating: 5 });
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [mapCenter, setMapCenter] = useState(null);
@@ -108,7 +120,7 @@ const useRestaurant = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [savedRestaurants, setSavedRestaurants] = useState({});
-  const [isLoadingVisible, setIsLoadingVisible] = useState(false); // Thêm state cho loading
+  const [isLoadingVisible, setIsLoadingVisible] = useState(false);
 
   const {
     data,
@@ -137,14 +149,13 @@ const useRestaurant = () => {
   useEffect(() => {
     let timeout;
     if (isLoading) {
-      setIsLoadingVisible(true); // Hiển thị Loading ngay khi bắt đầu fetch
+      setIsLoadingVisible(true);
     } else {
-      // Chỉ ẩn Loading sau ít nhất 500ms
       timeout = setTimeout(() => {
         setIsLoadingVisible(false);
       }, 500);
     }
-    return () => clearTimeout(timeout); // Xóa timeout khi component unmount
+    return () => clearTimeout(timeout);
   }, [isLoading]);
 
   // Fetch geocode for map
@@ -230,34 +241,6 @@ const useRestaurant = () => {
       </div>
     );
   }, []);
-
-  // Submit a new review
-  const handleSubmitReview = useCallback(async () => {
-    if (!reviewForm.comment.trim()) {
-      setError("Please enter a comment before submitting.");
-      return;
-    }
-    if (!isLoggedIn) {
-      navigate("/login");
-      return;
-    }
-    setSubmitting(true);
-    try {
-      await axios.post(`${BASE_URL}/reviews`, {
-        user_id: user?.user_id,
-        restaurant_id: restaurant?.restaurant_id,
-        comment: reviewForm.comment.trim(),
-        rating: reviewForm.rating,
-      });
-      setReviewForm({ comment: "", rating: 5 });
-      setError(null);
-      refetch();
-    } catch (err) {
-      setError("Failed to submit review: " + err.message);
-    } finally {
-      setSubmitting(false);
-    }
-  }, [isLoggedIn, navigate, restaurant, reviewForm, user, refetch]);
 
   // Share restaurant link
   const handleShareClick = useCallback(() => {
@@ -414,12 +397,10 @@ const useRestaurant = () => {
     resRank,
     nearbyRestaurants,
     reviews: sortedReviews,
-    loading: isLoading, // Giữ lại để tương thích với code cũ
-    isLoadingVisible, // Thêm để điều khiển Loading với độ trễ
+    loading: isLoading,
+    isLoadingVisible,
     submitting,
     error: error || queryError?.message,
-    comment: reviewForm.comment,
-    rating: reviewForm.rating,
     activeImageIndex,
     isFullScreen,
     mapCenter,
@@ -427,14 +408,10 @@ const useRestaurant = () => {
     showHours,
     reviewSort,
     isLoggedIn,
-    setComment: (value) =>
-      setReviewForm((prev) => ({ ...prev, comment: value })),
-    setRating: (value) => setReviewForm((prev) => ({ ...prev, rating: value })),
     setActiveImageIndex,
     setIsFullScreen,
     setShowHours,
     handleSortChange,
-    handleSubmitReview,
     handleShareClick,
     handleReviewClick,
     fetchRestaurant: refetch,

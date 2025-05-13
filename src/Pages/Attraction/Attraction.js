@@ -556,15 +556,6 @@ const AttractionInfo = React.memo(
               <li>
                 <strong>Location:</strong> {city?.name || "Unknown"}, Vietnam
               </li>
-              <li>
-                <strong>Rating:</strong>{" "}
-                {Number(attraction.average_rating).toFixed(1)}/5
-              </li>
-              {attraction.tags?.length > 0 && (
-                <li>
-                  <strong>Type:</strong> {attraction.tags.join(", ")}
-                </li>
-              )}
             </ul>
             {attraction.website && (
               <button
