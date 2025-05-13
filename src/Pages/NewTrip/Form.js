@@ -161,14 +161,13 @@ const Form = () => {
                       filteredTags(tags).map((tag) => (
                         <div
                           key={tag}
-                          className={`tag ${
-                            (type === "Restaurant"
+                          className={`tag ${(type === "Restaurant"
                               ? selectedResTags
                               : selectedTags
                             ).includes(tag)
                               ? "selected"
                               : ""
-                          }`}
+                            }`}
                           onClick={() => toggleTag(tag, type)}
                         >
                           {tag}
@@ -176,8 +175,8 @@ const Form = () => {
                             ? selectedResTags
                             : selectedTags
                           ).includes(tag) && (
-                            <FaCheck className="selected-icon" />
-                          )}
+                              <FaCheck className="selected-icon" />
+                            )}
                         </div>
                       ))
                     ) : (
