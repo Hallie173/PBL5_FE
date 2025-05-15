@@ -6,15 +6,15 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faStar as solidStar,
   faStarHalfStroke,
+  faStar as regularStar,
 } from "@fortawesome/free-solid-svg-icons";
-import { faStar as regularStar } from "@fortawesome/free-regular-svg-icons";
 import axios from "axios";
 import LocationCard from "../../components/LocationCard/LocationCard";
 import { useAuth } from "../../contexts/AuthContext";
 import BASE_URL from "../../constants/BASE_URL";
 import trendcast from "../../views/trendcast.png";
+import useFavorites from "../../hooks/useFavorites";
 
-// Hình ảnh tĩnh (giữ nguyên hoặc thay bằng URL từ API)
 import golemcafe from "../../assets/images/FoodDrink/golemcafe.png";
 import marblemountains from "../../assets/images/Cities/marblemountains.png";
 import danangmuseum from "../../assets/images/Cities/danangmuseum.png";
@@ -24,7 +24,6 @@ import banhxeobaduong from "../../assets/images/FoodDrink/banhxeobaduong.png";
 import madamelan from "../../assets/images/FoodDrink/madamelan.png";
 import quancomhuengon from "../../assets/images/FoodDrink/quancomhuengon.png";
 
-// Mapping ID với hình ảnh (nếu không lấy từ API)
 const imageMap = {
   1: golemcafe,
   2: marblemountains,
@@ -38,7 +37,6 @@ const imageMap = {
 
 const HomePage = () => {
   const [searchText, setSearchText] = useState("");
-  const [savedRestaurants, setSavedRestaurants] = useState({});
   const [recentlyViewedItems, setRecentlyViewedItems] = useState([]);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [error, setError] = useState(null);
@@ -46,44 +44,65 @@ const HomePage = () => {
   const { user, isLoggedIn } = useAuth();
   const [city, setCity] = useState([]);
 
-  // Lấy danh sách Recently Viewed
+  const {
+    favorites,
+    isFavoritesLoading,
+    favoritesError,
+    createFavorite,
+    deleteFavorite,
+  } = useFavorites(user?.user_id, isLoggedIn);
+
+  useEffect(() => {
+    console.log("Auth:", { user, isLoggedIn }); // Debug
+    console.log("Favorites:", favorites); // Debug
+  }, [user, isLoggedIn, favorites]);
+
   useEffect(() => {
     const fetchRecentlyViewed = async () => {
       try {
         let recentItems = [];
-
-        // Nếu đã đăng nhập, lấy từ API
         if (isLoggedIn && user?.user_id) {
           const response = await axios.get(
             `${BASE_URL}/recently-viewed?user_id=${user.user_id}`
           );
-          recentItems = response.data.slice(0, 4); // Giới hạn 4 mục
+          recentItems = response.data;
         } else {
-          // Nếu chưa đăng nhập, lấy từ localStorage
           recentItems = JSON.parse(
             localStorage.getItem("recentlyViewedItems") || "[]"
           );
         }
 
-        // Đảm bảo dữ liệu hợp lệ
-        recentItems = recentItems.filter(
-          (item) =>
-            item.id &&
-            item.name &&
-            item.type &&
-            (item.type === "restaurant" || item.type === "attraction")
-        );
+        // Lọc các item hợp lệ và loại bỏ trùng lặp
+        const uniqueItemsMap = new Map();
+        recentItems
+          .filter(
+            (item) =>
+              item.id &&
+              item.name &&
+              item.type &&
+              (item.type === "restaurant" || item.type === "attraction")
+          )
+          .forEach((item) => {
+            const key = `${item.type}-${item.id}`;
+            // Chỉ giữ item mới nhất cho mỗi cặp type-id
+            if (!uniqueItemsMap.has(key)) {
+              uniqueItemsMap.set(key, {
+                ...item,
+                restaurant_id:
+                  item.type === "restaurant" ? item.id : item.restaurant_id,
+                attraction_id:
+                  item.type === "attraction" ? item.id : item.attraction_id,
+                image:
+                  item.image ||
+                  imageMap[item.id] ||
+                  "https://via.placeholder.com/150",
+              });
+            }
+          });
 
-        // Ánh xạ hình ảnh nếu cần (tùy thuộc vào API của bạn)
-        recentItems = recentItems.map((item) => ({
-          ...item,
-          image:
-            item.image ||
-            imageMap[item.id] ||
-            "https://via.placeholder.com/150",
-        }));
-
-        setRecentlyViewedItems(recentItems);
+        // Chuyển Map thành array và giới hạn 4 item
+        const uniqueItems = Array.from(uniqueItemsMap.values()).slice(0, 4);
+        setRecentlyViewedItems(uniqueItems);
       } catch (err) {
         console.error("Failed to fetch recently viewed items:", err);
         setError("Failed to load recently viewed items.");
@@ -93,7 +112,19 @@ const HomePage = () => {
     fetchRecentlyViewed();
   }, [isLoggedIn, user]);
 
-  // Giữ nguyên recommendedItems (mảng tĩnh)
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const cityResponse = await axios.get(`${BASE_URL}/cities`);
+        setCity(cityResponse.data);
+      } catch (err) {
+        console.error("Failed to fetch cities:", err);
+        setError("Failed to load cities.");
+      }
+    };
+    fetchData();
+  }, []);
+
   const recommendedItems = [
     {
       id: 5,
@@ -116,14 +147,14 @@ const HomePage = () => {
       type: "restaurant",
     },
     {
-      id: 7,
-      restaurant_id: 7,
-      name: "Madame Lân",
-      image: madamelan,
-      rating: 4.0,
-      reviewCount: 4321,
-      tags: ["Restaurants", "Vietnamese"],
-      type: "restaurant",
+      id: 2,
+      attraction_id: 2,
+      name: "Marble Mountains",
+      image: marblemountains,
+      rating: 4.2,
+      reviewCount: 2345,
+      tags: ["Attractions", "Nature"],
+      type: "attraction",
     },
     {
       id: 8,
@@ -136,29 +167,6 @@ const HomePage = () => {
       type: "restaurant",
     },
   ];
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const cityResponse = await axios.get(`${BASE_URL}/cities`);
-      setCity(cityResponse.data);
-    };
-    fetchData();
-    // if (isLoggedIn && user?.user_id) {
-    //   axios
-    //     .get(`${BASE_URL}/favorites?user_id=${user.user_id}`)
-    //     .then((response) => {
-    //       const saved = response.data.reduce((acc, item) => {
-    //         acc[item.restaurant_id] = true;
-    //         return acc;
-    //       }, {});
-    //       setSavedRestaurants(saved);
-    //     })
-    //     .catch((err) => {
-    //       console.error("Failed to fetch favorites:", err);
-    //       setError("Failed to load saved restaurants.");
-    //     });
-    // }
-  }, [isLoggedIn, user]);
 
   const renderStars = useCallback((rating) => {
     const numRating = parseFloat(rating);
@@ -190,51 +198,56 @@ const HomePage = () => {
     );
   }, []);
 
-  // Toggle save state (giữ nguyên)
   const toggleSave = useCallback(
-    async (restaurantId) => {
+    (item) => {
       if (!isLoggedIn) {
         navigate("/login");
+        showNotification("Please log in to save this location!");
         return;
       }
-      try {
-        if (savedRestaurants[restaurantId]) {
-          await axios.delete(`${BASE_URL}/favorites/${restaurantId}`);
-          setSavedRestaurants((prev) => {
-            const newSaved = { ...prev };
-            delete newSaved[restaurantId];
-            return newSaved;
-          });
+
+      const { id, type } = item;
+      console.log("Toggling save:", { item, favorites });
+      const isFavorite = favorites.some(
+        (fav) =>
+          (type === "restaurant" && String(fav.restaurant_id) === String(id)) ||
+          (type === "attraction" && String(fav.attraction_id) === String(id))
+      );
+
+      if (isFavorite) {
+        const favorite = favorites.find(
+          (fav) =>
+            (type === "restaurant" &&
+              String(fav.restaurant_id) === String(id)) ||
+            (type === "attraction" && String(fav.attraction_id) === String(id))
+        );
+        if (favorite) {
+          deleteFavorite(favorite.favorite_id);
         } else {
-          await axios.post(`${BASE_URL}/favorites`, {
-            user_id: user?.user_id,
-            restaurant_id: restaurantId,
-          });
-          setSavedRestaurants((prev) => ({
-            ...prev,
-            [restaurantId]: true,
-          }));
+          console.error("Favorite not found for deletion");
         }
-      } catch (err) {
-        setError("Failed to update favorites: " + err.message);
-        showNotification("Failed to save restaurant. Please try again.");
+      } else {
+        createFavorite({
+          userId: user.user_id,
+          attractionId: type === "attraction" ? id : undefined,
+          restaurantId: type === "restaurant" ? id : undefined,
+        });
       }
     },
-    [isLoggedIn, navigate, savedRestaurants, user]
+    [isLoggedIn, navigate, favorites, user, createFavorite, deleteFavorite]
   );
 
-  // Handle item click with type-based routing (cập nhật để hỗ trợ attraction)
   const handleItemClick = useCallback(
     (item) => {
       if (item.type === "restaurant") {
         navigate(`/tripguide/restaurant/${item.restaurant_id || item.id}`);
       } else if (item.type === "attraction") {
-        navigate(`/tripguide/attraction/${item.id}`);
+        navigate(`/tripguide/attraction/${item.attraction_id || item.id}`);
       }
     },
     [navigate]
   );
-  // Giữ nguyên handleSearch, showNotification, handleKeyPress
+
   const handleSearch = async () => {
     if (!searchText.trim()) return;
     try {
@@ -267,7 +280,6 @@ const HomePage = () => {
 
   return (
     <div className="homepage">
-      {/* Search Section */}
       <div className="search-container">
         <h1 className="search-title">Ready for a perfect trip?</h1>
         <div className={`search-box ${isSearchFocused ? "focused" : ""}`}>
@@ -286,9 +298,12 @@ const HomePage = () => {
           </button>
         </div>
         {error && <div className="error-message">{error}</div>}
+        {favoritesError && (
+          <div className="error-message">{favoritesError.message}</div>
+        )}
+        {isFavoritesLoading && <div>Loading favorites...</div>}
       </div>
 
-      {/* Featured Image */}
       <div className="featured-container">
         <img src={trendcast} alt="Featured" className="featured-image" />
         <div className="featured-overlay">
@@ -300,43 +315,68 @@ const HomePage = () => {
 
       <hr />
 
-      {/* Recently Viewed Section */}
       <div className="content-section">
         <h2 className="section-title">Recently viewed</h2>
         <p className="section-subtitle">Places you explored</p>
         {recentlyViewedItems.length > 0 ? (
           <div className="picture-grid">
-            {recentlyViewedItems.map((item) => (
-              <LocationCard
-                key={item.id}
-                item={item}
-                isSaved={!!savedRestaurants[item.restaurant_id]}
-                onToggleSave={() => toggleSave(item.restaurant_id)}
-                onClick={() => handleItemClick(item)}
-                renderStars={renderStars}
-              />
-            ))}
+            {recentlyViewedItems.map((item) => {
+              const isSaved = favorites.some(
+                (fav) =>
+                  (item.type === "restaurant" &&
+                    String(fav.restaurant_id) ===
+                      String(item.restaurant_id || item.id)) ||
+                  (item.type === "attraction" &&
+                    String(fav.attraction_id) ===
+                      String(item.attraction_id || item.id))
+              );
+              console.log("Rendering LocationCard:", { item, isSaved });
+              return (
+                <LocationCard
+                  key={`${item.type}-${item.id}`}
+                  item={item}
+                  isSaved={isSaved}
+                  onToggleSave={() => toggleSave(item)}
+                  onClick={() => handleItemClick(item)}
+                  renderStars={renderStars}
+                />
+              );
+            })}
           </div>
         ) : (
           <p>No recently viewed items.</p>
         )}
       </div>
 
-      {/* Recommended Section */}
       <div className="content-section">
         <h2 className="section-title">You might like these</h2>
         <p className="section-subtitle">More things to do in Da Nang</p>
         <div className="picture-grid">
-          {recommendedItems.map((item) => (
-            <LocationCard
-              key={item.id}
-              item={item}
-              isSaved={!!savedRestaurants[item.restaurant_id]}
-              onToggleSave={() => toggleSave(item.restaurant_id)}
-              onClick={() => handleItemClick(item)}
-              renderStars={renderStars}
-            />
-          ))}
+          {recommendedItems.map((item) => {
+            const isSaved = favorites.some(
+              (fav) =>
+                (item.type === "restaurant" &&
+                  String(fav.restaurant_id) ===
+                    String(item.restaurant_id || item.id)) ||
+                (item.type === "attraction" &&
+                  String(fav.attraction_id) ===
+                    String(item.attraction_id || item.id))
+            );
+            console.log("Rendering Recommended LocationCard:", {
+              item,
+              isSaved,
+            });
+            return (
+              <LocationCard
+                key={`${item.type}-${item.id}`}
+                item={item}
+                isSaved={isSaved}
+                onToggleSave={() => toggleSave(item)}
+                onClick={() => handleItemClick(item)}
+                renderStars={renderStars}
+              />
+            );
+          })}
         </div>
       </div>
     </div>

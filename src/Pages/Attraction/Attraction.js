@@ -17,8 +17,8 @@ import {
   faHeart,
   faImages,
   faExpand,
-  faStar as solidStar,
-  faStar as regularStar,
+  // faStar as solidStar,
+  // faStar as regularStar,
 } from "@fortawesome/free-solid-svg-icons";
 import OpenStreetMap from "../../components/OpenStreetMap/OpenStreetMap";
 import useAttraction from "./hooks/useAttraction";
@@ -27,27 +27,7 @@ import Loading from "../../components/Loading/Loading";
 import { useAuth } from "../../contexts/AuthContext";
 import axios from "axios";
 import BASE_URL from "../../constants/BASE_URL";
-// Skeleton Loader Component
-// const SkeletonLoader = () => (
-//   <div className="skeleton-loader">
-//     <div
-//       className="skeleton-header"
-//       style={{ height: "100px", background: "#eee" }}
-//     ></div>
-//     <div
-//       className="skeleton-gallery"
-//       style={{ height: "500px", background: "#eee" }}
-//     ></div>
-//     <div
-//       className="skeleton-info"
-//       style={{ height: "300px", background: "#eee" }}
-//     ></div>
-//     <div
-//       className="skeleton-reviews"
-//       style={{ height: "400px", background: "#eee" }}
-//     ></div>
-//   </div>
-// );
+import useFavorites from "../../hooks/useFavorites";
 
 // Error Message Component
 const ErrorMessage = ({ error }) => {
@@ -65,8 +45,8 @@ const ErrorMessage = ({ error }) => {
 const AttractionHeader = ({
   attraction,
   city,
-  saved,
-  handleSaveToggle,
+  isFavorite,
+  handleToggleSave,
   handleShareClick,
   handleReviewClick,
   renderStars,
@@ -135,12 +115,14 @@ const AttractionHeader = ({
             <span>Review</span>
           </button>
           <button
-            className={`action-button save-attraction ${saved ? "saved" : ""}`}
-            onClick={handleSaveToggle}
-            aria-label={saved ? "Remove from saved" : "Save attraction"}
+            className={`action-button save-attraction ${
+              isFavorite ? "saved" : ""
+            }`}
+            onClick={handleToggleSave}
+            aria-label={isFavorite ? "Remove from saved" : "Save attraction"}
           >
             <FontAwesomeIcon icon={faHeart} className="action-icon" />
-            <span>{saved ? "Saved" : "Save"}</span>
+            <span>{isFavorite ? "Saved" : "Save"}</span>
           </button>
         </div>
       </div>
@@ -159,10 +141,6 @@ const AttractionHeader = ({
     </header>
   );
 };
-// (prevProps, nextProps) =>
-//   prevProps.attraction?.id === nextProps.attraction?.id &&
-//   prevProps.city?.id === nextProps.city?.id &&
-//   prevProps.saved === nextProps.saved);
 
 // Attraction Gallery Component
 const AttractionGallery = React.memo(
@@ -533,16 +511,25 @@ const AttractionInfo = React.memo(
                   {mapError}
                   <button onClick={fetchAttraction}>Retry</button>
                 </div>
-              ) : mapCenter ? (
+              ) : mapCenter &&
+                Array.isArray(mapCenter) &&
+                mapCenter.length === 2 ? (
                 <OpenStreetMap
+                  key={`map-${mapCenter[0]}-${mapCenter[1]}`}
                   center={mapCenter}
                   zoom={15}
-                  markers={[{ position: mapCenter, popup: attraction.name }]}
+                  markers={[
+                    {
+                      position: mapCenter,
+                      options: { title: attraction.name },
+                    },
+                  ]}
                   height="400px"
                   width="100%"
+                  showCurrentLocation={true}
                 />
               ) : (
-                <div className="map-error" role="alert">
+                <div className="map-loading" role="alert">
                   Loading map...
                 </div>
               )}
@@ -723,24 +710,18 @@ const AttractionReviews = React.memo(
 
 // Nearby Attractions Component
 const NearbyAttractions = React.memo(
-  ({
-    nearbyAttractions,
-    city,
-    renderStars,
-    handleToggleSave,
-    savedAttractions,
-  }) => {
+  ({ nearbyAttractions, city, renderStars, handleToggleSave, favorites }) => {
     const navigate = useNavigate();
+    const { user } = useAuth();
 
-    // Chuẩn hóa image_url
     const getValidImageUrl = (imageUrl) => {
       if (Array.isArray(imageUrl) && imageUrl.length > 0) {
-        return imageUrl[0]; // Lấy ảnh đầu tiên nếu là mảng
+        return imageUrl[0];
       }
       if (typeof imageUrl === "string" && imageUrl.trim()) {
-        return imageUrl; // Trả về nếu là chuỗi hợp lệ
+        return imageUrl;
       }
-      return "https://via.placeholder.com/280x200?text=Image+Not+Found"; // Placeholder mặc định
+      return "https://via.placeholder.com/280x200?text=Image+Not+Found";
     };
 
     return (
@@ -748,25 +729,32 @@ const NearbyAttractions = React.memo(
         <h2>Featured Nearby</h2>
         {nearbyAttractions.length > 0 ? (
           <div className="nearby-grid">
-            {nearbyAttractions.slice(0, 4).map((place) => (
-              <LocationCard
-                key={place.attraction_id}
-                item={{
-                  id: place.attraction_id,
-                  name: place.name,
-                  image: getValidImageUrl(place.image_url),
-                  rating: parseFloat(place.average_rating) || 0,
-                  reviewCount: place.rating_total || 0,
-                  tags: place.tags || [],
-                }}
-                isSaved={!!savedAttractions[place.attraction_id]}
-                onToggleSave={handleToggleSave}
-                onClick={() =>
-                  navigate(`/tripguide/attraction/${place.attraction_id}`)
-                }
-                renderStars={renderStars}
-              />
-            ))}
+            {nearbyAttractions.slice(0, 4).map((place) => {
+              const isPlaceFavorite = favorites?.some(
+                (fav) =>
+                  String(fav.attraction_id) === String(place.attraction_id)
+              );
+              return (
+                <LocationCard
+                  key={`attraction-${place.attraction_id}`}
+                  item={{
+                    id: place.attraction_id,
+                    name: place.name,
+                    image: getValidImageUrl(place.image_url),
+                    rating: parseFloat(place.average_rating) || 0,
+                    reviewCount: place.rating_total || 0,
+                    tags: place.tags || [],
+                    type: "attraction",
+                  }}
+                  onClick={() =>
+                    navigate(`/tripguide/attraction/${place.attraction_id}`)
+                  }
+                  renderStars={renderStars}
+                  isSaved={isPlaceFavorite}
+                  onToggleSave={() => handleToggleSave(place.attraction_id)}
+                />
+              );
+            })}
           </div>
         ) : (
           <div className="no-nearby">
@@ -785,11 +773,7 @@ const NearbyAttractions = React.memo(
         )}
       </section>
     );
-  },
-  (prevProps, nextProps) =>
-    prevProps.nearbyAttractions === nextProps.nearbyAttractions &&
-    prevProps.city?.id === nextProps.city?.id &&
-    prevProps.savedAttractions === nextProps.savedAttractions
+  }
 );
 
 // Main Attraction Component
@@ -801,9 +785,8 @@ const Attraction = () => {
     nearbyAttractions,
     loading,
     error,
-    savedAttractions,
-    reviewForm,
-    setReviewForm,
+    isFavorite,
+    favorites, // Now provided by useAttraction
     handleShareClick,
     handleReviewClick,
     handleToggleSave,
@@ -822,56 +805,56 @@ const Attraction = () => {
   const { user } = useAuth();
 
   const saveRecentlyViewed = useCallback(async () => {
-    if (!attraction) return;
+    if (!attraction || !attraction.attraction_id || !attraction.name) {
+      console.warn("Invalid attraction data, skipping saveRecentlyViewed");
+      return;
+    }
 
     const item = {
       id: attraction.attraction_id,
       name: attraction.name,
-      image: Array.isArray(attraction.image_url)
-        ? attraction.image_url[0]
-        : attraction.image_url || "https://via.placeholder.com/150",
+      image:
+        Array.isArray(attraction.image_url) && attraction.image_url.length > 0
+          ? attraction.image_url[0]
+          : attraction.image_url,
       rating: parseFloat(attraction.average_rating) || 0,
       reviewCount: attraction.rating_total || 0,
-      tags: attraction.tags || [],
+      tags: Array.isArray(attraction.tags) ? attraction.tags : [],
       type: "attraction",
     };
 
     try {
       if (isLoggedIn && user?.user_id) {
-        // Gửi yêu cầu API để lưu recently viewed
         await axios.post(`${BASE_URL}/recently-viewed`, {
           user_id: user.user_id,
           item,
         });
+        console.log(`Successfully saved attraction ${item.id} to API`);
       } else {
-        // Lưu vào localStorage cho người dùng chưa đăng nhập
         let recentItems = JSON.parse(
           localStorage.getItem("recentlyViewedItems") || "[]"
         );
-
-        // Xóa mục trùng lặp (dựa trên id)
         recentItems = recentItems.filter((i) => i.id !== item.id);
-        // Thêm mục mới vào đầu danh sách
         recentItems.unshift(item);
-        // Giới hạn tối đa 4 mục
         recentItems = recentItems.slice(0, 4);
-        // Lưu lại vào localStorage
         localStorage.setItem(
           "recentlyViewedItems",
           JSON.stringify(recentItems)
         );
+        console.log(`Successfully saved attraction ${item.id} to localStorage`);
       }
     } catch (err) {
-      console.error("Failed to save recently viewed:", err);
+      console.error(
+        `Failed to save recently viewed attraction ${item.id}:`,
+        err.message || err
+      );
     }
   }, [attraction, isLoggedIn, user]);
 
-  // Gọi hàm saveRecentlyViewed khi component mount
   useEffect(() => {
     saveRecentlyViewed();
   }, [saveRecentlyViewed]);
 
-  // Validate and prepare images
   const images = useMemo(() => {
     const imageUrls = attraction?.image_url;
     if (!imageUrls) {
@@ -938,29 +921,26 @@ const Attraction = () => {
     }
   }, [isFullScreen, handleKeyDown]);
 
-  // Quản lý hiển thị Loading với độ trễ tối thiểu 500ms
   useEffect(() => {
     let timeout;
     if (loading) {
-      setIsLoadingVisible(true); // Hiển thị Loading ngay khi bắt đầu fetch
+      setIsLoadingVisible(true);
     } else {
-      // Chỉ ẩn Loading sau ít nhất 500ms
       timeout = setTimeout(() => {
         setIsLoadingVisible(false);
       }, 500);
     }
-    return () => clearTimeout(timeout); // Xóa timeout khi component unmount
+    return () => clearTimeout(timeout);
   }, [loading]);
 
-  // Hiển thị Loading khi isLoadingVisible là true
   if (isLoadingVisible) {
     return <Loading message="Loading attraction details..." />;
   }
 
-  // Hiển thị ErrorMessage nếu có lỗi hoặc không có dữ liệu
   if (error || !attraction) {
     return <ErrorMessage error={error} />;
   }
+
   return (
     <div className="attraction-container">
       <div className="sticky-action-bar">
@@ -982,26 +962,20 @@ const Attraction = () => {
         </button>
         <button
           className={`action-button save-attraction ${
-            savedAttractions[attraction.attraction_id] ? "saved" : ""
+            isFavorite ? "saved" : ""
           }`}
-          onClick={() => handleToggleSave(attraction.attraction_id)}
-          aria-label={
-            savedAttractions[attraction.attraction_id]
-              ? "Remove from saved"
-              : "Save attraction"
-          }
+          onClick={handleToggleSave}
+          aria-label={isFavorite ? "Remove from saved" : "Save attraction"}
         >
           <FontAwesomeIcon icon={faHeart} className="action-icon" />
-          <span>
-            {savedAttractions[attraction.attraction_id] ? "Saved" : "Save"}
-          </span>
+          <span>{isFavorite ? "Saved" : "Save"}</span>
         </button>
       </div>
       <AttractionHeader
         attraction={attraction}
         city={city}
-        saved={savedAttractions[attraction.attraction_id]}
-        handleSaveToggle={() => handleToggleSave(attraction.attraction_id)}
+        isFavorite={isFavorite}
+        handleToggleSave={handleToggleSave}
         handleShareClick={handleShareClick}
         handleReviewClick={handleReviewClick}
         renderStars={renderStars}
@@ -1029,8 +1003,6 @@ const Attraction = () => {
         reviews={reviews}
         reviewSort={reviewSort}
         setReviewSort={setReviewSort}
-        reviewForm={reviewForm}
-        setReviewForm={setReviewForm}
         submitting={false}
         reviewError={reviewError}
         isLoggedIn={isLoggedIn}
@@ -1044,7 +1016,7 @@ const Attraction = () => {
         city={city}
         renderStars={renderStars}
         handleToggleSave={handleToggleSave}
-        savedAttractions={savedAttractions}
+        favorites={favorites} // Use the centralized favorites list
       />
     </div>
   );

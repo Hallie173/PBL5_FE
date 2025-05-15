@@ -1,6 +1,7 @@
-import { useState, useCallback, useMemo } from "react";
+// useAttraction.js
+import { useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
 import axios from "axios";
 import BASE_URL from "../../../constants/BASE_URL";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -10,10 +11,10 @@ import {
   faStarHalfAlt,
   faStar as regularStar,
 } from "@fortawesome/free-solid-svg-icons";
-
+import useFavorites from "../../../hooks/useFavorites";
 const fetchAttractionDetails = async (attractionId) => {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000); // Timeout 10s
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
 
   try {
     const attractionResponse = await axios.get(
@@ -22,7 +23,7 @@ const fetchAttractionDetails = async (attractionId) => {
     );
     const attractionData = attractionResponse.data;
 
-    const requests = [
+    const [cityResponse, reviewsResponse, nearbyResponse] = await Promise.all([
       axios.get(`${BASE_URL}/cities/${attractionData.city_id}`, {
         signal: controller.signal,
       }),
@@ -36,16 +37,11 @@ const fetchAttractionDetails = async (attractionId) => {
           signal: controller.signal,
         })
         .catch(() => ({ data: { nearbyTopAttractions: [] } })),
-    ];
-
-    const [cityResponse, reviewsResponse, nearbyResponse] = await Promise.all(
-      requests
-    );
+    ]);
 
     const nearbyAttractions = (
       nearbyResponse.data.nearbyTopAttractions || []
     ).map((place) => ({
-      ...place,
       attraction_id: place.attraction_id || place.id,
       image_url: Array.isArray(place.image_url)
         ? place.image_url
@@ -59,6 +55,7 @@ const fetchAttractionDetails = async (attractionId) => {
         : typeof place.tags === "string"
         ? place.tags.split(", ").filter((tag) => tag.trim())
         : [],
+      ...place,
     }));
 
     clearTimeout(timeoutId);
@@ -83,9 +80,9 @@ const fetchAttractionDetails = async (attractionId) => {
       );
     }
     if (error.request) {
-      throw new Error("Network error: Unable to reach the server.");
+      throw new Error("Network error: Unable to connect to server.");
     }
-    throw new Error("Failed to fetch attraction details.");
+    throw new Error("Unable to load attraction details.");
   }
 };
 
@@ -95,64 +92,96 @@ const useAttraction = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const [reviewForm, setReviewForm] = useState({ comment: "", rating: 5 });
-  const [savedAttractions, setSavedAttractions] = useState({});
-  const [reviewError, setReviewError] = useState("");
+  // Use the useFavorites hook
+  const {
+    favorites,
+    isFavoritesLoading,
+    favoritesError,
+    createFavorite,
+    deleteFavorite,
+  } = useFavorites(user?.user_id, isLoggedIn);
 
   const {
-    data,
+    data = { attraction: null, city: null, reviews: [], nearbyAttractions: [] },
     isLoading,
-    error: queryError,
+    error: attractionError,
   } = useQuery(
     ["attraction", attractionId],
     () => fetchAttractionDetails(attractionId),
     {
-      staleTime: 5 * 60 * 1000, // Cache data for 5 minutes
-      retry: 1, // Retry only once to avoid API spam
+      staleTime: 5 * 60 * 1000,
+      retry: 1,
     }
   );
 
-  const { attraction, city, reviews, nearbyAttractions } = data || {
-    attraction: null,
-    city: null,
-    reviews: [],
-    nearbyAttractions: [],
-  };
+  const { attraction, city, reviews, nearbyAttractions } = data;
 
-  // Function to render star ratings
+  const isFavorite = useMemo(() => {
+    if (!favorites || !attractionId) return false;
+    return favorites.some(
+      (fav) => String(fav.attraction_id) === String(attractionId)
+    );
+  }, [favorites, attractionId]);
+
+  const handleToggleSave = useCallback(() => {
+    if (!isLoggedIn || !user?.user_id) {
+      alert("Please log in to save this attraction!");
+      navigate("/login");
+      return;
+    }
+
+    if (isFavorite) {
+      const favorite = favorites.find(
+        (fav) => String(fav.attraction_id) === String(attractionId)
+      );
+      if (favorite) {
+        deleteFavorite(favorite.favorite_id);
+      }
+    } else {
+      createFavorite({ userId: user.user_id, attractionId });
+    }
+  }, [
+    isLoggedIn,
+    user?.user_id,
+    isFavorite,
+    favorites,
+    attractionId,
+    navigate,
+    createFavorite,
+    deleteFavorite,
+  ]);
+
   const renderStars = useCallback((rating) => {
     const numericRating = parseFloat(rating) || 0;
-    const stars = [];
-    for (let i = 1; i <= 5; i++) {
-      if (numericRating >= i) {
-        stars.push(
+    const stars = Array.from({ length: 5 }, (_, i) => {
+      const index = i + 1;
+      if (numericRating >= index) {
+        return (
           <FontAwesomeIcon
-            key={i}
+            key={index}
             icon={solidStar}
             className="star-icon filled"
           />
         );
-      } else if (numericRating >= i - 0.5) {
-        stars.push(
+      }
+      if (numericRating >= index - 0.5) {
+        return (
           <FontAwesomeIcon
-            key={i}
+            key={index}
             icon={faStarHalfAlt}
             className="star-icon half"
           />
         );
-      } else {
-        stars.push(
-          <FontAwesomeIcon key={i} icon={regularStar} className="star-icon" />
-        );
       }
-    }
+      return (
+        <FontAwesomeIcon key={index} icon={regularStar} className="star-icon" />
+      );
+    });
     return <div className="stars-container">{stars}</div>;
   }, []);
 
-  // Function to format dates
   const formatDate = useCallback((dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
+    return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -160,19 +189,19 @@ const useAttraction = () => {
   }, []);
 
   const handleShareClick = useCallback(() => {
+    const title = data.attraction?.name || "Attraction";
+    const text = `Check out ${title} in ${data.city?.name || "this city"}!`;
+    const url = window.location.href;
+
     if (navigator.share) {
-      navigator.share({
-        title: attraction?.name || "Attraction",
-        text: `Check out ${attraction?.name || "this attraction"} in ${
-          city?.name || "this city"
-        }!`,
-        url: window.location.href,
+      navigator.share({ title, text, url }).catch((error) => {
+        console.error("Error sharing:", error);
       });
     } else {
-      navigator.clipboard.writeText(window.location.href);
+      navigator.clipboard.writeText(url);
       alert("Link copied to clipboard!");
     }
-  }, [attraction?.name, city?.name]);
+  }, [data.attraction, data.city]);
 
   const handleReviewClick = useCallback(() => {
     if (!isLoggedIn) {
@@ -180,36 +209,20 @@ const useAttraction = () => {
       return;
     }
     navigate(`/tripguide/review/attraction/${attractionId}`);
-  }, [navigate, attractionId, isLoggedIn]);
-
-  const handleToggleSave = useCallback(
-    (attractionId) => {
-      if (!isLoggedIn) {
-        navigate("/login");
-        return;
-      }
-      setSavedAttractions((prev) => ({
-        ...prev,
-        [attractionId]: !prev[attractionId],
-      }));
-    },
-    [isLoggedIn, navigate]
-  );
+  }, [isLoggedIn, navigate, attractionId]);
 
   return {
     attraction,
     city,
     reviews,
     nearbyAttractions,
-    loading: isLoading,
-    error: queryError?.message,
-    savedAttractions,
+    loading: isLoading || isFavoritesLoading,
+    error: attractionError?.message || favoritesError?.message,
+    isFavorite,
+    favorites, // Pass favorites for use in NearbyAttractions
     handleShareClick,
     handleReviewClick,
     handleToggleSave,
-    reviewForm,
-    setReviewForm,
-    reviewError,
     isLoggedIn,
     fetchAttraction: () =>
       queryClient.invalidateQueries(["attraction", attractionId]),

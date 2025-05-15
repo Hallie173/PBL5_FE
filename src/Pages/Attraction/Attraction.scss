@@ -35,6 +35,17 @@ $border-radius: 12px;
   padding: 25px;
 }
 
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
 .attraction-container {
   width: 90%;
   max-width: 1200px;
@@ -257,10 +268,16 @@ $border-radius: 12px;
             background: #f0f8f4;
             color: $primary-color;
             &.saved {
-              background: #fff2f2;
-              color: $accent-color;
+              background: $primary-color;
+              color: white;
+              animation: pulse 0.3s ease;
+
               .action-icon {
-                color: $accent-color;
+                color: white;
+              }
+              &:hover {
+                background: darken($primary-color, 10%);
+                transform: translateY(-2px);
               }
             }
             &:hover {
@@ -759,6 +776,7 @@ $border-radius: 12px;
             overflow: hidden;
             box-shadow: $shadow;
             position: relative;
+            z-index: 1;
 
             .map-error {
               padding: 20px;

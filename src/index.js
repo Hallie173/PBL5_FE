@@ -6,6 +6,9 @@ import { QueryClient, QueryClientProvider } from "react-query";
 import reportWebVitals from "./reportWebVitals";
 import "./styles/global.scss";
 import "./App.css";
+import "leaflet.markercluster";
+import "leaflet.markercluster/dist/MarkerCluster.css";
+import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 
 const theme = createTheme({
   palette: {

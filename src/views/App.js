@@ -196,7 +196,7 @@ function App() {
               }
             />
 
-            {/* <Route
+            <Route
               path="/tripguide/map"
               element={
                 <>
@@ -205,7 +205,7 @@ function App() {
                   <Footer />
                 </>
               }
-            /> */}
+            />
             {/* Route admin */}
             <Route path="/tripguide/admin" element={<AdminLayout />}>
               <Route index element={<Navigate to="dashboard" replace />} />

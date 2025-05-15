@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
 import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -11,8 +11,8 @@ import {
 import { debounce } from "lodash";
 import BASE_URL from "../../../constants/BASE_URL";
 import { useAuth } from "../../../contexts/AuthContext";
+import useFavorites from "../../../hooks/useFavorites";
 
-// Utility function to fetch with retries
 const fetchWithRetry = async (url, retries = 3) => {
   for (let i = 0; i < retries; i++) {
     try {
@@ -26,7 +26,6 @@ const fetchWithRetry = async (url, retries = 3) => {
   }
 };
 
-// Fetch all restaurant-related data
 const fetchRestaurantDetails = async (restaurantId) => {
   try {
     const restaurantData = await fetchWithRetry(
@@ -39,13 +38,11 @@ const fetchRestaurantDetails = async (restaurantId) => {
       fetchWithRetry(`${BASE_URL}/reviews/restaurant/${restaurantId}`),
     ]);
 
-    // Helper function to normalize rating
     const normalizeRating = (rating) => {
       const parsed = parseFloat(rating);
       return isNaN(parsed) ? 0 : parsed;
     };
 
-    // Helper function to normalize tags
     const normalizeTags = (tags) => {
       if (!tags) return [];
       if (Array.isArray(tags)) return tags;
@@ -61,12 +58,9 @@ const fetchRestaurantDetails = async (restaurantId) => {
       return [];
     };
 
-    // Normalize rating for main restaurant
     const normalizedRestaurantRating = normalizeRating(
       restaurantData.average_rating
     );
-
-    // Normalize tags and rating for main restaurant
     const normalizedRestaurant = {
       ...restaurantData,
       hours:
@@ -82,12 +76,16 @@ const fetchRestaurantDetails = async (restaurantId) => {
       status: restaurantData.status || "unknown",
     };
 
-    // Normalize tags and rating for nearbyRestaurants
     const normalizedNearby = nearbyData.nearbyTopRestaurant.map(
       (restaurant) => ({
         ...restaurant,
         tags: normalizeTags(restaurant.tags),
         average_rating: normalizeRating(restaurant.average_rating),
+        image_url: Array.isArray(restaurant.image_url)
+          ? restaurant.image_url
+          : typeof restaurant.image_url === "string"
+          ? [restaurant.image_url]
+          : [],
       })
     );
 
@@ -111,16 +109,21 @@ const useRestaurant = () => {
   const { id: restaurantId } = useParams();
   const { user, isLoggedIn } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const [isFullScreen, setIsFullScreen] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(0);
   const [mapCenter, setMapCenter] = useState(null);
   const [mapError, setMapError] = useState(null);
   const [showHours, setShowHours] = useState(false);
   const [reviewSort, setReviewSort] = useState("newest");
-  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
-  const [savedRestaurants, setSavedRestaurants] = useState({});
-  const [isLoadingVisible, setIsLoadingVisible] = useState(false);
+  const {
+    favorites,
+    isFavoritesLoading,
+    favoritesError,
+    createFavorite,
+    deleteFavorite,
+  } = useFavorites(user?.user_id, isLoggedIn);
 
   const {
     data,
@@ -145,20 +148,44 @@ const useRestaurant = () => {
     reviews: [],
   };
 
-  // Quản lý hiển thị Loading với độ trễ tối thiểu 500ms
-  useEffect(() => {
-    let timeout;
-    if (isLoading) {
-      setIsLoadingVisible(true);
-    } else {
-      timeout = setTimeout(() => {
-        setIsLoadingVisible(false);
-      }, 500);
-    }
-    return () => clearTimeout(timeout);
-  }, [isLoading]);
+  const isFavorite = useMemo(() => {
+    if (!favorites || !restaurantId) return false;
+    return favorites.some(
+      (fav) => String(fav.restaurant_id) === String(restaurantId)
+    );
+  }, [favorites, restaurantId]);
 
-  // Fetch geocode for map
+  const handleToggleSave = useCallback(
+    (restaurantId) => {
+      if (!isLoggedIn || !user?.user_id) {
+        alert("Please log in to save this restaurant!");
+        navigate("/login");
+        return;
+      }
+
+      if (isFavorite) {
+        const favorite = favorites.find(
+          (fav) => String(fav.restaurant_id) === String(restaurantId)
+        );
+        if (favorite) {
+          deleteFavorite(favorite.favorite_id);
+        }
+      } else {
+        createFavorite({ userId: user.user_id, restaurantId });
+      }
+    },
+    [
+      isLoggedIn,
+      user?.user_id,
+      isFavorite,
+      favorites,
+      restaurantId,
+      navigate,
+      createFavorite,
+      deleteFavorite,
+    ]
+  );
+
   const fetchGeocode = useCallback(
     debounce(async (address) => {
       try {
@@ -187,14 +214,12 @@ const useRestaurant = () => {
     }
   }, [restaurant?.address, fetchGeocode]);
 
-  // Focus on fullscreen image when opened
   useEffect(() => {
     if (isFullScreen) {
       document.querySelector(".fullscreen-image")?.focus();
     }
   }, [isFullScreen]);
 
-  // Sort reviews based on sortType
   const sortReviews = useCallback((reviews, sortType) => {
     return [...reviews].sort((a, b) => {
       if (sortType === "newest")
@@ -205,13 +230,11 @@ const useRestaurant = () => {
     });
   }, []);
 
-  // Handle review sorting
   const handleSortChange = useCallback((e) => {
     const newSort = e.target.value;
     setReviewSort(newSort);
   }, []);
 
-  // Render star ratings
   const renderStars = useCallback((rating) => {
     const numRating = parseFloat(rating);
     if (isNaN(numRating) || numRating < 0 || numRating > 5) {
@@ -242,7 +265,6 @@ const useRestaurant = () => {
     );
   }, []);
 
-  // Share restaurant link
   const handleShareClick = useCallback(() => {
     const shareData = {
       title: restaurant?.name || "Restaurant",
@@ -262,12 +284,10 @@ const useRestaurant = () => {
     }
   }, [restaurant, city]);
 
-  // Scroll to review section
   const handleReviewClick = useCallback(() => {
     navigate(`/tripguide/review/restaurant/${restaurantId}`);
   }, [navigate, restaurantId]);
 
-  // Format date for display
   const formatDate = useCallback((dateString) => {
     try {
       const options = { year: "numeric", month: "long", day: "numeric" };
@@ -277,7 +297,6 @@ const useRestaurant = () => {
     }
   }, []);
 
-  // Parse restaurant hours
   const parseHours = useCallback((hours) => {
     let parsedHours = hours;
     if (typeof hours === "string") {
@@ -306,15 +325,9 @@ const useRestaurant = () => {
       const dayRanges = parsedHours.weekRanges[index];
       if (dayRanges && dayRanges.length > 0) {
         const range = dayRanges[0];
-        return {
-          day,
-          hours: `${range.openHours} - ${range.closeHours}`,
-        };
+        return { day, hours: `${range.openHours} - ${range.closeHours}` };
       }
-      return {
-        day,
-        hours: "Closed",
-      };
+      return { day, hours: "Closed" };
     });
 
     const todayRanges = parsedHours.weekRanges[todayIndex];
@@ -341,54 +354,9 @@ const useRestaurant = () => {
     [restaurant, parseHours]
   );
 
-  // Apply sorting to reviews
   const sortedReviews = useMemo(
     () => (reviews ? sortReviews(reviews, reviewSort) : []),
     [reviews, reviewSort, sortReviews]
-  );
-
-  // Fetch danh sách nhà hàng đã lưu
-  useEffect(() => {
-    if (isLoggedIn && user?.user_id) {
-      axios
-        .get(`${BASE_URL}/favorites?user_id=${user.user_id}`)
-        .then((response) => {
-          const saved = response.data.reduce((acc, item) => {
-            acc[item.restaurant_id] = true;
-            return acc;
-          }, {});
-          setSavedRestaurants(saved);
-        })
-        .catch((err) => console.error("Failed to fetch favorites:", err));
-    }
-  }, [isLoggedIn, user]);
-
-  // Hàm xử lý lưu/thêm nhà hàng
-  const handleToggleSave = useCallback(
-    async (restaurantId) => {
-      try {
-        if (savedRestaurants[restaurantId]) {
-          await axios.delete(`${BASE_URL}/favorites/${restaurantId}`);
-          setSavedRestaurants((prev) => {
-            const newSaved = { ...prev };
-            delete newSaved[restaurantId];
-            return newSaved;
-          });
-        } else {
-          await axios.post(`${BASE_URL}/favorites`, {
-            user_id: user?.user_id,
-            restaurant_id: restaurantId,
-          });
-          setSavedRestaurants((prev) => ({
-            ...prev,
-            [restaurantId]: true,
-          }));
-        }
-      } catch (err) {
-        setError("Failed to update favorites: " + err.message);
-      }
-    },
-    [savedRestaurants, user]
   );
 
   return {
@@ -397,10 +365,11 @@ const useRestaurant = () => {
     resRank,
     nearbyRestaurants,
     reviews: sortedReviews,
-    loading: isLoading,
-    isLoadingVisible,
-    submitting,
-    error: error || queryError?.message,
+    loading: isLoading || isFavoritesLoading,
+    isRestaurantLoading: isLoading,
+    isReviewsLoading: false, // Reviews are fetched with restaurant data
+    isNearbyLoading: false, // Nearby data is fetched with restaurant data
+    error: error || queryError?.message || favoritesError?.message,
     activeImageIndex,
     isFullScreen,
     mapCenter,
@@ -418,7 +387,7 @@ const useRestaurant = () => {
     renderStars,
     formatDate,
     hoursInfo,
-    savedRestaurants,
+    savedRestaurants: favorites,
     handleToggleSave,
   };
 };

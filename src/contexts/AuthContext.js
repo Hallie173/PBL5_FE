@@ -10,6 +10,7 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const currentUser = authService.getCurrentUser();
+
     // console.log("Initial user from AuthContext:", currentUser);
     if (currentUser) {
       setUser(currentUser);

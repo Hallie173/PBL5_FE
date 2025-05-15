@@ -1,6 +1,5 @@
-import React, { Suspense, useCallback } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
 import "./Restaurant.scss";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -27,8 +26,21 @@ import LocationCard from "../../components/LocationCard/LocationCard";
 import axios from "axios";
 import BASE_URL from "../../constants/BASE_URL";
 import { useAuth } from "../../contexts/AuthContext";
+import { useQueryClient } from "react-query";
 
-// Breadcrumb Component (không thay đổi)
+// Error Message Component
+const ErrorMessage = ({ error }) => {
+  const navigate = useNavigate();
+  return (
+    <div className="error-container">
+      <h2>{error ? "Error" : "Not Found"}</h2>
+      <p>{error || "Restaurant not found."}</p>
+      <button onClick={() => navigate(-1)}>Go Back</button>
+    </div>
+  );
+};
+
+// Breadcrumb Component
 const Breadcrumb = React.memo(({ city, restaurant, navigate }) => (
   <nav className="breadcrumb" aria-label="Breadcrumb">
     <ol className="breadcrumb-list">
@@ -85,7 +97,7 @@ Breadcrumb.propTypes = {
   navigate: PropTypes.func.isRequired,
 };
 
-// RestaurantHeader Component (không thay đổi)
+// RestaurantHeader Component
 const RestaurantHeader = React.memo(
   ({
     restaurant,
@@ -95,7 +107,7 @@ const RestaurantHeader = React.memo(
     resRank,
     handleShareClick,
     handleReviewClick,
-    savedRestaurants,
+    isFavorite,
     handleToggleSave,
   }) => (
     <header className="restaurant-header">
@@ -127,24 +139,16 @@ const RestaurantHeader = React.memo(
           </button>
           <button
             className={`action-button save-restaurant ${
-              savedRestaurants[restaurant.restaurant_id] ? "saved" : ""
+              isFavorite ? "saved" : ""
             }`}
             onClick={() => handleToggleSave(restaurant.restaurant_id)}
-            aria-label={
-              savedRestaurants[restaurant.restaurant_id]
-                ? "Remove from saved"
-                : "Save to favorites"
-            }
+            aria-label={isFavorite ? "Remove from saved" : "Save to favorites"}
           >
             <FontAwesomeIcon
-              icon={
-                savedRestaurants[restaurant.restaurant_id]
-                  ? solidHeart
-                  : regularHeart
-              }
+              icon={isFavorite ? solidHeart : regularHeart}
               className="action-icon"
             />
-            <span>Save</span>
+            <span>{isFavorite ? "Saved" : "Save"}</span>
           </button>
         </div>
       </div>
@@ -177,11 +181,11 @@ RestaurantHeader.propTypes = {
   resRank: PropTypes.object,
   handleShareClick: PropTypes.func.isRequired,
   handleReviewClick: PropTypes.func.isRequired,
-  savedRestaurants: PropTypes.object.isRequired,
+  isFavorite: PropTypes.bool.isRequired,
   handleToggleSave: PropTypes.func.isRequired,
 };
 
-// RestaurantGallery Component (không thay đổi)
+// RestaurantGallery Component
 const RestaurantGallery = React.memo(
   ({
     images,
@@ -359,7 +363,7 @@ RestaurantGallery.propTypes = {
   restaurantName: PropTypes.string.isRequired,
 };
 
-// RestaurantContent Component (không thay đổi)
+// RestaurantContent Component
 const RestaurantContent = React.memo(
   ({
     restaurant,
@@ -370,22 +374,40 @@ const RestaurantContent = React.memo(
     mapCenter,
     mapError,
     fetchRestaurant,
+    isRetryingMap,
+    setIsRetryingMap,
   }) => {
     const MapComponent = useCallback(() => {
       if (mapError) {
         return (
           <div className="map-error" role="alert">
-            {mapError}
-            <button onClick={fetchRestaurant} aria-label="Retry loading map">
-              Retry
-            </button>
+            {isRetryingMap ? (
+              <Loading message="Retrying map..." />
+            ) : (
+              <>
+                {mapError}
+                <button
+                  onClick={async () => {
+                    setIsRetryingMap(true);
+                    try {
+                      await fetchRestaurant();
+                    } finally {
+                      setIsRetryingMap(false);
+                    }
+                  }}
+                  aria-label="Retry loading map"
+                >
+                  Retry
+                </button>
+              </>
+            )}
           </div>
         );
       }
       if (!mapCenter || !Array.isArray(mapCenter) || mapCenter.length !== 2) {
         return (
           <div className="map-error" role="alert">
-            Loading map...
+            <Loading message="Loading map..." />
           </div>
         );
       }
@@ -399,7 +421,14 @@ const RestaurantContent = React.memo(
           showCurrentLocation
         />
       );
-    }, [mapCenter, mapError, fetchRestaurant, restaurant.name]);
+    }, [
+      mapCenter,
+      mapError,
+      fetchRestaurant,
+      restaurant.name,
+      isRetryingMap,
+      setIsRetryingMap,
+    ]);
 
     return (
       <div className="restaurant-content">
@@ -561,9 +590,11 @@ RestaurantContent.propTypes = {
   mapCenter: PropTypes.array,
   mapError: PropTypes.string,
   fetchRestaurant: PropTypes.func.isRequired,
+  isRetryingMap: PropTypes.bool.isRequired,
+  setIsRetryingMap: PropTypes.func.isRequired,
 };
 
-// ReviewsSection Component (không thay đổi)
+// ReviewsSection Component
 const ReviewsSection = React.memo(
   ({
     reviews,
@@ -572,12 +603,6 @@ const ReviewsSection = React.memo(
     formatDate,
     reviewSort,
     handleSortChange,
-    handleSubmitReview,
-    comment,
-    setComment,
-    rating,
-    setRating,
-    submitting,
     error,
     isLoggedIn,
     navigate,
@@ -694,60 +719,61 @@ ReviewsSection.propTypes = {
   formatDate: PropTypes.func.isRequired,
   reviewSort: PropTypes.string.isRequired,
   handleSortChange: PropTypes.func.isRequired,
-  handleSubmitReview: PropTypes.func.isRequired,
-  comment: PropTypes.string.isRequired,
-  setComment: PropTypes.func.isRequired,
-  rating: PropTypes.number.isRequired,
-  setRating: PropTypes.func.isRequired,
-  submitting: PropTypes.bool.isRequired,
   error: PropTypes.string,
   isLoggedIn: PropTypes.bool.isRequired,
   navigate: PropTypes.func.isRequired,
 };
 
-// NearbySection Component (không thay đổi)
+// NearbySection Component
 const NearbySection = React.memo(
-  ({ nearbyRestaurants, navigate, city, renderStars }) => {
-    const [savedRestaurants, setSavedRestaurants] = useState({});
-
-    const handleToggleSave = useCallback((restaurantId) => {
-      setSavedRestaurants((prev) => ({
-        ...prev,
-        [restaurantId]: !prev[restaurantId],
-      }));
-      axios
-        .post(`${BASE_URL}/favorites`, { restaurant_id: restaurantId })
-        .catch((err) => console.error("Failed to save restaurant:", err));
-    }, []);
+  ({
+    nearbyRestaurants,
+    navigate,
+    city,
+    renderStars,
+    handleToggleSave,
+    favorites,
+    onNavigate,
+  }) => {
+    const getValidImageUrl = (imageUrl) => {
+      if (Array.isArray(imageUrl) && imageUrl.length > 0) {
+        return imageUrl[0];
+      }
+      if (typeof imageUrl === "string" && imageUrl.trim()) {
+        return imageUrl;
+      }
+      return "https://via.placeholder.com/280x200?text=Image+Not+Found";
+    };
 
     return (
       <section className="nearby-section">
         <h2>Featured Nearby</h2>
         {nearbyRestaurants.length > 0 ? (
           <div className="nearby-grid">
-            {nearbyRestaurants.slice(0, 4).map((place) => (
-              <LocationCard
-                key={place.restaurant_id}
-                item={{
-                  id: place.restaurant_id,
-                  name: place.name,
-                  image:
-                    place.image_url[0] || "https://via.placeholder.com/150",
-                  rating: place.average_rating,
-                  reviewCount: place.rating_total,
-                  tags:
-                    place.tags.length > 0
-                      ? place.tags.join(", ")
-                      : "No cuisines available",
-                }}
-                isSaved={!!savedRestaurants[place.restaurant_id]}
-                onToggleSave={() => handleToggleSave(place.restaurant_id)}
-                onClick={() =>
-                  navigate(`/tripguide/restaurant/${place.restaurant_id}`)
-                }
-                renderStars={renderStars}
-              />
-            ))}
+            {nearbyRestaurants.slice(0, 4).map((place) => {
+              const isPlaceFavorite = favorites?.some(
+                (fav) =>
+                  String(fav.restaurant_id) === String(place.restaurant_id)
+              );
+              return (
+                <LocationCard
+                  key={place.restaurant_id}
+                  item={{
+                    id: place.restaurant_id,
+                    name: place.name,
+                    image: getValidImageUrl(place.image_url),
+                    rating: parseFloat(place.average_rating) || 0,
+                    reviewCount: place.rating_total || 0,
+                    tags: place.tags || [],
+                    type: "restaurant",
+                  }}
+                  onClick={() => onNavigate(place.restaurant_id)}
+                  renderStars={renderStars}
+                  isSaved={isPlaceFavorite}
+                  onToggleSave={() => handleToggleSave(place.restaurant_id)}
+                />
+              );
+            })}
           </div>
         ) : (
           <div className="no-nearby">
@@ -774,22 +800,23 @@ NearbySection.propTypes = {
   navigate: PropTypes.func.isRequired,
   city: PropTypes.object,
   renderStars: PropTypes.func.isRequired,
+  handleToggleSave: PropTypes.func.isRequired,
+  favorites: PropTypes.array.isRequired,
+  onNavigate: PropTypes.func.isRequired,
 };
 
 // Main Restaurant Component
 const Restaurant = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const {
     restaurant,
     city,
     resRank,
     nearbyRestaurants,
     reviews,
-    isLoadingVisible, // Sử dụng isLoadingVisible thay vì loading
-    submitting,
+    loading,
     error,
-    comment,
-    rating,
     activeImageIndex,
     isFullScreen,
     mapCenter,
@@ -797,13 +824,10 @@ const Restaurant = () => {
     showHours,
     reviewSort,
     isLoggedIn,
-    setComment,
-    setRating,
     setActiveImageIndex,
     setIsFullScreen,
     setShowHours,
     handleSortChange,
-    handleSubmitReview,
     handleShareClick,
     handleReviewClick,
     fetchRestaurant,
@@ -814,73 +838,93 @@ const Restaurant = () => {
     handleToggleSave,
   } = useRestaurant();
   const { user } = useAuth();
-  // Hàm lưu recently viewed
+  const [isLoadingVisible, setIsLoadingVisible] = useState(false);
+  const [isRetryingMap, setIsRetryingMap] = useState(false);
+
+  const isFavorite = savedRestaurants.some(
+    (fav) => String(fav.restaurant_id) === String(restaurant?.restaurant_id)
+  );
+
   const saveRecentlyViewed = useCallback(async () => {
-    if (!restaurant) return;
+    if (!restaurant || !restaurant.restaurant_id || !restaurant.name) {
+      console.warn("Invalid restaurant data, skipping saveRecentlyViewed");
+      return;
+    }
 
     const item = {
       id: restaurant.restaurant_id,
-      restaurant_id: restaurant.restaurant_id,
       name: restaurant.name,
-      image: restaurant.image_url?.[0] || "https://via.placeholder.com/150",
-      rating: restaurant.average_rating || 0,
+      image:
+        Array.isArray(restaurant.image_url) && restaurant.image_url.length > 0
+          ? restaurant.image_url[0]
+          : restaurant.image_url || "https://via.placeholder.com/150",
+      rating: parseFloat(restaurant.average_rating) || 0,
       reviewCount: restaurant.rating_total || 0,
-      tags: restaurant.tags || [],
+      tags: Array.isArray(restaurant.tags) ? restaurant.tags : [],
       type: "restaurant",
     };
 
     try {
       if (isLoggedIn && user?.user_id) {
-        // Gửi yêu cầu API để lưu recently viewed
         await axios.post(`${BASE_URL}/recently-viewed`, {
           user_id: user.user_id,
           item,
         });
+        console.log(`Successfully saved restaurant ${item.id} to API`);
       } else {
-        // Lưu vào localStorage cho người dùng chưa đăng nhập
         let recentItems = JSON.parse(
           localStorage.getItem("recentlyViewedItems") || "[]"
         );
-
-        // Xóa mục trùng lặp (dựa trên id)
-        recentItems = recentItems.filter((i) => i.id !== item.id);
-        // Thêm mục mới vào đầu danh sách
+        recentItems = recentItems.filter(
+          (i) => i.id !== item.id || i.type !== item.type
+        );
         recentItems.unshift(item);
-        // Giới hạn tối đa 4 mục
         recentItems = recentItems.slice(0, 4);
-        // Lưu lại vào localStorage
         localStorage.setItem(
           "recentlyViewedItems",
           JSON.stringify(recentItems)
         );
+        console.log(`Successfully saved restaurant ${item.id} to localStorage`);
       }
     } catch (err) {
-      console.error("Failed to save recently viewed:", err);
+      console.error(
+        `Failed to save recently viewed restaurant ${item.id}:`,
+        err
+      );
     }
   }, [restaurant, isLoggedIn, user]);
 
-  // Gọi hàm saveRecentlyViewed khi component mount
   useEffect(() => {
     saveRecentlyViewed();
   }, [saveRecentlyViewed]);
+
+  useEffect(() => {
+    let timeout;
+    if (loading) {
+      setIsLoadingVisible(true);
+    } else {
+      timeout = setTimeout(() => {
+        setIsLoadingVisible(false);
+      }, 500);
+    }
+    return () => clearTimeout(timeout);
+  }, [loading]);
+
+  const handleNavigate = useCallback(
+    (restaurantId) => {
+      setIsLoadingVisible(true);
+      queryClient.invalidateQueries(["restaurant", restaurantId]);
+      navigate(`/tripguide/restaurant/${restaurantId}`);
+    },
+    [navigate, queryClient]
+  );
 
   if (isLoadingVisible) {
     return <Loading message="Loading restaurant details..." />;
   }
 
   if (error || !restaurant) {
-    return (
-      <div className="error-container">
-        <h2>{error ? "An error occurred" : "Restaurant not found"}</h2>
-        <p>{error || "The requested restaurant could not be found."}</p>
-        <button
-          onClick={() => navigate(-1)}
-          aria-label="Go back to previous page"
-        >
-          Go back
-        </button>
-      </div>
-    );
+    return <ErrorMessage error={error} />;
   }
 
   return (
@@ -903,24 +947,16 @@ const Restaurant = () => {
         </button>
         <button
           className={`action-button save-restaurant ${
-            savedRestaurants[restaurant.restaurant_id] ? "saved" : ""
+            isFavorite ? "saved" : ""
           }`}
           onClick={() => handleToggleSave(restaurant.restaurant_id)}
-          aria-label={
-            savedRestaurants[restaurant.restaurant_id]
-              ? "Remove from saved"
-              : "Save to favorites"
-          }
+          aria-label={isFavorite ? "Remove from saved" : "Save to favorites"}
         >
           <FontAwesomeIcon
-            icon={
-              savedRestaurants[restaurant.restaurant_id]
-                ? solidHeart
-                : regularHeart
-            }
+            icon={isFavorite ? solidHeart : regularHeart}
             className="action-icon"
           />
-          <span>Save</span>
+          <span>{isFavorite ? "Saved" : "Save"}</span>
         </button>
       </div>
 
@@ -932,7 +968,7 @@ const Restaurant = () => {
         resRank={resRank}
         handleShareClick={handleShareClick}
         handleReviewClick={handleReviewClick}
-        savedRestaurants={savedRestaurants}
+        isFavorite={isFavorite}
         handleToggleSave={handleToggleSave}
       />
       <RestaurantGallery
@@ -952,32 +988,29 @@ const Restaurant = () => {
         mapCenter={mapCenter}
         mapError={mapError}
         fetchRestaurant={fetchRestaurant}
+        isRetryingMap={isRetryingMap}
+        setIsRetryingMap={setIsRetryingMap}
       />
-      <Suspense fallback={<Loading />}>
-        <ReviewsSection
-          reviews={reviews}
-          restaurant={restaurant}
-          renderStars={renderStars}
-          formatDate={formatDate}
-          reviewSort={reviewSort}
-          handleSortChange={handleSortChange}
-          handleSubmitReview={handleSubmitReview}
-          comment={comment}
-          setComment={setComment}
-          rating={rating}
-          setRating={setRating}
-          submitting={submitting}
-          error={error}
-          isLoggedIn={isLoggedIn}
-          navigate={navigate}
-        />
-        <NearbySection
-          nearbyRestaurants={nearbyRestaurants}
-          navigate={navigate}
-          city={city}
-          renderStars={renderStars}
-        />
-      </Suspense>
+      <ReviewsSection
+        reviews={reviews}
+        restaurant={restaurant}
+        renderStars={renderStars}
+        formatDate={formatDate}
+        reviewSort={reviewSort}
+        handleSortChange={handleSortChange}
+        error={error}
+        isLoggedIn={isLoggedIn}
+        navigate={navigate}
+      />
+      <NearbySection
+        nearbyRestaurants={nearbyRestaurants}
+        navigate={navigate}
+        city={city}
+        renderStars={renderStars}
+        handleToggleSave={handleToggleSave}
+        favorites={savedRestaurants}
+        onNavigate={handleNavigate}
+      />
     </div>
   );
 };
