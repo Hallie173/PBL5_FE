@@ -14,9 +14,6 @@
     "@mui/icons-material": "^5.15.11",
     "@mui/material": "^5.17.1",
     "@mui/x-date-pickers": "^7.28.3",
-    "@react-google-maps/api": "^2.20.6",
-    "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/user-event": "^13.5.0",
     "@umn-latis/quill-better-image-module": "^0.2.2",
     "ajv": "8.12.0",
     "axios": "^1.8.4",
@@ -47,7 +44,6 @@
     "react-scripts": "5.0.1",
     "react-toastify": "^11.0.5",
     "sass": "^1.86.3",
-    "web-vitals": "^2.1.4",
     "yup": "^1.6.1"
   },
   "scripts": {

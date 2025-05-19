@@ -37,7 +37,9 @@ function App() {
     <div className="App">
       <Router>
         <AuthProvider>
-          <Routes>
+          <Routes
+            future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+          >
             {/* Route articles */}
             <Route path="/auth-callback" element={<Auth />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
@@ -176,7 +178,7 @@ function App() {
               }
             />
             <Route
-              path="/tripguide/review/restaurant/:id"
+              path="/tripguide/review/restaurant/:restaurantId"
               element={
                 <>
                   <Navbar />
@@ -186,7 +188,7 @@ function App() {
               }
             />
             <Route
-              path="/tripguide/review/attraction/:id"
+              path="/tripguide/review/attraction/:attractionId"
               element={
                 <>
                   <Navbar />

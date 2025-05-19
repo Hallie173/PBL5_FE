@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery, useQueryClient } from "react-query";
+import { useQuery } from "react-query";
 import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -8,25 +8,23 @@ import {
   faStarHalfStroke,
   faStar as regularStar,
 } from "@fortawesome/free-solid-svg-icons";
-import { debounce } from "lodash";
 import BASE_URL from "../../../constants/BASE_URL";
 import { useAuth } from "../../../contexts/AuthContext";
 import useFavorites from "../../../hooks/useFavorites";
-
-const fetchWithRetry = async (url, retries = 3) => {
-  for (let i = 0; i < retries; i++) {
+import UserService from "../../../services/userService";
+const fetchWithRetry = async (url) => {
+  for (let i = 0; i < 3; i++) {
     try {
       const response = await axios.get(url);
       return response.data;
     } catch (err) {
-      if (i === retries - 1)
-        throw new Error(`Failed to fetch ${url}: ${err.message}`);
+      if (i === 2) throw new Error(`Failed to fetch ${url}: ${err.message}`);
       await new Promise((resolve) => setTimeout(resolve, 1000 * (i + 1)));
     }
   }
 };
 
-const fetchRestaurantDetails = async (restaurantId) => {
+const fetchRestaurantDetails = async (restaurantId, user) => {
   try {
     const restaurantData = await fetchWithRetry(
       `${BASE_URL}/restaurants/${restaurantId}`
@@ -58,6 +56,21 @@ const fetchRestaurantDetails = async (restaurantId) => {
       return [];
     };
 
+    const normalizePhotos = (photos) => {
+      if (!photos) return [];
+      if (Array.isArray(photos)) return photos;
+      if (typeof photos === "string") {
+        try {
+          const parsed = JSON.parse(photos);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+          console.error("Failed to parse photos:", e);
+          return [];
+        }
+      }
+      return [];
+    };
+
     const normalizedRestaurantRating = normalizeRating(
       restaurantData.average_rating
     );
@@ -74,6 +87,8 @@ const fetchRestaurantDetails = async (restaurantId) => {
       rating_total: restaurantData.rating_total || 0,
       tags: normalizeTags(restaurantData.tags),
       status: restaurantData.status || "unknown",
+      latitude: parseFloat(restaurantData.latitude) || 21.0285,
+      longitude: parseFloat(restaurantData.longitude) || 105.8542,
     };
 
     const normalizedNearby = nearbyData.nearbyTopRestaurant.map(
@@ -89,18 +104,60 @@ const fetchRestaurantDetails = async (restaurantId) => {
       })
     );
 
+    // Fetch user data for each review
+    const reviewsWithUsers = await Promise.all(
+      reviewData.map(async (review) => {
+        let userData = { username: "Anonymous", avatar_url: null };
+        try {
+          if (review.user_id) {
+            const response = await UserService.getUserById(review.user_id);
+            userData = {
+              username: response.username || "Anonymous",
+              avatar_url: response.avatar_url || null,
+            };
+          }
+        } catch (error) {
+          console.error(
+            `Failed to fetch user ${review.user_id}:`,
+            error.message
+          );
+        }
+        const rawRating = review.rating;
+        const parsedRating = parseFloat(rawRating);
+        const finalRating = isNaN(parsedRating)
+          ? 0
+          : Math.max(0, Math.min(5, parsedRating));
+        console.log(
+          `Review ID ${
+            review.review_id
+          }: raw=${rawRating}, type=${typeof rawRating}, parsed=${parsedRating}, final=${finalRating}`
+        );
+        if (finalRating === 5 && rawRating != 5) {
+          console.warn(
+            `Review ID ${review.review_id} has unexpected rating of 5 (raw was ${rawRating})`
+          );
+        }
+        return {
+          ...review,
+          rating: finalRating,
+          isCurrentUser: review.user_id === user?.user_id,
+          photos: normalizePhotos(review.photos),
+          title: review.title || "Untitled Review",
+          userName: userData.username,
+          profilePic: userData.avatar_url,
+        };
+      })
+    );
+
     return {
       restaurant: normalizedRestaurant,
       city: cityData,
       resRank: rankData,
       nearbyRestaurants: normalizedNearby,
-      reviews: reviewData.map((review) => ({
-        ...review,
-        rating: parseFloat(review.rating) || 0,
-        isCurrentUser: review.user_id === restaurantData.user_id,
-      })),
+      reviews: reviewsWithUsers,
     };
   } catch (err) {
+    console.error("fetchRestaurantDetails error:", err);
     throw new Error("Failed to load restaurant details: " + err.message);
   }
 };
@@ -109,21 +166,17 @@ const useRestaurant = () => {
   const { id: restaurantId } = useParams();
   const { user, isLoggedIn } = useAuth();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const [isFullScreen, setIsFullScreen] = useState(0);
-  const [mapCenter, setMapCenter] = useState(null);
-  const [mapError, setMapError] = useState(null);
+  const [isFullScreen, setIsFullScreen] = useState(false);
   const [showHours, setShowHours] = useState(false);
   const [reviewSort, setReviewSort] = useState("newest");
-  const [error, setError] = useState(null);
-  const {
-    favorites,
-    isFavoritesLoading,
-    favoritesError,
-    createFavorite,
-    deleteFavorite,
-  } = useFavorites(user?.user_id, isLoggedIn);
+  const [mapCenter, setMapCenter] = useState(null);
+  const [mapError, setMapError] = useState(null);
+
+  const { favorites, createFavorite, deleteFavorite } = useFavorites(
+    user?.user_id,
+    isLoggedIn
+  );
 
   const {
     data,
@@ -132,11 +185,10 @@ const useRestaurant = () => {
     refetch,
   } = useQuery(
     ["restaurant", restaurantId],
-    () => fetchRestaurantDetails(restaurantId),
+    () => fetchRestaurantDetails(restaurantId, user),
     {
       staleTime: 5 * 60 * 1000,
       retry: 2,
-      onError: () => setMapError("Failed to load restaurant data."),
     }
   );
 
@@ -148,71 +200,28 @@ const useRestaurant = () => {
     reviews: [],
   };
 
-  const isFavorite = useMemo(() => {
-    if (!favorites || !restaurantId) return false;
-    return favorites.some(
-      (fav) => String(fav.restaurant_id) === String(restaurantId)
-    );
-  }, [favorites, restaurantId]);
-
-  const handleToggleSave = useCallback(
-    (restaurantId) => {
-      if (!isLoggedIn || !user?.user_id) {
-        alert("Please log in to save this restaurant!");
-        navigate("/login");
-        return;
-      }
-
-      if (isFavorite) {
-        const favorite = favorites.find(
-          (fav) => String(fav.restaurant_id) === String(restaurantId)
-        );
-        if (favorite) {
-          deleteFavorite(favorite.favorite_id);
-        }
-      } else {
-        createFavorite({ userId: user.user_id, restaurantId });
-      }
-    },
-    [
-      isLoggedIn,
-      user?.user_id,
-      isFavorite,
-      favorites,
-      restaurantId,
-      navigate,
-      createFavorite,
-      deleteFavorite,
-    ]
+  const isFavorite = favorites?.some(
+    (fav) => String(fav.restaurant_id) === String(restaurantId)
   );
 
-  const fetchGeocode = useCallback(
-    debounce(async (address) => {
-      try {
-        const response = await axios.get(
-          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-            address
-          )}`,
-          { headers: { Accept: "application/json" } }
-        );
-        if (response.data.length > 0) {
-          const { lat, lon } = response.data[0];
-          setMapCenter([parseFloat(lat), parseFloat(lon)]);
-        } else {
-          setMapError("Could not find location on map.");
-        }
-      } catch (err) {
-        setMapError("Error loading location: " + err.message);
-      }
-    }, 500),
-    []
-  );
-
-  useEffect(() => {
-    if (restaurant?.address) {
-      fetchGeocode(restaurant.address);
+  const handleToggleSave = (restaurantId) => {
+    if (!isLoggedIn || !user?.user_id) {
+      alert("Please log in to save this restaurant!");
+      navigate("/login");
+      return;
     }
-  }, [restaurant?.address, fetchGeocode]);
+
+    if (isFavorite) {
+      const favorite = favorites.find(
+        (fav) => String(fav.restaurant_id) === String(restaurantId)
+      );
+      if (favorite) {
+        deleteFavorite(favorite.favorite_id);
+      }
+    } else {
+      createFavorite({ userId: user.user_id, restaurantId });
+    }
+  };
 
   useEffect(() => {
     if (isFullScreen) {
@@ -220,7 +229,21 @@ const useRestaurant = () => {
     }
   }, [isFullScreen]);
 
-  const sortReviews = useCallback((reviews, sortType) => {
+  useEffect(() => {
+    if (restaurant) {
+      const lat = parseFloat(restaurant.latitude);
+      const lon = parseFloat(restaurant.longitude);
+      if (!isNaN(lat) && !isNaN(lon)) {
+        setMapCenter([lat, lon]);
+        setMapError(null);
+      } else {
+        setMapCenter([21.0285, 105.8542]);
+        setMapError("Invalid coordinates from restaurant data");
+      }
+    }
+  }, [restaurant]);
+
+  const sortReviews = (reviews, sortType) => {
     return [...reviews].sort((a, b) => {
       if (sortType === "newest")
         return new Date(b.created_at) - new Date(a.created_at);
@@ -228,44 +251,58 @@ const useRestaurant = () => {
       if (sortType === "lowest") return a.rating - b.rating;
       return 0;
     });
-  }, []);
+  };
 
-  const handleSortChange = useCallback((e) => {
-    const newSort = e.target.value;
-    setReviewSort(newSort);
-  }, []);
+  const handleSortChange = (e) => {
+    setReviewSort(e.target.value);
+  };
 
-  const renderStars = useCallback((rating) => {
-    const numRating = parseFloat(rating);
+  const renderStars = (rating) => {
+    // Chuyển đổi rating thành số và xử lý giá trị không hợp lệ
+    const numRating = typeof rating === "number" ? rating : parseFloat(rating);
+
+    // Kiểm tra giá trị hợp lệ
     if (isNaN(numRating) || numRating < 0 || numRating > 5) {
       return <div className="stars-container">Invalid rating</div>;
     }
+
     return (
       <div className="stars-container">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <FontAwesomeIcon
-            key={star}
-            icon={
-              star <= Math.floor(numRating)
-                ? solidStar
-                : star === Math.ceil(numRating) && !Number.isInteger(numRating)
-                ? faStarHalfStroke
-                : regularStar
-            }
-            className={`star-icon ${
-              star <= Math.floor(numRating)
-                ? "filled"
-                : star === Math.ceil(numRating) && !Number.isInteger(numRating)
-                ? "half"
-                : "empty"
-            }`}
-          />
-        ))}
+        {[1, 2, 3, 4, 5].map((star) => {
+          // Tính toán loại sao cho vị trí hiện tại
+          const isFilled = star <= Math.floor(numRating);
+          const isHalf =
+            !isFilled && star === Math.ceil(numRating) && numRating % 1 !== 0;
+          const isEmpty = !isFilled && !isHalf;
+
+          // Xác định icon phù hợp
+          let icon;
+          if (isFilled) {
+            icon = solidStar;
+          } else if (isHalf) {
+            icon = faStarHalfStroke;
+          } else {
+            icon = regularStar;
+          }
+
+          // Xác định className phù hợp
+          let starClass = "star-icon ";
+          if (isFilled) {
+            starClass += "filled";
+          } else if (isHalf) {
+            starClass += "half";
+          } else {
+            starClass += "empty";
+          }
+
+          return (
+            <FontAwesomeIcon key={star} icon={icon} className={starClass} />
+          );
+        })}
       </div>
     );
-  }, []);
-
-  const handleShareClick = useCallback(() => {
+  };
+  const handleShareClick = () => {
     const shareData = {
       title: restaurant?.name || "Restaurant",
       text: `Check out ${restaurant?.name || "this restaurant"} in ${
@@ -282,22 +319,22 @@ const useRestaurant = () => {
       navigator.clipboard.writeText(shareData.url);
       alert("Link copied to clipboard!");
     }
-  }, [restaurant, city]);
+  };
 
-  const handleReviewClick = useCallback(() => {
+  const handleReviewClick = () => {
     navigate(`/tripguide/review/restaurant/${restaurantId}`);
-  }, [navigate, restaurantId]);
+  };
 
-  const formatDate = useCallback((dateString) => {
+  const formatDate = (dateString) => {
     try {
       const options = { year: "numeric", month: "long", day: "numeric" };
       return new Date(dateString).toLocaleDateString("en-US", options);
     } catch {
       return "Invalid date";
     }
-  }, []);
+  };
 
-  const parseHours = useCallback((hours) => {
+  const parseHours = (hours) => {
     let parsedHours = hours;
     if (typeof hours === "string") {
       try {
@@ -344,7 +381,7 @@ const useRestaurant = () => {
     }
 
     return { formatted, status };
-  }, []);
+  };
 
   const hoursInfo = useMemo(
     () =>
@@ -356,7 +393,7 @@ const useRestaurant = () => {
 
   const sortedReviews = useMemo(
     () => (reviews ? sortReviews(reviews, reviewSort) : []),
-    [reviews, reviewSort, sortReviews]
+    [reviews, reviewSort]
   );
 
   return {
@@ -365,18 +402,15 @@ const useRestaurant = () => {
     resRank,
     nearbyRestaurants,
     reviews: sortedReviews,
-    loading: isLoading || isFavoritesLoading,
-    isRestaurantLoading: isLoading,
-    isReviewsLoading: false, // Reviews are fetched with restaurant data
-    isNearbyLoading: false, // Nearby data is fetched with restaurant data
-    error: error || queryError?.message || favoritesError?.message,
+    loading: isLoading,
+    error: queryError?.message,
     activeImageIndex,
     isFullScreen,
-    mapCenter,
-    mapError,
     showHours,
     reviewSort,
     isLoggedIn,
+    mapCenter,
+    mapError,
     setActiveImageIndex,
     setIsFullScreen,
     setShowHours,

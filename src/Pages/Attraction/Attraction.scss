@@ -1,10 +1,12 @@
 $primary-color: #2d7a61;
 $secondary-color: #3a9b7a;
-$accent-color: #e67e22;
 $text-color: #333;
 $background-light: #f9f9f9;
+$border-radius: 8px;
+$card-background: #ffffff;
+$accent-color: #e67e22;
 $shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-$border-radius: 12px;
+$transition: all 0.3s ease;
 
 @mixin button-gradient {
   background: linear-gradient(45deg, $primary-color, $secondary-color);
@@ -306,17 +308,15 @@ $border-radius: 12px;
         align-items: center;
 
         .stars-container {
-          display: flex;
-          margin-right: 10px;
-
           .star-icon {
-            color: #ddd;
-            font-size: 22px;
-            margin-right: 3px;
-
+            font-size: 18px;
+            margin-right: 4px;
             &.filled,
             &.half {
               color: $primary-color;
+            }
+            &.empty {
+              color: #ddd;
             }
           }
         }
@@ -868,30 +868,29 @@ $border-radius: 12px;
   }
 
   .reviews-section {
-    margin: 50px 0;
+    margin: 60px 0;
+    padding: 0 20px;
 
     h2 {
       font-size: 28px;
-      font-weight: 600;
-      margin-bottom: 30px;
-      color: #222;
+      font-weight: 700;
+      margin-bottom: 40px;
+      color: $text-color;
+      text-align: center;
     }
 
     .reviews-container {
       display: flex;
       gap: 40px;
-
-      @media (max-width: 768px) {
-        flex-direction: column;
-      }
+      flex-wrap: wrap;
 
       .review-stats {
-        width: 320px;
+        width: 300px;
         flex-shrink: 0;
-
-        @media (max-width: 768px) {
-          width: 100%;
-        }
+        background: $card-background;
+        padding: 20px;
+        border-radius: $border-radius;
+        box-shadow: $shadow;
 
         .average-rating {
           display: flex;
@@ -899,8 +898,8 @@ $border-radius: 12px;
           margin-bottom: 30px;
 
           .big-rating {
-            font-size: 52px;
-            font-weight: 700;
+            font-size: 48px;
+            font-weight: 800;
             color: $primary-color;
             margin-right: 20px;
           }
@@ -908,18 +907,24 @@ $border-radius: 12px;
           .rating-label {
             display: flex;
             flex-direction: column;
+            gap: 8px;
 
             .stars-container {
-              margin-bottom: 8px;
-
               .star-icon {
                 font-size: 18px;
-                color: $primary-color;
+                margin-right: 4px;
+                &.filled,
+                &.half {
+                  color: $primary-color;
+                }
+                &.empty {
+                  color: #ddd;
+                }
               }
             }
 
             span {
-              font-size: 15px;
+              font-size: 14px;
               color: #666;
             }
           }
@@ -932,29 +937,30 @@ $border-radius: 12px;
             margin-bottom: 12px;
 
             .rating-label {
-              width: 90px;
-              font-size: 14px;
+              width: 80px;
+              font-size: 13px;
+              color: $text-color;
               margin-right: 12px;
             }
 
             .bar-container {
               flex: 1;
-              height: 10px;
+              height: 8px;
               background: #eee;
-              border-radius: 5px;
+              border-radius: 4px;
               overflow: hidden;
-              margin-right: 12px;
 
               .bar {
                 height: 100%;
                 background: $primary-color;
-                border-radius: 5px;
+                border-radius: 4px;
+                transition: width 0.5s ease;
               }
             }
 
             .count {
-              font-size: 14px;
-              min-width: 35px;
+              font-size: 13px;
+              min-width: 30px;
               text-align: right;
               color: #666;
             }
@@ -966,180 +972,338 @@ $border-radius: 12px;
         flex: 1;
         min-width: 0;
 
-        .write-review {
-          @include rounded-box;
-          margin-bottom: 40px;
-
-          h3 {
-            font-size: 20px;
-            margin-bottom: 20px;
-            color: #222;
-          }
-
-          .rating-input {
+        .reviews-list {
+          .review-controls {
             display: flex;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
+            justify-content: flex-end;
 
             label {
-              margin-right: 20px;
+              margin-right: 12px;
               font-weight: 500;
-              font-size: 16px;
+              font-size: 14px;
+              color: $text-color;
             }
 
-            .star-rating {
-              display: flex;
-
-              .star-input {
-                font-size: 26px;
-                color: #ddd;
-                cursor: pointer;
-                margin-right: 8px;
-                transition: all 0.3s ease;
-
-                &.active {
-                  color: $primary-color;
-                }
-
-                &:hover {
-                  transform: scale(1.1);
-                }
-
-                &:focus {
-                  outline: 2px solid $primary-color;
-                  outline-offset: 2px;
-                }
-              }
-            }
-          }
-
-          .review-input {
-            textarea {
-              width: 100%;
-              height: 120px;
-              padding: 15px;
+            select {
+              padding: 8px 16px;
               border: 1px solid #ddd;
-              border-radius: 8px;
-              resize: vertical;
-              font-family: inherit;
-              font-size: 15px;
-              margin-bottom: 15px;
-              transition: all 0.2s ease;
+              border-radius: $border-radius;
+              font-size: 14px;
+              cursor: pointer;
+              background: $card-background;
+              transition: $transition;
 
               &:focus {
                 outline: none;
-                border-color: $primary-color;
-                box-shadow: 0 0 8px rgba($primary-color, 0.3);
-              }
-
-              &:invalid {
-                border-color: $accent-color;
-              }
-            }
-
-            .error-message {
-              color: $accent-color;
-              font-size: 14px;
-              margin-bottom: 15px;
-            }
-
-            .submit-review {
-              @include button-gradient;
-              float: right;
-              font-size: 16px;
-
-              &[aria-disabled="true"] {
-                background: #ccc;
-                cursor: not-allowed;
-                transform: none;
+                border-color: transparent;
               }
             }
           }
 
-          .login-prompt {
-            text-align: center;
-            padding: 20px;
-
-            p {
-              margin-bottom: 20px;
-              color: #666;
-              font-size: 16px;
-            }
-
-            button {
-              @include button-gradient;
-              padding: 12px 30px;
-              font-size: 16px;
-            }
-          }
-        }
-
-        .reviews-list {
           .review-card {
-            border-bottom: 1px solid #eee;
-            padding: 25px 0;
-            transition: background 0.2s ease;
+            background: $card-background;
+            border-radius: $border-radius;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: $shadow;
+            transition: $transition;
 
-            &:first-child {
-              padding-top: 0;
+            &.fade-in {
+              animation: fadeIn 0.5s ease;
             }
 
-            &.current-user {
-              background: #f0f8f4;
-              border-radius: 8px;
-              padding: 25px;
+            &:hover {
+              transform: translateY(-4px);
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             }
 
             .review-header {
               display: flex;
               justify-content: space-between;
-              margin-bottom: 15px;
+              align-items: center;
+              margin-bottom: 20px;
 
               .reviewer-info {
                 display: flex;
                 align-items: center;
+                gap: 15px;
 
                 .reviewer-avatar {
-                  width: 45px;
-                  height: 45px;
+                  width: 50px;
+                  height: 50px;
                   border-radius: 50%;
                   object-fit: cover;
-                  margin-right: 15px;
-                  border: 2px solid #eee;
+                  border: 2px solid $primary-color;
+                  transition: $transition;
+
+                  &:hover {
+                    transform: scale(1.1);
+                  }
                 }
 
-                h4 {
-                  margin: 0 0 6px 0;
-                  font-size: 17px;
-                  color: #222;
-                }
+                .reviewer-details {
+                  h4 {
+                    margin: 0;
+                    font-size: 18px;
+                    font-weight: 600;
+                    color: $text-color;
+                  }
 
-                .review-date {
-                  font-size: 13px;
-                  color: #888;
+                  .review-date {
+                    font-size: 13px;
+                    color: #777;
+                    margin-top: 4px;
+                  }
                 }
               }
 
               .review-rating {
-                font-size: 15px;
-                color: $primary-color;
+                .stars-container {
+                  .star-icon {
+                    font-size: 14px;
+                    margin-right: 4px;
+                    &.filled,
+                    &.half {
+                      color: $primary-color;
+                    }
+                    &.empty {
+                      color: #ddd;
+                    }
+                  }
+                }
               }
             }
 
             .review-body {
-              font-size: 15px;
-              line-height: 1.7;
-              color: #444;
+              .review-title {
+                font-size: 18px;
+                font-weight: 600;
+                color: $text-color;
+                margin-bottom: 12px;
+              }
+
+              p {
+                font-size: 15px;
+                line-height: 1.6;
+                color: #444;
+                margin-bottom: 15px;
+              }
+
+              .review-photos {
+                display: flex;
+                gap: 12px;
+                overflow-x: auto;
+                padding-bottom: 10px;
+                scroll-behavior: smooth;
+
+                .review-photo {
+                  width: 100px;
+                  height: 100px;
+                  border-radius: 6px;
+                  overflow: hidden;
+                  cursor: pointer;
+                  flex-shrink: 0;
+                  border: 1px solid #ddd;
+                  transition: $transition;
+
+                  img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                  }
+
+                  &:hover {
+                    transform: scale(1.05);
+                    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+                  }
+                }
+
+                &::-webkit-scrollbar {
+                  height: 6px;
+                }
+
+                &::-webkit-scrollbar-track {
+                  background: #f1f1f1;
+                  border-radius: 10px;
+                }
+
+                &::-webkit-scrollbar-thumb {
+                  background: $primary-color;
+                  border-radius: 10px;
+                }
+              }
+
+              .review-actions {
+                display: flex;
+                justify-content: flex-end;
+                gap: 10px;
+                margin-top: 15px;
+
+                // .edit-review-button,
+                // .report-review-button {
+                //   @include button-gradient;
+                //   padding: 8px 16px;
+                //   font-size: 13px;
+                // }
+
+                .report-review-button {
+                  background: #e74c3c;
+                  &:hover {
+                    background: darken(#e74c3c, 10%);
+                  }
+                }
+              }
             }
           }
 
           .no-reviews {
             text-align: center;
-            padding: 40px 0;
-            color: #888;
-            font-style: italic;
+            padding: 50px 20px;
+            background: $background-light;
+            border-radius: $border-radius;
+            color: #666;
             font-size: 16px;
+            margin-top: 20px;
+
+            p {
+              margin-bottom: 20px;
+              font-style: italic;
+            }
+
+            .login-to-review {
+              @include button-gradient;
+              padding: 12px 30px;
+            }
           }
+
+          .load-more-button {
+            @include button-gradient;
+            display: block;
+            margin: 30px auto;
+            padding: 12px 30px;
+          }
+        }
+      }
+    }
+
+    .image-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      overflow: auto;
+      padding: 20px;
+      animation: fadeInOverlay 0.3s ease;
+    }
+
+    .image-modal {
+      position: relative;
+      max-width: 90vw;
+      max-height: 90vh;
+      background: $card-background;
+      border-radius: $border-radius;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+      padding: 10px;
+      animation: fadeIn 0.3s ease;
+
+      .modal-image {
+        max-width: 100%;
+        max-height: 80vh;
+        object-fit: contain;
+        border-radius: $border-radius;
+        display: block;
+        margin: 0 auto;
+      }
+
+      .modal-close-button {
+        position: absolute;
+        top: -15px;
+        right: -15px;
+        background: $primary-color;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        font-size: 20px;
+        line-height: 32px;
+        text-align: center;
+        cursor: pointer;
+        transition: $transition;
+
+        &:hover {
+          background: darken($primary-color, 10%);
+          transform: scale(1.1);
+        }
+
+        &:focus {
+          outline: 2px solid $secondary-color;
+          outline-offset: 2px;
+        }
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes fadeInOverlay {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .reviews-container {
+        flex-direction: column;
+      }
+
+      .review-stats {
+        width: 100%;
+        margin-bottom: 20px;
+      }
+
+      .review-controls {
+        justify-content: flex-start;
+      }
+
+      .review-card {
+        padding: 20px;
+      }
+
+      .image-modal {
+        max-width: 95vw;
+        padding: 5px;
+
+        .modal-image {
+          max-height: 75vh;
+        }
+
+        .modal-close-button {
+          top: -10px;
+          right: -10px;
+          width: 28px;
+          height: 28px;
+          font-size: 18px;
+          line-height: 28px;
         }
       }
     }

@@ -15,38 +15,70 @@ axios.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Interceptor để làm mới token khi access token hết hạn
+axios.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      try {
+        const refreshToken = localStorage.getItem("refreshToken");
+        if (!refreshToken) {
+          throw new Error("No refresh token available");
+        }
+        const response = await axios.post(`${API_URL}/refresh`, {
+          refreshToken,
+        });
+        const { accessToken } = response.data;
+        localStorage.setItem("token", accessToken);
+        originalRequest.headers["Authorization"] = `Bearer ${accessToken}`;
+        return axios(originalRequest);
+      } catch (refreshError) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("data");
+        alert("Phiên của bạn đã hết hạn. Vui lòng đăng nhập lại.");
+        window.location.href = "/login";
+        return Promise.reject(refreshError);
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Các hàm hỗ trợ
 const saveUserData = (data) => {
-  // console.log("API response data:", data); // Debug API response
-  if (!data?.user || !data.token) {
-    throw new Error("Invalid API response: Missing user or token");
+  if (!data?.user || !data.accessToken || !data.refreshToken) {
+    throw new Error(
+      "Invalid API response: Missing user, accessToken, or refreshToken"
+    );
   }
 
   const userData = {
     user_id: data.user.user_id,
     username: data.user.username || "unknown",
     email: data.user.email || "",
-    full_name: data.user.fullName || data.user.full_name || "",
-    avatar_url: data.user.avatar || data.user.avatar_url || "",
+    full_name: data.user.fullName || "",
+    avatar_url: data.user.avatar || "",
     role: data.user.role || "user",
-    created_at:
-      data.user.joinedAt || data.user.created_at || new Date().toISOString(),
-    bio: data.user.bio || {},
+    created_at: data.user.joinedAt || new Date().toISOString(),
+    bio: data.user.bio || null,
   };
 
   if (!userData.user_id) {
     throw new Error("User ID is missing in API response");
   }
 
-  // Lưu token và user data
-  localStorage.setItem("token", data.token);
+  // Lưu accessToken, refreshToken và user data
+  localStorage.setItem("token", data.accessToken);
+  localStorage.setItem("refreshToken", data.refreshToken);
   localStorage.setItem("data", JSON.stringify(userData));
-  // console.log("Saved userData:", userData); // Debug saved data
   return userData;
 };
 
 const handleApiError = (error, defaultMessage) => {
-  const errorMessage = error.response?.data?.message || defaultMessage;
+  const errorMessage = error.response?.data?.error || defaultMessage;
   throw new Error(errorMessage);
 };
 
@@ -71,85 +103,79 @@ export const authService = {
   // Lấy thông tin người dùng hiện tại
   getCurrentUser: () => {
     const userData = localStorage.getItem("data");
-    // console.log("Raw userData from localStorage:", userData);
     if (!userData) {
-      console.log("No user data in localStorage");
       return null;
     }
 
     try {
       const parsedData = JSON.parse(userData);
-      // console.log("Parsed userData:", parsedData);
-
-      // Kiểm tra nếu dữ liệu từ Google auth
-      if (parsedData.token && parsedData.user) {
-        return {
-          user_id: parsedData.user.id || parsedData.user.user_id,
-          username: parsedData.user.username || "unknown",
-          email: parsedData.user.email || "",
-          full_name:
-            parsedData.user.full_name || parsedData.user.fullName || "",
-          avatar_url:
-            parsedData.user.avatar || parsedData.user.avatar_url || "",
-          role: parsedData.user.role || "user",
-          created_at:
-            parsedData.user.created_at ||
-            parsedData.user.joinedAt ||
-            new Date().toISOString(),
-          bio: parsedData.user.bio || {},
-        };
-      }
-
-      // Dữ liệu từ đăng nhập thông thường
       return {
-        ...parsedData,
-        bio: parsedData.bio || {},
+        user_id: parsedData.user_id,
+        username: parsedData.username,
+        email: parsedData.email,
+        full_name: parsedData.full_name,
+        avatar_url: parsedData.avatar_url,
+        role: parsedData.role,
+        created_at: parsedData.created_at,
+        bio: parsedData.bio || null,
       };
     } catch (error) {
       console.error("Error parsing user data:", error);
       return null;
     }
   },
+
   // Cập nhật thông tin người dùng
   setCurrentUser: (userData) => {
     const normalizedData = {
-      ...userData,
-      bio: userData.bio || {},
+      user_id: userData.user_id,
+      username: userData.username || "unknown",
+      email: userData.email || "",
+      full_name: userData.full_name || "",
+      avatar_url: userData.avatar_url || "",
+      role: userData.role || "user",
+      created_at: userData.created_at || new Date().toISOString(),
+      bio: userData.bio || null,
     };
     localStorage.setItem("data", JSON.stringify(normalizedData));
-    // console.log("Updated userData in localStorage:", normalizedData); // Debug
   },
 
   // Kiểm tra đã xác thực chưa
   isAuthenticated: () => {
     const token = localStorage.getItem("token");
-    if (token) return true;
-    const data = localStorage.getItem("data");
-    if (data) {
-      try {
-        const parsedData = JSON.parse(data);
-        return !!parsedData.token;
-      } catch (error) {
-        console.error("Error parsing data for token:", error);
-        return false;
-      }
-    }
-    return false;
+    const refreshToken = localStorage.getItem("refreshToken");
+    return !!(token && refreshToken);
   },
+
   // Lấy token
   getToken: () => localStorage.getItem("token"),
 
   // Đăng xuất
-  logout: () => {
+  logout: async () => {
+    try {
+      const user = authService.getCurrentUser();
+      if (user) {
+        await axios.post(`${API_URL}/logout`, { userId: user.user_id });
+      }
+    } catch (error) {
+      console.error("Logout API error:", error);
+    }
     localStorage.removeItem("data");
     localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
     window.location.href = "/";
   },
 
   // Đăng ký
   register: async (userData) => {
     try {
-      const response = await axios.post(`${API_URL}/register`, userData);
+      const response = await axios.post(`${API_URL}/register`, {
+        fullName: userData.full_name,
+        username: userData.username,
+        email: userData.email,
+        password: userData.password,
+        role: userData.role || "user",
+      });
       return response.data;
     } catch (error) {
       handleApiError(error, "Đăng ký thất bại");

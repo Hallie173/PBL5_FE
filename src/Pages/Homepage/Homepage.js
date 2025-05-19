@@ -53,11 +53,6 @@ const HomePage = () => {
   } = useFavorites(user?.user_id, isLoggedIn);
 
   useEffect(() => {
-    console.log("Auth:", { user, isLoggedIn }); // Debug
-    console.log("Favorites:", favorites); // Debug
-  }, [user, isLoggedIn, favorites]);
-
-  useEffect(() => {
     const fetchRecentlyViewed = async () => {
       try {
         let recentItems = [];
@@ -330,7 +325,6 @@ const HomePage = () => {
                     String(fav.attraction_id) ===
                       String(item.attraction_id || item.id))
               );
-              console.log("Rendering LocationCard:", { item, isSaved });
               return (
                 <LocationCard
                   key={`${item.type}-${item.id}`}
@@ -362,10 +356,7 @@ const HomePage = () => {
                   String(fav.attraction_id) ===
                     String(item.attraction_id || item.id))
             );
-            console.log("Rendering Recommended LocationCard:", {
-              item,
-              isSaved,
-            });
+
             return (
               <LocationCard
                 key={`${item.type}-${item.id}`}

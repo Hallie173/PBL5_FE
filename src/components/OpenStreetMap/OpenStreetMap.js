@@ -15,6 +15,7 @@ const OpenStreetMap = ({
   const mapInstanceRef = useRef(null);
   const markersLayerRef = useRef(null);
   const currentLocationMarkerRef = useRef(null);
+  const tileLayerRef = useRef(null);
   const [currentPosition, setCurrentPosition] = useState(null);
   const [isMapReady, setIsMapReady] = useState(false);
   const [mapStyle, setMapStyle] = useState(
@@ -26,185 +27,101 @@ const OpenStreetMap = ({
       voyager:
         "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
       satellite: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-      dark: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
     }),
     []
   );
 
+  // Hàm định dạng khoảng cách
+  const formatDistance = (distance) => {
+    if (distance >= 1000) {
+      return `${(distance / 1000).toFixed(2)} km`;
+    }
+    return `${Math.round(distance)} m`;
+  };
+
+  // CSS tối ưu hóa, thêm style cho nút go-to-marker
+  const styles = `
+    .leaflet-container { border-radius: 12px; overflow: hidden; }
+    @keyframes pulse {
+      0% { transform: scale(0.8); opacity: 0.7; }
+      100% { transform: scale(1.5); opacity: 0; }
+    }
+    .current-location-pulse {
+      will-change: transform, opacity;
+      animation: pulse 2s infinite ease-in-out;
+    }
+    .locate-button, .style-button, .go-to-marker-button {
+      position: absolute;
+      z-index: 1000;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .locate-button { bottom: 16px; right: 16px; }
+    .style-button { bottom: 60px; right: 16px; }
+    .go-to-marker-button { bottom: 104px; right: 16px; }
+    .locate-button:hover, .style-button:hover, .go-to-marker-button:hover { background-color: #f9fafb; }
+    .locate-button svg, .style-button svg, .go-to-marker-button svg { width: 20px; height: 20px; color: #3b82f6; }
+    .leaflet-popup-content { font-size: 14px; }
+  `;
+
   useEffect(() => {
     const styleEl = document.createElement("style");
-    styleEl.textContent = `
-      @keyframes pulse {
-        0% { transform: scale(0.8); opacity: 0.7; }
-        100% { transform: scale(1.8); opacity: 0; }
-      }
-      .pulse-animation {
-        animation: pulse 2s infinite;
-      }
-      .custom-marker {
-        transition: transform 0.3s ease;
-      }
-      .custom-marker:hover {
-        transform: scale(1.2);
-      }
-      .leaflet-popup-content-wrapper {
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        background: #fff;
-        padding: 8px;
-      }
-      .leaflet-tooltip {
-        background: rgba(0, 0, 0, 0.85);
-        color: white;
-        border: none;
-        border-radius: 6px;
-        padding: 4px 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-      }
-      .locate-button, .style-button {
-        position: absolute;
-        z-index: 1000;
-        background: white;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        cursor: pointer;
-        transition: all 0.2s;
-      }
-      .locate-button {
-        bottom: 20px;
-        right: 20px;
-      }
-      .style-button {
-        bottom: 70px;
-        right: 20px;
-      }
-      .locate-button:hover, .style-button:hover {
-        background-color: #f9fafb;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      }
-      .locate-button svg, .style-button svg {
-        width: 24px;
-        height: 24px;
-        color: #3b82f6;
-      }
-      .current-location-icon {
-        position: relative;
-      }
-      .current-location-icon .location-pulse {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 30px;
-        height: 30px;
-        background-color: rgba(59, 130, 246, 0.3);
-        border-radius: 50%;
-        animation: pulse 1.5s infinite ease-in-out;
-      }
-      .current-location-icon .location-pulse::before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 14px;
-        height: 14px;
-        background-color: #2563eb;
-        border: 2px solid white;
-        border-radius: 50%;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-      }
-      .custom-marker {
-        position: relative;
-      }
-      .custom-marker .marker-main {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 20px;
-        height: 20px;
-        background-color: #ef4444;
-        border: 2px solid white;
-        border-radius: 50%;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-      }
-      .custom-marker .marker-main::before {
-        content: '';
-        position: absolute;
-        top: -6px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 8px;
-        height: 8px;
-        background-color: white;
-        border-radius: 50%;
-      }
-      .custom-marker .marker-main::after {
-        content: '';
-        position: absolute;
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 0;
-        height: 0;
-        border-left: 7px solid transparent;
-        border-right: 7px solid transparent;
-        border-top: 16px solid #ef4444;
-      }
-      .custom-marker .marker-shadow {
-        position: absolute;
-        bottom: -2px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 16px;
-        height: 4px;
-        background-color: rgba(0,0,0,0.2);
-        border-radius: 50%;
-        filter: blur(2px);
-      }
-    `;
+    styleEl.textContent = styles;
     document.head.appendChild(styleEl);
     return () => document.head.removeChild(styleEl);
   }, []);
 
+  // Cấu hình marker mặc định của Leaflet
   useEffect(() => {
     delete L.Icon.Default.prototype._getIconUrl;
     L.Icon.Default.mergeOptions({
-      iconRetinaUrl: require("leaflet/dist/images/marker-icon-2x.png"),
-      iconUrl: require("leaflet/dist/images/marker-icon.png"),
-      shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
+      iconRetinaUrl:
+        "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+      iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+      shadowUrl:
+        "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
     });
   }, []);
 
+  // Marker vị trí hiện tại sử dụng SVG
   const currentLocationIcon = useMemo(() => {
     return L.divIcon({
       className: "current-location-icon",
-      html: '<div class="location-pulse"></div>',
-      iconSize: [40, 40],
-      iconAnchor: [20, 20],
+      html: `
+        <svg width="32" height="32" viewBox="0 0 32 32">
+          <circle cx="16" cy="16" r="12" fill="rgba(59,130,246,0.3)" class="current-location-pulse"/>
+          <circle cx="16" cy="16" r="6" fill="#2563eb" stroke="white" stroke-width="2"/>
+        </svg>
+      `,
+      iconSize: [32, 32],
+      iconAnchor: [16, 16],
     });
   }, []);
 
+  // Marker tùy chỉnh sử dụng SVG
   const standardMarkerIcon = useMemo(() => {
     return L.divIcon({
       className: "custom-marker",
       html: `
-        <div class="marker-main"></div>
-        <div class="marker-shadow"></div>
+        <svg width="24" height="32" viewBox="0 0 24 32">
+          <path d="M12 0C5.373 0 0 5.373 0 12c0 8 12 20 12 20s12-12 12-20c0-6.627-5.373-12-12-12z" fill="#ef4444" stroke="white" stroke-width="1.5"/>
+          <circle cx="12" cy="12" r="4" fill="white"/>
+        </svg>
       `,
-      iconSize: [28, 36],
-      iconAnchor: [14, 36],
-      popupAnchor: [0, -36],
+      iconSize: [24, 32],
+      iconAnchor: [12, 32],
+      popupAnchor: [0, -32],
     });
   }, []);
 
+  // Khởi tạo bản đồ
   useEffect(() => {
     if (!mapContainerRef.current || mapInstanceRef.current) return;
 
@@ -216,7 +133,7 @@ const OpenStreetMap = ({
       zoomAnimation: true,
     });
 
-    L.tileLayer(mapStyle, {
+    tileLayerRef.current = L.tileLayer(mapStyle, {
       attribution:
         '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       maxZoom: 19,
@@ -231,7 +148,7 @@ const OpenStreetMap = ({
         mapInstanceRef.current.invalidateSize();
         setIsMapReady(true);
       }
-    }, 300);
+    }, 100);
 
     return () => {
       if (mapInstanceRef.current) {
@@ -239,30 +156,25 @@ const OpenStreetMap = ({
         mapInstanceRef.current = null;
         markersLayerRef.current = null;
         currentLocationMarkerRef.current = null;
+        tileLayerRef.current = null;
         setIsMapReady(false);
       }
     };
   }, []);
 
+  // Cập nhật tile layer khi đổi style
   useEffect(() => {
-    if (!mapInstanceRef.current || !isMapReady) return;
-    const tileLayer = L.tileLayer(mapStyle, {
-      attribution:
-        '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      maxZoom: 19,
-    });
-    mapInstanceRef.current.eachLayer((layer) => {
-      if (layer instanceof L.TileLayer)
-        mapInstanceRef.current.removeLayer(layer);
-    });
-    tileLayer.addTo(mapInstanceRef.current);
+    if (!mapInstanceRef.current || !isMapReady || !tileLayerRef.current) return;
+    tileLayerRef.current.setUrl(mapStyle);
   }, [mapStyle, isMapReady]);
 
+  // Cập nhật center và zoom
   useEffect(() => {
     if (!mapInstanceRef.current || !isMapReady) return;
     mapInstanceRef.current.setView(center, zoom, { animate: true });
   }, [center, zoom, isMapReady]);
 
+  // Cập nhật markers và tính khoảng cách
   useEffect(() => {
     if (!markersLayerRef.current || !isMapReady) return;
 
@@ -279,22 +191,34 @@ const OpenStreetMap = ({
         markersLayerRef.current
       );
 
-      if (popup) {
-        leafletMarker.bindPopup(`<div>${popup}</div>`, {
-          className: "custom-popup",
-          closeButton: true,
-        });
-      }
+      // Tính khoảng cách nếu có vị trí hiện tại
+      const updatePopupContent = () => {
+        let popupContent = popup || title || "Địa điểm";
+        if (currentPosition) {
+          const distance = L.latLng(currentPosition).distanceTo(position);
+          popupContent += `<br>Khoảng cách: ${formatDistance(distance)}`;
+        }
+        leafletMarker.bindPopup(`<div>${popupContent}</div>`);
+      };
+
+      updatePopupContent();
+
+      // Cập nhật popup khi nhấp vào marker
+      leafletMarker.on("click", () => {
+        updatePopupContent();
+        leafletMarker.openPopup();
+      });
+
       if (title) {
         leafletMarker.bindTooltip(title, {
-          permanent: false,
           direction: "top",
           offset: [0, -10],
         });
       }
     });
-  }, [markers, isMapReady, standardMarkerIcon]);
+  }, [markers, isMapReady, currentPosition, standardMarkerIcon]);
 
+  // Cập nhật vị trí hiện tại
   useEffect(() => {
     if (!isMapReady || !showCurrentLocation) return;
 
@@ -311,25 +235,24 @@ const OpenStreetMap = ({
             icon: currentLocationIcon,
             zIndexOffset: 1000,
           }).addTo(mapInstanceRef.current);
-          currentLocationMarkerRef.current.bindPopup(
-            "<strong>Vị trí hiện tại</strong><br>Bạn đang ở đây!",
-            { className: "custom-popup" }
-          );
+          currentLocationMarkerRef.current.bindPopup("Bạn đang ở đây!");
         }
       },
       (error) => console.error("Không thể lấy vị trí:", error),
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 5000 }
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
     );
 
     return () => navigator.geolocation.clearWatch(watchId);
   }, [isMapReady, showCurrentLocation, currentLocationIcon]);
 
+  // Tự động resize bản đồ
   useEffect(() => {
     if (mapInstanceRef.current && isMapReady) {
       setTimeout(() => mapInstanceRef.current.invalidateSize(), 0);
     }
   }, [height, width, isMapReady]);
 
+  // Xử lý nút định vị
   const handleLocateClick = () => {
     if (!mapInstanceRef.current || !isMapReady) return;
     if (currentPosition) {
@@ -351,6 +274,14 @@ const OpenStreetMap = ({
     }
   };
 
+  // Xử lý nút chuyển về vị trí marker
+  const handleGoToMarker = () => {
+    if (!mapInstanceRef.current || !isMapReady || markers.length === 0) return;
+    const firstMarker = markers[0]; // Chuyển đến marker đầu tiên
+    mapInstanceRef.current.setView(firstMarker.position, 17, { animate: true });
+  };
+
+  // Xử lý đổi kiểu bản đồ
   const handleStyleChange = () => {
     const styles = Object.keys(mapStyles);
     const currentIndex = styles.indexOf(
@@ -363,11 +294,7 @@ const OpenStreetMap = ({
 
   return (
     <div style={{ position: "relative", width, height }}>
-      <div
-        ref={mapContainerRef}
-        style={{ width: "100%", height: "100%" }}
-        className="rounded-xl shadow-lg overflow-hidden"
-      />
+      <div ref={mapContainerRef} style={{ width: "100%", height: "100%" }} />
       {showCurrentLocation && (
         <button
           className="locate-button"
@@ -378,7 +305,7 @@ const OpenStreetMap = ({
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2.5"
+            strokeWidth="2"
           >
             <circle cx="12" cy="12" r="5" />
             <line x1="12" y1="2" x2="12" y2="4" />
@@ -397,12 +324,29 @@ const OpenStreetMap = ({
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth="2.5"
+          strokeWidth="2"
         >
           <path d="M3 3h18v18H3z" />
           <path d="M12 3v18M3 12h18" />
         </svg>
       </button>
+      {markers.length > 0 && (
+        <button
+          className="go-to-marker-button"
+          onClick={handleGoToMarker}
+          title="Đi đến marker"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+        </button>
+      )}
     </div>
   );
 };
