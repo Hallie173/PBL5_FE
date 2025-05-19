@@ -131,7 +131,6 @@ const LocationCard = ({ item, onClick, renderStars }) => {
           </div>
         )}
         {tagList.length > 0 && (
-          // eslint-disable-next-line jsx-a11y/no-redundant-roles
           <ul className="item-tags" role="list" aria-label="Location tags">
             {displayedTags.map((tag, index) => (
               <li key={index} className="tag">

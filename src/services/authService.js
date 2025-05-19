@@ -3,8 +3,31 @@ import BASE_URL from "../constants/BASE_URL";
 
 const API_URL = `${BASE_URL}/auth`;
 
-// Thiết lập interceptor để tự động gắn token xác thực
-axios.interceptors.request.use(
+// Thiết lập Axios instance
+const apiClient = axios.create({
+  baseURL: API_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+// Quản lý hàng đợi khi làm mới token
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
+// Interceptor thêm token vào header
+apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -15,13 +38,30 @@ axios.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Interceptor để làm mới token khi access token hết hạn
-axios.interceptors.response.use(
+// Interceptor làm mới token
+apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (
+      error.response?.status === 401 &&
+      error.response?.data?.code === "TOKEN_EXPIRED" &&
+      !originalRequest._retry
+    ) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers["Authorization"] = `Bearer ${token}`;
+            return apiClient(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
       originalRequest._retry = true;
+      isRefreshing = true;
+
       try {
         const refreshToken = localStorage.getItem("refreshToken");
         if (!refreshToken) {
@@ -32,15 +72,23 @@ axios.interceptors.response.use(
         });
         const { accessToken } = response.data;
         localStorage.setItem("token", accessToken);
+        apiClient.defaults.headers.common[
+          "Authorization"
+        ] = `Bearer ${accessToken}`;
         originalRequest.headers["Authorization"] = `Bearer ${accessToken}`;
-        return axios(originalRequest);
+
+        processQueue(null, accessToken);
+        return apiClient(originalRequest);
       } catch (refreshError) {
+        processQueue(refreshError, null);
         localStorage.removeItem("token");
         localStorage.removeItem("refreshToken");
         localStorage.removeItem("data");
         alert("Phiên của bạn đã hết hạn. Vui lòng đăng nhập lại.");
         window.location.href = "/login";
         return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
       }
     }
     return Promise.reject(error);
@@ -70,7 +118,6 @@ const saveUserData = (data) => {
     throw new Error("User ID is missing in API response");
   }
 
-  // Lưu accessToken, refreshToken và user data
   localStorage.setItem("token", data.accessToken);
   localStorage.setItem("refreshToken", data.refreshToken);
   localStorage.setItem("data", JSON.stringify(userData));
@@ -84,13 +131,9 @@ const handleApiError = (error, defaultMessage) => {
 
 // Dịch vụ xác thực
 export const authService = {
-  // Đăng nhập
   login: async (email, password) => {
     try {
-      const response = await axios.post(`${API_URL}/login`, {
-        email,
-        password,
-      });
+      const response = await apiClient.post("/login", { email, password });
       if (response.data) {
         return saveUserData(response.data);
       }
@@ -100,7 +143,6 @@ export const authService = {
     }
   },
 
-  // Lấy thông tin người dùng hiện tại
   getCurrentUser: () => {
     const userData = localStorage.getItem("data");
     if (!userData) {
@@ -125,7 +167,6 @@ export const authService = {
     }
   },
 
-  // Cập nhật thông tin người dùng
   setCurrentUser: (userData) => {
     const normalizedData = {
       user_id: userData.user_id,
@@ -140,22 +181,19 @@ export const authService = {
     localStorage.setItem("data", JSON.stringify(normalizedData));
   },
 
-  // Kiểm tra đã xác thực chưa
   isAuthenticated: () => {
     const token = localStorage.getItem("token");
     const refreshToken = localStorage.getItem("refreshToken");
     return !!(token && refreshToken);
   },
 
-  // Lấy token
   getToken: () => localStorage.getItem("token"),
 
-  // Đăng xuất
   logout: async () => {
     try {
       const user = authService.getCurrentUser();
       if (user) {
-        await axios.post(`${API_URL}/logout`, { userId: user.user_id });
+        await apiClient.post("/logout", { userId: user.user_id });
       }
     } catch (error) {
       console.error("Logout API error:", error);
@@ -166,10 +204,9 @@ export const authService = {
     window.location.href = "/";
   },
 
-  // Đăng ký
   register: async (userData) => {
     try {
-      const response = await axios.post(`${API_URL}/register`, {
+      const response = await apiClient.post("/register", {
         fullName: userData.full_name,
         username: userData.username,
         email: userData.email,
@@ -182,22 +219,18 @@ export const authService = {
     }
   },
 
-  // Quên mật khẩu
   forgotPassword: async (email) => {
     try {
-      const response = await axios.post(`${API_URL}/forgot-password`, {
-        email,
-      });
+      const response = await apiClient.post("/forgot-password", { email });
       return response.data;
     } catch (error) {
       handleApiError(error, "Yêu cầu đặt lại mật khẩu thất bại");
     }
   },
 
-  // Đặt lại mật khẩu
   resetPassword: async (token, password) => {
     try {
-      const response = await axios.post(`${API_URL}/reset-password/${token}`, {
+      const response = await apiClient.post(`/reset-password/${token}`, {
         password,
       });
       return response.data;
@@ -206,8 +239,9 @@ export const authService = {
     }
   },
 
-  // Đăng nhập với Google
   googleLogin: () => {
     window.location.href = `${API_URL}/google`;
   },
 };
+
+export default apiClient;

@@ -173,6 +173,9 @@ $transition: all 0.3s ease;
     align-items: center;
     margin-bottom: 20px;
   }
+  .name-container {
+    font-size: 30px;
+  }
 
   .restaurant-action {
     display: flex;
@@ -244,7 +247,7 @@ $transition: all 0.3s ease;
       .rating-value {
         font-size: 18px;
         font-weight: 600;
-        color: #222;
+        color: $primary-color;
       }
     }
 
