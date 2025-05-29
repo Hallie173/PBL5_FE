@@ -13,6 +13,8 @@ import { useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import BASE_URL from '../../constants/BASE_URL';
 import axios from 'axios';
+import { Autocomplete, TextField } from '@mui/material';
+
 function NewTrip() {
     const location = useLocation();
     const { selectedTags = [], startDate = '', endDate = '', selectedCity = '', selectedResTags = '' } = location.state || {};
@@ -21,7 +23,7 @@ function NewTrip() {
     const [city, setCity] = useState(null);
     const [itineraryData, setitinararyData] = useState([]);
     const [addLocation, setAddLocation] = useState(false);
-
+    const [cityAttraction, setCityAttraction] = useState([]);
     useEffect(() => {
         setLoading(true);
         const fetchData = async () => {
@@ -41,7 +43,12 @@ function NewTrip() {
                 console.log('URL used:', url); // debug
                 console.log('Response:', Itiresponse.data);
                 setitinararyData(Itiresponse.data);
-
+                
+                const cityResponse = await axios.get(`${BASE_URL}/cities/${selectedCity}`);
+                setCity(cityResponse.data);
+                console.log(city);
+                const cityAttraction = await axios.get(`${BASE_URL}/attractions/city/${selectedCity}`);
+                setCityAttraction(cityAttraction.data);
 
                 // return response.data;
                 // // const params = new URLSearchParams();
@@ -95,7 +102,7 @@ function NewTrip() {
             <div className="city-name-container">
                 <img src={newtrippic} alt="City" className="city-image" />
                 <div className="title-overlay">
-                    <h2>Trip to <span className="destination-name">...</span></h2>
+                    <h2>Trip to <span className="destination-name">{city?.name}</span></h2>
                     <div className="date-time">
                         <FontAwesomeIcon icon={faCalendarDay} className="date-icon" />
                         <span className="date-text">{startDate} - {endDate}</span>
@@ -147,7 +154,12 @@ function NewTrip() {
                                                 <div className="form-body">
                                                     <div className="form-search-group">
                                                         <div className="search-box">
-                                                            <input type="text" placeholder="Search for location..." />
+                                                            <Autocomplete
+                                                                options={cityAttraction}
+                                                                getOptionLabel={(option) => option.name}
+                                                                renderInput={(params) => <TextField {...params} label="Search for location..." />}
+                                                                sx={{ width: '100%' }}
+                                                            />
                                                         </div>
                                                         <button className="search-btn">Search</button>
                                                     </div>
