@@ -138,7 +138,7 @@ const AttractionList = ({ attractions, onEdit, onDelete, cities }) => {
           >
             <div className="relative h-48 overflow-hidden">
               <img
-                src={attraction.image_url || "https://via.placeholder.com/400x200?text=No+Image"}
+                src={attraction.image_url}
                 alt={attraction.name}
                 className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                 onError={(e) => (e.target.src = "https://via.placeholder.com/400x200?text=No+Image")}

@@ -17,8 +17,8 @@ import {
   faHeart,
   faImages,
   faExpand,
-  faStar as solidStar,
-  faStar as regularStar,
+  // faStar as solidStar,
+  // faStar as regularStar,
 } from "@fortawesome/free-solid-svg-icons";
 import OpenStreetMap from "../../components/OpenStreetMap/OpenStreetMap";
 import useAttraction from "./hooks/useAttraction";
@@ -27,27 +27,7 @@ import Loading from "../../components/Loading/Loading";
 import { useAuth } from "../../contexts/AuthContext";
 import axios from "axios";
 import BASE_URL from "../../constants/BASE_URL";
-// Skeleton Loader Component
-// const SkeletonLoader = () => (
-//   <div className="skeleton-loader">
-//     <div
-//       className="skeleton-header"
-//       style={{ height: "100px", background: "#eee" }}
-//     ></div>
-//     <div
-//       className="skeleton-gallery"
-//       style={{ height: "500px", background: "#eee" }}
-//     ></div>
-//     <div
-//       className="skeleton-info"
-//       style={{ height: "300px", background: "#eee" }}
-//     ></div>
-//     <div
-//       className="skeleton-reviews"
-//       style={{ height: "400px", background: "#eee" }}
-//     ></div>
-//   </div>
-// );
+import useFavorites from "../../hooks/useFavorites";
 
 // Error Message Component
 const ErrorMessage = ({ error }) => {
@@ -65,8 +45,8 @@ const ErrorMessage = ({ error }) => {
 const AttractionHeader = ({
   attraction,
   city,
-  saved,
-  handleSaveToggle,
+  isFavorite,
+  handleToggleSave,
   handleShareClick,
   handleReviewClick,
   renderStars,
@@ -135,12 +115,14 @@ const AttractionHeader = ({
             <span>Review</span>
           </button>
           <button
-            className={`action-button save-attraction ${saved ? "saved" : ""}`}
-            onClick={handleSaveToggle}
-            aria-label={saved ? "Remove from saved" : "Save attraction"}
+            className={`action-button save-attraction ${
+              isFavorite ? "saved" : ""
+            }`}
+            onClick={handleToggleSave}
+            aria-label={isFavorite ? "Remove from saved" : "Save attraction"}
           >
             <FontAwesomeIcon icon={faHeart} className="action-icon" />
-            <span>{saved ? "Saved" : "Save"}</span>
+            <span>{isFavorite ? "Saved" : "Save"}</span>
           </button>
         </div>
       </div>
@@ -159,10 +141,6 @@ const AttractionHeader = ({
     </header>
   );
 };
-// (prevProps, nextProps) =>
-//   prevProps.attraction?.id === nextProps.attraction?.id &&
-//   prevProps.city?.id === nextProps.city?.id &&
-//   prevProps.saved === nextProps.saved);
 
 // Attraction Gallery Component
 const AttractionGallery = React.memo(
@@ -533,16 +511,25 @@ const AttractionInfo = React.memo(
                   {mapError}
                   <button onClick={fetchAttraction}>Retry</button>
                 </div>
-              ) : mapCenter ? (
+              ) : mapCenter &&
+                Array.isArray(mapCenter) &&
+                mapCenter.length === 2 ? (
                 <OpenStreetMap
+                  key={`map-${mapCenter[0]}-${mapCenter[1]}`}
                   center={mapCenter}
                   zoom={15}
-                  markers={[{ position: mapCenter, popup: attraction.name }]}
+                  markers={[
+                    {
+                      position: mapCenter,
+                      title: attraction.name,
+                    },
+                  ]}
                   height="400px"
                   width="100%"
+                  showCurrentLocation={true}
                 />
               ) : (
-                <div className="map-error" role="alert">
+                <div className="map-loading" role="alert">
                   Loading map...
                 </div>
               )}
@@ -556,15 +543,6 @@ const AttractionInfo = React.memo(
               <li>
                 <strong>Location:</strong> {city?.name || "Unknown"}, Vietnam
               </li>
-              <li>
-                <strong>Rating:</strong>{" "}
-                {Number(attraction.average_rating).toFixed(1)}/5
-              </li>
-              {attraction.tags?.length > 0 && (
-                <li>
-                  <strong>Type:</strong> {attraction.tags.join(", ")}
-                </li>
-              )}
             </ul>
             {attraction.website && (
               <button
@@ -592,32 +570,79 @@ const AttractionReviews = React.memo(
   ({
     reviews,
     reviewSort,
-    setReviewSort,
-    reviewForm,
-    setReviewForm,
-    submitting,
-    reviewError,
+    handleSortChange,
     isLoggedIn,
     ratingBreakdown,
     renderStars,
     formatDate,
     navigate,
   }) => {
-    const sortedReviews = useMemo(() => {
-      const sorted = [...reviews];
-      if (reviewSort === "newest") {
-        sorted.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-      } else if (reviewSort === "highest") {
-        sorted.sort((a, b) => b.rating - a.rating);
-      } else if (reviewSort === "lowest") {
-        sorted.sort((a, b) => a.rating - b.rating);
+    const [displayCount, setDisplayCount] = useState(5);
+    const [selectedImage, setSelectedImage] = useState(null);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const modalRef = useRef(null);
+
+    // Handle modal open/close
+    const openModal = (photo) => {
+      setSelectedImage(photo);
+      document.body.style.overflow = "hidden";
+    };
+
+    const closeModal = () => {
+      setSelectedImage(null);
+      document.body.style.overflow = "";
+    };
+
+    // Close modal on Escape key
+    useEffect(() => {
+      const handleKeyDown = (e) => {
+        if (e.key === "Escape" && selectedImage) {
+          closeModal();
+        }
+      };
+      window.addEventListener("keydown", handleKeyDown);
+      return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [selectedImage]);
+
+    // Focus trap for modal
+    useEffect(() => {
+      if (selectedImage && modalRef.current) {
+        const focusableElements = modalRef.current.querySelectorAll(
+          'button, [tabindex]:not([tabindex="-1"])'
+        );
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        const handleTab = (e) => {
+          if (e.key === "Tab") {
+            if (e.shiftKey && document.activeElement === firstElement) {
+              e.preventDefault();
+              lastElement.focus();
+            } else if (!e.shiftKey && document.activeElement === lastElement) {
+              e.preventDefault();
+              firstElement.focus();
+            }
+          }
+        };
+
+        modalRef.current.focus();
+        modalRef.current.addEventListener("keydown", handleTab);
+        return () =>
+          modalRef.current?.removeEventListener("keydown", handleTab);
       }
-      return sorted;
-    }, [reviews, reviewSort]);
+    }, [selectedImage]);
+
+    // Handle load more reviews
+    const handleLoadMore = () => {
+      setIsLoadingMore(true);
+      setTimeout(() => {
+        setDisplayCount(displayCount + 5);
+        setIsLoadingMore(false);
+      }, 500); // Simulate async loading
+    };
 
     return (
       <section id="review-section" className="reviews-section">
-        <h2>Reviews</h2>
         <div className="reviews-container">
           <div className="review-stats">
             <div className="average-rating">
@@ -631,7 +656,11 @@ const AttractionReviews = React.memo(
             </div>
             <div className="rating-breakdown">
               {[5, 4, 3, 2, 1].map((score) => (
-                <div key={score} className="rating-bar">
+                <div
+                  key={score}
+                  className="rating-bar"
+                  aria-label={`Rating ${score} stars`}
+                >
                   <span className="rating-label">
                     {score === 5
                       ? "Excellent"
@@ -641,22 +670,24 @@ const AttractionReviews = React.memo(
                       ? "Average"
                       : score === 2
                       ? "Poor"
-                      : "Very Poor"}
+                      : "Terrible"}
                   </span>
                   <div className="bar-container">
                     <div
                       className="bar"
                       style={{
                         width: `${
-                          (reviews.filter((r) => r.rating === score).length /
-                            reviews.length) *
-                            100 || 0
+                          reviews.filter((r) => Math.floor(r.rating) === score)
+                            .length * 10
                         }%`,
                       }}
-                    ></div>
+                    />
                   </div>
                   <span className="count">
-                    {reviews.filter((r) => r.rating === score).length}
+                    {
+                      reviews.filter((r) => Math.floor(r.rating) === score)
+                        .length
+                    }
                   </span>
                 </div>
               ))}
@@ -669,53 +700,159 @@ const AttractionReviews = React.memo(
                 <select
                   id="sort-reviews"
                   value={reviewSort}
-                  onChange={(e) => setReviewSort(e.target.value)}
+                  onChange={handleSortChange}
+                  aria-label="Sort reviews"
                 >
-                  <option value="newest">Newest</option>
-                  <option value="highest">Highest Rating</option>
-                  <option value="lowest">Lowest Rating</option>
+                  <option value="newest">Newest First</option>
+                  <option value="highest">Highest Rated</option>
+                  <option value="lowest">Lowest Rated</option>
                 </select>
               </div>
-              {sortedReviews.length > 0 ? (
-                sortedReviews.map((review, index) => (
-                  <div
-                    className={`review-card ${
-                      review.isCurrentUser ? "current-user" : ""
-                    }`}
-                    key={index}
-                  >
-                    <div className="review-header">
-                      <div className="reviewer-info">
-                        <img
-                          src={review.profilePic}
-                          alt={`Avatar of ${review.userName}`}
-                          className="reviewer-avatar"
-                          onError={(e) =>
-                            (e.target.src = "https://via.placeholder.com/40")
-                          }
-                        />
-                        <div>
-                          <h4>{review.userName}</h4>
-                          <span className="review-date">
-                            {formatDate(review.created_at)}
-                          </span>
+              {reviews.length > 0 ? (
+                <>
+                  {reviews.slice(0, displayCount).map((review, index) => (
+                    <div
+                      className={`review-card ${
+                        review.isCurrentUser ? "current-user" : ""
+                      } fade-in`}
+                      key={review.review_id || index}
+                      aria-labelledby={`review-title-${index}`}
+                    >
+                      <div className="review-header">
+                        <div className="reviewer-info">
+                          <img
+                            src={review.profilePic}
+                            alt={`Avatar of ${review.userName || "Anonymous"}`}
+                            className="reviewer-avatar"
+                            onError={(e) =>
+                              (e.target.src = "https://via.placeholder.com/50")
+                            }
+                          />
+                          <div className="reviewer-details">
+                            <h4>{review.userName}</h4>
+                            <span className="review-date">
+                              {formatDate(review.created_at || new Date())}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="review-rating">
+                          {renderStars(review.rating || 0)}
                         </div>
                       </div>
-                      <div className="review-rating">
-                        {renderStars(review.rating)}
+                      <div className="review-body">
+                        <h5
+                          id={`review-title-${index}`}
+                          className="review-title"
+                        >
+                          {review.title || "Untitled Review"}
+                        </h5>
+                        <p>{review.comment || "No comment provided."}</p>
+                        {review.photos && review.photos.length > 0 && (
+                          <div className="review-photos">
+                            {review.photos.map((photo, idx) => (
+                              <div
+                                key={idx}
+                                className="review-photo"
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => openModal(photo)}
+                                onKeyPress={(e) => {
+                                  if (e.key === "Enter" || e.key === " ") {
+                                    openModal(photo);
+                                  }
+                                }}
+                                aria-label={`View review photo ${
+                                  idx + 1
+                                } in full size`}
+                              >
+                                <img
+                                  src={photo}
+                                  alt={`Review photo ${idx + 1}`}
+                                  loading="lazy"
+                                  onError={(e) =>
+                                    (e.target.src =
+                                      "https://via.placeholder.com/100?text=Image+Error")
+                                  }
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {/* <div className="review-actions">
+                          {review.isCurrentUser && (
+                            <button
+                              className="edit-review-button"
+                              onClick={() => handleEdit(review)}
+                              aria-label={`Edit your review`}
+                            >
+                              Edit
+                            </button>
+                          )}
+                        </div> */}
                       </div>
                     </div>
-                    <div className="review-body">
-                      <p>{review.comment}</p>
-                    </div>
-                  </div>
-                ))
+                  ))}
+                  {reviews.length > displayCount && (
+                    <button
+                      className="load-more-button"
+                      onClick={handleLoadMore}
+                      disabled={isLoadingMore}
+                      aria-label="Load more reviews"
+                    >
+                      {isLoadingMore ? "Loading..." : "Load More Reviews"}
+                    </button>
+                  )}
+                </>
               ) : (
                 <div className="no-reviews">
-                  <p>No reviews yet. Be the first to share!</p>
+                  <p>No reviews yet. Be the first to share your experience!</p>
+                  {!isLoggedIn && (
+                    <button
+                      className="login-to-review"
+                      onClick={() => navigate("/login")}
+                      aria-label="Log in to write a review"
+                    >
+                      Log In to Write a Review
+                    </button>
+                  )}
                 </div>
               )}
             </div>
+            {selectedImage && (
+              <div
+                className="image-modal-overlay"
+                onClick={closeModal}
+                role="dialog"
+                aria-modal="true"
+                aria-label="Full-size image viewer"
+                ref={modalRef}
+                tabIndex={-1}
+              >
+                <div
+                  className="image-modal"
+                  onClick={(e) => e.stopPropagation()}
+                  role="document"
+                >
+                  <button
+                    className="modal-close-button"
+                    onClick={closeModal}
+                    aria-label="Close image modal"
+                    tabIndex={0}
+                  >
+                    ×
+                  </button>
+                  <img
+                    src={selectedImage}
+                    alt="Full-size review photo"
+                    className="modal-image"
+                    onError={(e) =>
+                      (e.target.src =
+                        "https://via.placeholder.com/600?text=Image+Error")
+                    }
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -732,24 +869,18 @@ const AttractionReviews = React.memo(
 
 // Nearby Attractions Component
 const NearbyAttractions = React.memo(
-  ({
-    nearbyAttractions,
-    city,
-    renderStars,
-    handleToggleSave,
-    savedAttractions,
-  }) => {
+  ({ nearbyAttractions, city, renderStars, handleToggleSave, favorites }) => {
     const navigate = useNavigate();
+    const { user } = useAuth();
 
-    // Chuẩn hóa image_url
     const getValidImageUrl = (imageUrl) => {
       if (Array.isArray(imageUrl) && imageUrl.length > 0) {
-        return imageUrl[0]; // Lấy ảnh đầu tiên nếu là mảng
+        return imageUrl[0];
       }
       if (typeof imageUrl === "string" && imageUrl.trim()) {
-        return imageUrl; // Trả về nếu là chuỗi hợp lệ
+        return imageUrl;
       }
-      return "https://via.placeholder.com/280x200?text=Image+Not+Found"; // Placeholder mặc định
+      return "https://via.placeholder.com/280x200?text=Image+Not+Found";
     };
 
     return (
@@ -757,25 +888,32 @@ const NearbyAttractions = React.memo(
         <h2>Featured Nearby</h2>
         {nearbyAttractions.length > 0 ? (
           <div className="nearby-grid">
-            {nearbyAttractions.slice(0, 4).map((place) => (
-              <LocationCard
-                key={place.attraction_id}
-                item={{
-                  id: place.attraction_id,
-                  name: place.name,
-                  image: getValidImageUrl(place.image_url),
-                  rating: parseFloat(place.average_rating) || 0,
-                  reviewCount: place.rating_total || 0,
-                  tags: place.tags || [],
-                }}
-                isSaved={!!savedAttractions[place.attraction_id]}
-                onToggleSave={handleToggleSave}
-                onClick={() =>
-                  navigate(`/tripguide/attraction/${place.attraction_id}`)
-                }
-                renderStars={renderStars}
-              />
-            ))}
+            {nearbyAttractions.slice(0, 4).map((place) => {
+              const isPlaceFavorite = favorites?.some(
+                (fav) =>
+                  String(fav.attraction_id) === String(place.attraction_id)
+              );
+              return (
+                <LocationCard
+                  key={`attraction-${place.attraction_id}`}
+                  item={{
+                    id: place.attraction_id,
+                    name: place.name,
+                    image: getValidImageUrl(place.image_url),
+                    rating: parseFloat(place.average_rating) || 0,
+                    reviewCount: place.rating_total || 0,
+                    tags: place.tags || [],
+                    type: "attraction",
+                  }}
+                  onClick={() =>
+                    navigate(`/tripguide/attraction/${place.attraction_id}`)
+                  }
+                  renderStars={renderStars}
+                  isSaved={isPlaceFavorite}
+                  onToggleSave={() => handleToggleSave(place.attraction_id)}
+                />
+              );
+            })}
           </div>
         ) : (
           <div className="no-nearby">
@@ -794,11 +932,7 @@ const NearbyAttractions = React.memo(
         )}
       </section>
     );
-  },
-  (prevProps, nextProps) =>
-    prevProps.nearbyAttractions === nextProps.nearbyAttractions &&
-    prevProps.city?.id === nextProps.city?.id &&
-    prevProps.savedAttractions === nextProps.savedAttractions
+  }
 );
 
 // Main Attraction Component
@@ -810,13 +944,11 @@ const Attraction = () => {
     nearbyAttractions,
     loading,
     error,
-    savedAttractions,
-    reviewForm,
-    setReviewForm,
+    isFavorite,
+    favorites, // Now provided by useAttraction
     handleShareClick,
     handleReviewClick,
     handleToggleSave,
-    reviewError,
     isLoggedIn,
     fetchAttraction,
     renderStars,
@@ -831,56 +963,54 @@ const Attraction = () => {
   const { user } = useAuth();
 
   const saveRecentlyViewed = useCallback(async () => {
-    if (!attraction) return;
+    if (!attraction || !attraction.attraction_id || !attraction.name) {
+      console.warn("Invalid attraction data, skipping saveRecentlyViewed");
+      return;
+    }
 
     const item = {
       id: attraction.attraction_id,
       name: attraction.name,
-      image: Array.isArray(attraction.image_url)
-        ? attraction.image_url[0]
-        : attraction.image_url || "https://via.placeholder.com/150",
+      image:
+        Array.isArray(attraction.image_url) && attraction.image_url.length > 0
+          ? attraction.image_url[0]
+          : attraction.image_url,
       rating: parseFloat(attraction.average_rating) || 0,
       reviewCount: attraction.rating_total || 0,
-      tags: attraction.tags || [],
+      tags: Array.isArray(attraction.tags) ? attraction.tags : [],
       type: "attraction",
     };
 
     try {
       if (isLoggedIn && user?.user_id) {
-        // Gửi yêu cầu API để lưu recently viewed
         await axios.post(`${BASE_URL}/recently-viewed`, {
           user_id: user.user_id,
           item,
         });
       } else {
-        // Lưu vào localStorage cho người dùng chưa đăng nhập
         let recentItems = JSON.parse(
           localStorage.getItem("recentlyViewedItems") || "[]"
         );
-
-        // Xóa mục trùng lặp (dựa trên id)
         recentItems = recentItems.filter((i) => i.id !== item.id);
-        // Thêm mục mới vào đầu danh sách
         recentItems.unshift(item);
-        // Giới hạn tối đa 4 mục
         recentItems = recentItems.slice(0, 4);
-        // Lưu lại vào localStorage
         localStorage.setItem(
           "recentlyViewedItems",
           JSON.stringify(recentItems)
         );
       }
     } catch (err) {
-      console.error("Failed to save recently viewed:", err);
+      console.error(
+        `Failed to save recently viewed attraction ${item.id}:`,
+        err.message || err
+      );
     }
   }, [attraction, isLoggedIn, user]);
 
-  // Gọi hàm saveRecentlyViewed khi component mount
   useEffect(() => {
     saveRecentlyViewed();
   }, [saveRecentlyViewed]);
 
-  // Validate and prepare images
   const images = useMemo(() => {
     const imageUrls = attraction?.image_url;
     if (!imageUrls) {
@@ -947,29 +1077,26 @@ const Attraction = () => {
     }
   }, [isFullScreen, handleKeyDown]);
 
-  // Quản lý hiển thị Loading với độ trễ tối thiểu 500ms
   useEffect(() => {
     let timeout;
     if (loading) {
-      setIsLoadingVisible(true); // Hiển thị Loading ngay khi bắt đầu fetch
+      setIsLoadingVisible(true);
     } else {
-      // Chỉ ẩn Loading sau ít nhất 500ms
       timeout = setTimeout(() => {
         setIsLoadingVisible(false);
       }, 500);
     }
-    return () => clearTimeout(timeout); // Xóa timeout khi component unmount
+    return () => clearTimeout(timeout);
   }, [loading]);
 
-  // Hiển thị Loading khi isLoadingVisible là true
   if (isLoadingVisible) {
     return <Loading message="Loading attraction details..." />;
   }
 
-  // Hiển thị ErrorMessage nếu có lỗi hoặc không có dữ liệu
   if (error || !attraction) {
     return <ErrorMessage error={error} />;
   }
+
   return (
     <div className="attraction-container">
       <div className="sticky-action-bar">
@@ -991,26 +1118,20 @@ const Attraction = () => {
         </button>
         <button
           className={`action-button save-attraction ${
-            savedAttractions[attraction.attraction_id] ? "saved" : ""
+            isFavorite ? "saved" : ""
           }`}
-          onClick={() => handleToggleSave(attraction.attraction_id)}
-          aria-label={
-            savedAttractions[attraction.attraction_id]
-              ? "Remove from saved"
-              : "Save attraction"
-          }
+          onClick={handleToggleSave}
+          aria-label={isFavorite ? "Remove from saved" : "Save attraction"}
         >
           <FontAwesomeIcon icon={faHeart} className="action-icon" />
-          <span>
-            {savedAttractions[attraction.attraction_id] ? "Saved" : "Save"}
-          </span>
+          <span>{isFavorite ? "Saved" : "Save"}</span>
         </button>
       </div>
       <AttractionHeader
         attraction={attraction}
         city={city}
-        saved={savedAttractions[attraction.attraction_id]}
-        handleSaveToggle={() => handleToggleSave(attraction.attraction_id)}
+        isFavorite={isFavorite}
+        handleToggleSave={handleToggleSave}
         handleShareClick={handleShareClick}
         handleReviewClick={handleReviewClick}
         renderStars={renderStars}
@@ -1038,10 +1159,6 @@ const Attraction = () => {
         reviews={reviews}
         reviewSort={reviewSort}
         setReviewSort={setReviewSort}
-        reviewForm={reviewForm}
-        setReviewForm={setReviewForm}
-        submitting={false}
-        reviewError={reviewError}
         isLoggedIn={isLoggedIn}
         ratingBreakdown={ratingBreakdown}
         renderStars={renderStars}
@@ -1053,7 +1170,7 @@ const Attraction = () => {
         city={city}
         renderStars={renderStars}
         handleToggleSave={handleToggleSave}
-        savedAttractions={savedAttractions}
+        favorites={favorites} // Use the centralized favorites list
       />
     </div>
   );

@@ -1,11 +1,13 @@
 import React from "react";
-import ReactDOM from "react-dom/client"; // Dùng "react-dom/client" thay vì "react-dom"
+import ReactDOM from "react-dom/client";
 import App from "./views/App";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { QueryClient, QueryClientProvider } from "react-query";
-import reportWebVitals from "./reportWebVitals";
 import "./styles/global.scss";
 import "./App.css";
+import "leaflet.markercluster";
+import "leaflet.markercluster/dist/MarkerCluster.css";
+import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 
 const theme = createTheme({
   palette: {
@@ -38,5 +40,3 @@ root.render(
     </QueryClientProvider>{" "}
   </React.StrictMode>
 );
-
-reportWebVitals();

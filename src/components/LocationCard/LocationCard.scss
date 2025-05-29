@@ -1,4 +1,3 @@
-// Sync with Restaurant.scss variables
 $primary-color: #2d7a61;
 $secondary-color: #e67e22;
 $text-color: #333;
@@ -9,9 +8,12 @@ $card-border-radius: 12px;
 $shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 $transition: all 0.3s ease;
 
-// Lighten function for creating lighter shades
 @function lighten($color, $amount) {
   @return mix(white, $color, $amount);
+}
+
+@function darken($color, $amount) {
+  @return mix(black, $color, $amount);
 }
 
 .picture-item {
@@ -107,6 +109,7 @@ $transition: all 0.3s ease;
     line-height: 1.4;
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -133,17 +136,12 @@ $transition: all 0.3s ease;
         font-size: 0.9rem;
         margin-right: 2px;
 
-        &.filled {
-          color: $primary-color;
-          filter: drop-shadow(0 0 2px rgba(45, 122, 97, 0.3));
-        }
-
+        &.filled,
         &.half {
           color: $primary-color;
         }
-
         &.empty {
-          color: $text-color-light;
+          color: darken($color: #f0f0f0, $amount: 30%);
         }
       }
     }
@@ -157,23 +155,37 @@ $transition: all 0.3s ease;
   .item-tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
     margin-top: 8px;
+    min-height: 28px;
+    overflow: visible;
 
     .tag {
-      background: $primary-color; // Light green (~#b3d8cc)
-      color: white;
-      padding: 5px 10px;
+      background: $primary-color;
+      color: #fff;
+      padding: 4px 10px;
       border-radius: 12px;
       font-size: 0.85rem;
       font-weight: 500;
+      line-height: 1.4;
+      white-space: nowrap;
+      border: 1px solid lighten($primary-color, 20%); /* Subtle border */
       transition: $transition;
-      cursor: default;
-      line-height: 1.2;
+    }
+
+    .tag-more {
+      background: $primary-color;
+      color: #fff;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      line-height: 1.4;
+      white-space: nowrap;
+      border: 1px solid lighten($primary-color, 20%);
+      transition: $transition;
     }
   }
 
-  // Animation for saved button
   @keyframes pulse {
     0% {
       transform: scale(1);
@@ -187,16 +199,31 @@ $transition: all 0.3s ease;
   }
 }
 
-// Responsive adjustments
 @media (max-width: 768px) {
   .picture-item {
     max-width: 100%;
 
     .item-tags {
-      .tag {
-        font-size: 0.8rem;
-        padding: 4px 8px;
+      gap: 6px; /* Slightly smaller gap for mobile */
+      min-height: 24px;
+
+      .tag,
+      .tag-more {
+        font-size: 0.8rem; /* Slightly smaller font for mobile */
+        padding: 3px 8px; /* Adjusted padding */
       }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .item-tags {
+    gap: 5px;
+
+    .tag,
+    .tag-more {
+      font-size: 0.75rem;
+      padding: 3px 7px;
     }
   }
 }

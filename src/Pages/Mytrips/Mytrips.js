@@ -8,7 +8,6 @@ const MyTrips = () => {
             <div className="my-trips"><h1>Make your trip unforgettable!</h1></div>
             <div className="trip-actions">
                 <Link to="/tripguide/new-trip-form" className="create-trip">+ Create a new trip</Link>
-                <button className="ai-trip">🧠 Build a trip with AI</button>
             </div>
 
             <div className="upcoming-trip">

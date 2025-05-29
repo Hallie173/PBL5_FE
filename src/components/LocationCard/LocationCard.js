@@ -4,36 +4,88 @@ import "./LocationCard.scss";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHeart as solidHeart } from "@fortawesome/free-solid-svg-icons";
 import { faHeart as regularHeart } from "@fortawesome/free-regular-svg-icons";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import useFavorites from "../../hooks/useFavorites";
 
-const LocationCard = ({
-  item,
-  isSaved,
-  onToggleSave,
-  onClick,
-  renderStars,
-}) => {
-  const { id, name, image, rating, reviewCount, tags } = item;
+const LocationCard = ({ item, onClick, renderStars }) => {
+  const { id, name, image, rating, reviewCount, tags, type } = item;
+  const { user, isLoggedIn } = useAuth();
+  const navigate = useNavigate();
+  const { favorites, createFavorite, deleteFavorite } = useFavorites(
+    user?.user_id,
+    isLoggedIn
+  );
+
+  const isSaved = favorites.some(
+    (fav) =>
+      (type === "restaurant" && String(fav.restaurant_id) === String(id)) ||
+      (type === "attraction" && String(fav.attraction_id) === String(id))
+  );
 
   const handleSaveClick = useCallback(
     (e) => {
       e.stopPropagation();
-      onToggleSave(id);
+      if (!isLoggedIn) {
+        navigate("/login");
+        alert("Please log in to save this location!");
+        return;
+      }
+
+      if (isSaved) {
+        const favorite = favorites.find(
+          (fav) =>
+            (type === "restaurant" &&
+              String(fav.restaurant_id) === String(id)) ||
+            (type === "attraction" && String(fav.attraction_id) === String(id))
+        );
+        if (favorite) {
+          deleteFavorite(favorite.favorite_id);
+        }
+      } else {
+        createFavorite({
+          userId: user.user_id,
+          attractionId: type === "attraction" ? id : undefined,
+          restaurantId: type === "restaurant" ? id : undefined,
+        });
+      }
     },
-    [id, onToggleSave]
+    [
+      isSaved,
+      isLoggedIn,
+      navigate,
+      favorites,
+      type,
+      id,
+      user?.user_id,
+      createFavorite,
+      deleteFavorite,
+    ]
   );
 
-  // Safely format rating
   const formattedRating =
     typeof rating === "number" && !isNaN(rating) ? rating.toFixed(1) : "N/A";
 
-  // Split tags string into array, handle empty or invalid cases
-  const tagList = tags
-    ? typeof tags === "string"
-      ? tags.split(", ").filter((tag) => tag.trim())
-      : Array.isArray(tags)
-      ? tags
-      : []
-    : [];
+  // Normalize and limit tags
+  const normalizeTags = (tags) => {
+    if (!tags) return [];
+    if (Array.isArray(tags)) return tags.filter((tag) => tag.trim());
+    if (typeof tags === "string") {
+      try {
+        const parsed = tags.split(", ").filter((tag) => tag.trim());
+        return parsed.length ? parsed : [];
+      } catch (e) {
+        console.error("Failed to parse tags:", e);
+        return [];
+      }
+    }
+    return [];
+  };
+
+  const tagList = normalizeTags(tags);
+  const maxTags = 3; // Limit to 3 visible tags
+  const displayedTags = tagList.slice(0, maxTags);
+  const extraTagsCount = tagList.length - maxTags;
 
   return (
     <div
@@ -50,6 +102,8 @@ const LocationCard = ({
           src={image}
           alt={name}
           loading="lazy"
+          width={280}
+          height={210} // 4:3 aspect ratio (280 * 3 / 4)
           onError={(e) => (e.target.src = "https://via.placeholder.com/150")}
         />
         <div className="save-overlay">
@@ -77,13 +131,16 @@ const LocationCard = ({
           </div>
         )}
         {tagList.length > 0 && (
-          <div className="item-tags">
-            {tagList.map((tag, index) => (
-              <span key={index} className="tag">
+          <ul className="item-tags" role="list" aria-label="Location tags">
+            {displayedTags.map((tag, index) => (
+              <li key={index} className="tag">
                 {tag}
-              </span>
+              </li>
             ))}
-          </div>
+            {extraTagsCount > 0 && (
+              <li className="tag tag-more">+{extraTagsCount}</li>
+            )}
+          </ul>
         )}
       </div>
     </div>
@@ -101,9 +158,8 @@ LocationCard.propTypes = {
       PropTypes.string,
       PropTypes.arrayOf(PropTypes.string),
     ]),
+    type: PropTypes.oneOf(["restaurant", "attraction"]).isRequired,
   }).isRequired,
-  isSaved: PropTypes.bool.isRequired,
-  onToggleSave: PropTypes.func.isRequired,
   onClick: PropTypes.func.isRequired,
   renderStars: PropTypes.func.isRequired,
 };
