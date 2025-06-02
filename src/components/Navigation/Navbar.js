@@ -92,7 +92,7 @@ function Navbar() {
   const navItems = [
     {
       name: "Explore",
-      path: "/tripguide/homepage",
+      path: "/",
       icon: <FaCompass className="mr-2" />,
     },
     {
@@ -113,13 +113,10 @@ function Navbar() {
   ];
 
   const isActive = (path) => {
-    if (
-      path === "/tripguide/homepage" &&
-      location.pathname === "/tripguide/homepage"
-    ) {
+    if (path === "/" && location.pathname === "/") {
       return true;
     }
-    return location.pathname.includes(path) && path !== "/tripguide/homepage";
+    return location.pathname.includes(path) && path !== "/";
   };
 
   return (
@@ -128,7 +125,7 @@ function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex-shrink-0 flex items-center">
-              <Link to="/tripguide/homepage" className="flex items-center">
+              <Link to="/" className="flex items-center">
                 <img
                   className="h-8 w-8 mr-2 object-contain"
                   src={weblogo}
@@ -173,7 +170,7 @@ function Navbar() {
                   <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-md py-1 bg-white ring-1 ring-gray-200 z-10">
                     <a
                       href="#"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center"
+                      className=" px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center"
                     >
                       <span className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center mr-2 text-xs font-medium">
                         US
@@ -182,7 +179,7 @@ function Navbar() {
                     </a>
                     <a
                       href="#"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center"
+                      className=" px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center"
                     >
                       <span className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center mr-2 text-xs font-medium">
                         VN
@@ -191,7 +188,7 @@ function Navbar() {
                     </a>
                     <a
                       href="#"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center"
+                      className=" px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center"
                     >
                       <span className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center mr-2 text-xs font-medium">
                         FR
@@ -247,29 +244,38 @@ function Navbar() {
                       </div>
                       <Link
                         to="/tripguide/profile"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center"
+                        className=" px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center"
                       >
                         <CgProfile className="inline-block mr-2 text-gray-500" />
                         Profile
                       </Link>
                       <Link
                         to="/tripguide/mytrip"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center"
+                        className=" px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center"
                       >
                         <FaMapMarkedAlt className="inline-block mr-2 text-gray-500" />
                         My Trips
                       </Link>
                       <Link
                         to="/tripguide/saved-places"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center"
+                        className=" px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center"
                       >
                         <FaMapMarkerAlt className="inline-block mr-2 text-gray-500" />
                         Saved Places
                       </Link>
+                      {user?.role === "admin" && (
+                        <Link
+                          to="/tripguide/admin"
+                          className=" px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center"
+                        >
+                          <FaUser className="inline-block mr-2 text-gray-500" />
+                          Admin Dashboard
+                        </Link>
+                      )}
                       <div className="border-t border-gray-100 mt-1"></div>
                       <button
                         onClick={logout}
-                        className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center transition-colors"
+                        className=" w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center transition-colors"
                       >
                         <LuLogOut className="inline-block mr-2" />
                         Logout

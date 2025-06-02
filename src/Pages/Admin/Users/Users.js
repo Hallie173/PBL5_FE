@@ -6,9 +6,9 @@ import UserModal from "./components/UserModal";
 import { useUserManagement } from "./hooks/useUserManagement";
 import { initialUsers } from "./constants/initialUsers";
 
-export default function UserManagement() {
+export default function Users() {
   const [searchTerm, setSearchTerm] = useState("");
-  
+
   const {
     users,
     modalMode,
@@ -27,10 +27,11 @@ export default function UserManagement() {
   } = useUserManagement(initialUsers);
 
   // Filter users based on search term
-  const filteredUsers = users.filter(user => 
-    user.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.role?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredUsers = users.filter(
+    (user) =>
+      user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.role?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -47,7 +48,7 @@ export default function UserManagement() {
             Add User
           </Button>
         </div>
-        
+
         <div className="p-4 border-b">
           <TextField
             fullWidth
@@ -65,11 +66,11 @@ export default function UserManagement() {
             }}
           />
         </div>
-        
-        <UserTable 
-          users={filteredUsers} 
-          onEdit={handleEdit} 
-          onDelete={handleDelete} 
+
+        <UserTable
+          users={filteredUsers}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
         />
       </div>
       <UserModal

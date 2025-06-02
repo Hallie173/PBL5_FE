@@ -1,222 +1,330 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { memo } from "react";
 import {
-  FaEdit,
-  FaTrash,
-  FaStar,
-  FaMapMarkerAlt,
-  FaChevronLeft,
-  FaChevronRight,
-  FaLocationArrow,
-  FaInfoCircle,
-} from "react-icons/fa";
+  Box,
+  Button,
+  Select,
+  MenuItem,
+  Typography,
+  IconButton,
+  Chip,
+  Stack,
+} from "@mui/material";
+import {
+  Edit,
+  Delete,
+  Star,
+  LocationOn,
+  ChevronLeft,
+  ChevronRight,
+} from "@mui/icons-material";
+import PropTypes from "prop-types";
 
-const AttractionList = ({ attractions, onEdit, onDelete, cities }) => {
+const AttractionList = memo(({ attractions, onEdit, onDelete, cities }) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [hoveredCard, setHoveredCard] = useState(null);
   const [itemsPerPage, setItemsPerPage] = useState(6);
 
-  // Pagination calculations
-  const totalItems = attractions.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = attractions.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(attractions.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentItems = attractions.slice(startIndex, startIndex + itemsPerPage);
 
-  const getCityName = (cityId) => {
-    const city = cities.find((c) => c.city_id === cityId);
-    return city ? city.name : "Unknown City";
-  };
-
-  const getTagColor = (tag) => {
-    const tagColors = {
-      historical: "bg-amber-100 text-amber-800",
-      modern: "bg-sky-100 text-sky-800",
-      unesco: "bg-emerald-100 text-emerald-800",
-      lake: "bg-blue-100 text-blue-800",
-      park: "bg-green-100 text-green-800",
-      architecture: "bg-indigo-100 text-indigo-800",
-      landmark: "bg-violet-100 text-violet-800",
-      river: "bg-cyan-100 text-cyan-800",
-      viewpoint: "bg-rose-100 text-rose-800",
-      mountain: "bg-lime-100 text-lime-800",
-      museum: "bg-orange-100 text-orange-800",
-      war: "bg-red-100 text-red-800",
-      nature: "bg-teal-100 text-teal-800",
-      boat: "bg-fuchsia-100 text-fuchsia-800",
-    };
-    return tagColors[tag] || "bg-gray-100 text-gray-800";
-  };
-
-  const handlePageChange = (page) => {
-    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
-  };
-
-  const handleItemsPerPageChange = (e) => {
-    setItemsPerPage(Number(e.target.value));
-    setCurrentPage(1); // Reset to first page when changing items per page
-  };
-
-  const renderPagination = () => (
-    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6">
-      <div className="flex items-center gap-2 text-sm text-gray-600">
-        <span>Show</span>
-        <select
-          value={itemsPerPage}
-          onChange={handleItemsPerPageChange}
-          className="border rounded-md px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value={6}>6</option>
-          <option value={12}>12</option>
-          <option value={24}>24</option>
-          <option value={48}>48</option>
-        </select>
-        <span>per page</span>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => handlePageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-          className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-        >
-          <FaChevronLeft className="text-gray-600" size={16} />
-        </button>
-
-        {/* Show limited page numbers */}
-        {(() => {
-          const pages = [];
-          const startPage = Math.max(1, currentPage - 2);
-          const endPage = Math.min(totalPages, currentPage + 2);
-
-          if (startPage > 1) pages.push(<span key="start-ellipsis" className="text-gray-500">...</span>);
-
-          for (let i = startPage; i <= endPage; i++) {
-            pages.push(
-              <button
-                key={i}
-                onClick={() => handlePageChange(i)}
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-200 ${
-                  currentPage === i
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                }`}
-              >
-                {i}
-              </button>
-            );
-          }
-
-          if (endPage < totalPages) pages.push(<span key="end-ellipsis" className="text-gray-500">...</span>);
-
-          return pages;
-        })()}
-
-        <button
-          onClick={() => handlePageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-          className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-        >
-          <FaChevronRight className="text-gray-600" size={16} />
-        </button>
-      </div>
-
-      <div className="text-sm text-gray-600">
-        Showing {indexOfFirstItem + 1} - {Math.min(indexOfLastItem, totalItems)} of {totalItems} attractions
-      </div>
-    </div>
+  const getCityName = useCallback(
+    (cityId) =>
+      cities.find((c) => c.city_id === cityId)?.name || "Unknown City",
+    [cities]
   );
+
+  const getImageUrl = useCallback(
+    (imageUrl) =>
+      Array.isArray(imageUrl) && imageUrl[0]
+        ? imageUrl[0]
+        : "https://via.placeholder.com/400x180?text=No+Image",
+    []
+  );
+
+  const formatRating = useCallback(
+    (rating) => Number(rating)?.toFixed(1) || "N/A",
+    []
+  );
+
+  const handlePageChange = useCallback(
+    (page) => setCurrentPage(Math.max(1, Math.min(page, totalPages))),
+    [totalPages]
+  );
+
+  const handleItemsPerPageChange = useCallback((e) => {
+    setItemsPerPage(Number(e.target.value));
+    setCurrentPage(1);
+  }, []);
+
+  const maxPagesToShow = 5;
+  const startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+  const endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+  const pageNumbers = Array.from(
+    { length: endPage - startPage + 1 },
+    (_, i) => startPage + i
+  );
+
+  const badgeSx = {
+    position: "absolute",
+    top: 8,
+    bgcolor: "rgba(255, 255, 255, 0.9)",
+    borderRadius: 1,
+    px: 1,
+    py: 0.5,
+    display: "flex",
+    alignItems: "center",
+    gap: 0.5,
+  };
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", lg: "1fr 1fr 1fr" },
+          gap: 2.5,
+        }}
+      >
         {currentItems.map((attraction) => (
-          <div
+          <Box
             key={attraction.attraction_id}
-            className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
-            onMouseEnter={() => setHoveredCard(attraction.attraction_id)}
-            onMouseLeave={() => setHoveredCard(null)}
+            sx={{
+              bgcolor: "background.paper",
+              borderRadius: 2,
+              boxShadow: 1,
+              overflow: "hidden",
+              "&:hover": { boxShadow: 3 },
+            }}
           >
-            <div className="relative h-48 overflow-hidden">
+            <Box sx={{ height: 180, position: "relative", overflow: "hidden" }}>
               <img
-                src={attraction.image_url}
-                alt={attraction.name}
-                className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                onError={(e) => (e.target.src = "https://via.placeholder.com/400x200?text=No+Image")}
+                src={getImageUrl(attraction.image_url)}
+                alt={attraction.name || "Attraction"}
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                onError={(e) =>
+                  (e.target.src =
+                    "https://via.placeholder.com/400x180?text=No+Image")
+                }
               />
-              <div className="absolute top-3 left-3 bg-white/90 rounded-md px-2 py-1 flex items-center gap-1 text-xs font-medium">
-                <FaLocationArrow className="text-blue-500" size={12} />
-                {getCityName(attraction.city_id)}
-              </div>
-              <div className="absolute top-3 right-3 bg-white/90 rounded-md px-2 py-1 flex items-center gap-1 text-xs font-medium">
-                <FaStar className="text-yellow-400" size={12} />
-                {attraction.average_rating.toFixed(1)}
-              </div>
-            </div>
-
-            <div className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-lg font-semibold text-gray-800 truncate">
-                  {attraction.name}
-                </h3>
-                <div
-                  className={`flex gap-2 transition-opacity duration-200 ${
-                    hoveredCard === attraction.attraction_id ? "opacity-100" : "opacity-0"
-                  }`}
+              <Box sx={{ ...badgeSx, left: 8 }}>
+                <LocationOn fontSize="small" color="primary" />
+                <Typography variant="caption">
+                  {getCityName(attraction.city_id)}
+                </Typography>
+              </Box>
+              <Box sx={{ ...badgeSx, right: 8 }}>
+                <Star fontSize="small" sx={{ color: "warning.main" }} />
+                <Typography variant="caption">
+                  {formatRating(attraction.average_rating)}
+                </Typography>
+              </Box>
+            </Box>
+            <Box
+              sx={{ p: 2, display: "flex", flexDirection: "column", gap: 1.5 }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Typography
+                  variant="h6"
+                  fontSize="1.1rem"
+                  sx={{
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
                 >
-                  <button
+                  {attraction.name || "Unnamed Attraction"}
+                </Typography>
+                <Stack direction="row" spacing={0.5}>
+                  <IconButton
+                    size="small"
                     onClick={() => onEdit(attraction)}
-                    className="p-1.5 rounded-full hover:bg-blue-100 text-blue-600 transition-colors"
-                    aria-label="Edit attraction"
+                    color="primary"
                   >
-                    <FaEdit size={16} />
-                  </button>
-                  <button
+                    <Edit fontSize="small" />
+                  </IconButton>
+                  <IconButton
+                    size="small"
                     onClick={() => onDelete(attraction.attraction_id)}
-                    className="p-1.5 rounded-full hover:bg-red-100 text-red-600 transition-colors"
-                    aria-label="Delete attraction"
+                    color="error"
                   >
-                    <FaTrash size={16} />
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-1.5 text-gray-600 mb-3 text-sm">
-                <FaMapMarkerAlt className="mt-0.5 text-blue-500 flex-shrink-0" size={14} />
-                <span className="line-clamp-1">{attraction.address}</span>
-              </div>
-
-              <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                {attraction.description}
-              </p>
-
-              <div className="flex flex-wrap gap-1.5 mb-3">
-                {attraction.tags?.map((tag) => (
-                  <span
-                    key={tag}
-                    className={`px-2 py-0.5 rounded-full text-xs font-medium ${getTagColor(tag)}`}
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-
-              <div className="flex items-center justify-between text-xs text-gray-500">
-                <span className="flex items-center gap-1">
-                  <FaInfoCircle className="text-gray-400" size={12} />
-                  {attraction.latitude.toFixed(4)}, {attraction.longitude.toFixed(4)}
-                </span>
-                {/* <button className="text-blue-600 hover:text-blue-800 font-medium hover:underline">
-                  View Details
-                </button> */}
-              </div>
-            </div>
-          </div>
+                    <Delete fontSize="small" />
+                  </IconButton>
+                </Stack>
+              </Box>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                }}
+              >
+                {attraction.description || "No description available"}
+              </Typography>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 0.5,
+                  color: "text.secondary",
+                }}
+              >
+                <LocationOn fontSize="small" color="primary" />
+                <Typography
+                  variant="body2"
+                  sx={{
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {attraction.address || "No address provided"}
+                </Typography>
+              </Box>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 1,
+                  minHeight: 30,
+                }}
+              >
+                {Array.isArray(attraction.tags) &&
+                attraction.tags.length > 0 ? (
+                  <>
+                    {attraction.tags.slice(0, 3).map((tag, index) => (
+                      <Chip
+                        key={`${attraction.attraction_id}-tag-${index}`}
+                        label={tag}
+                        size="small"
+                        color="primary"
+                        sx={{
+                          fontSize: "0.85rem",
+                          fontWeight: "medium",
+                          height: 28,
+                          "&:hover": { bgcolor: "primary.dark" },
+                        }}
+                      />
+                    ))}
+                    {attraction.tags.length > 3 && (
+                      <Chip
+                        label={`+${attraction.tags.length - 3}`}
+                        size="small"
+                        variant="outlined"
+                        sx={{ fontSize: "0.85rem", height: 28 }}
+                      />
+                    )}
+                  </>
+                ) : (
+                  <Chip
+                    label="No tags"
+                    size="small"
+                    variant="outlined"
+                    color="default"
+                    sx={{ fontSize: "0.85rem", height: 28 }}
+                  />
+                )}
+              </Box>
+            </Box>
+          </Box>
         ))}
-      </div>
-
-      {totalItems > 0 && renderPagination()}
-    </div>
+      </Box>
+      {attractions.length > 0 && (
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={1}
+          alignItems="center"
+          justifyContent="space-between"
+          sx={{ mt: 2 }}
+        >
+          <Stack direction="row" spacing={0.5} alignItems="center">
+            <Typography variant="body2" color="text.secondary">
+              Show
+            </Typography>
+            <Select
+              value={itemsPerPage}
+              onChange={handleItemsPerPageChange}
+              size="small"
+              sx={{ minWidth: 50 }}
+            >
+              {[6, 12, 24].map((value) => (
+                <MenuItem key={value} value={value}>
+                  {value}
+                </MenuItem>
+              ))}
+            </Select>
+            <Typography variant="body2" color="text.secondary">
+              per page
+            </Typography>
+          </Stack>
+          <Stack direction="row" spacing={0.5} alignItems="center">
+            <IconButton
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              size="small"
+            >
+              <ChevronLeft />
+            </IconButton>
+            {pageNumbers.map((page) => (
+              <Button
+                key={page}
+                onClick={() => handlePageChange(page)}
+                variant={currentPage === page ? "contained" : "outlined"}
+                size="small"
+                sx={{ minWidth: 32, px: 0.5 }}
+              >
+                {page}
+              </Button>
+            ))}
+            <IconButton
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              size="small"
+            >
+              <ChevronRight />
+            </IconButton>
+          </Stack>
+          <Typography variant="body2" color="text.secondary">
+            {startIndex + 1}-
+            {Math.min(startIndex + itemsPerPage, attractions.length)} of{" "}
+            {attractions.length}
+          </Typography>
+        </Stack>
+      )}
+    </Box>
   );
+});
+
+AttractionList.propTypes = {
+  attractions: PropTypes.arrayOf(
+    PropTypes.shape({
+      attraction_id: PropTypes.number.isRequired,
+      name: PropTypes.string,
+      city_id: PropTypes.number,
+      address: PropTypes.string,
+      description: PropTypes.string,
+      average_rating: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+      image_url: PropTypes.arrayOf(PropTypes.string),
+      tags: PropTypes.arrayOf(PropTypes.string),
+    })
+  ).isRequired,
+  onEdit: PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired,
+  cities: PropTypes.arrayOf(
+    PropTypes.shape({
+      city_id: PropTypes.number.isRequired,
+      name: PropTypes.string.isRequired,
+    })
+  ).isRequired,
 };
 
 export default AttractionList;

@@ -1,198 +1,307 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import axios from "axios";
+import BASE_URL from "../../../../constants/BASE_URL";
 
-const useAttractionManagement = () => {
-  const [selectedAttraction, setSelectedAttraction] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [previewImage, setPreviewImage] = useState("");
-  const [imageError, setImageError] = useState("");
-  const [uploadedFile, setUploadedFile] = useState(null);
+axios.defaults.baseURL = BASE_URL;
+
+const validationSchema = Yup.object({
+  name: Yup.string()
+    .required("Attraction name is required")
+    .max(100, "Name is too long"),
+  city_id: Yup.number()
+    .required("City is required")
+    .positive()
+    .integer("City ID must be an integer"),
+  address: Yup.string()
+    .required("Address is required")
+    .max(255, "Address is too long"),
+  latitude: Yup.number()
+    .required("Latitude is required")
+    .min(-90, "Latitude must be between -90 and 90")
+    .max(90, "Latitude must be between -90 and 90")
+    .typeError("Latitude must be a number"),
+  longitude: Yup.number()
+    .required("Longitude is required")
+    .min(-180, "Longitude must be between -180 and 180")
+    .max(180, "Longitude must be between -180 and 180")
+    .typeError("Longitude must be a number"),
+  description: Yup.string().max(1000, "Description is too long").nullable(),
+  tags: Yup.array()
+    .of(Yup.string().trim().min(1, "Tag cannot be empty"))
+    .max(10, "Too many tags")
+    .nullable(),
+});
+
+const useAttractionManagement = ({ setAttractions }) => {
+  const [state, setState] = useState({
+    isModalOpen: false,
+    isEdit: false,
+    selectedAttraction: null,
+    isSubmitting: false,
+    submissionError: null,
+    image: { urls: [], previewUrls: [], error: null },
+    tags: { list: [], error: null },
+  });
 
   const fileInputRef = useRef(null);
 
-  const isEdit = !!selectedAttraction?.attraction_id;
-
-  const validationSchema = Yup.object({
-    name: Yup.string().required("Attraction name is required"),
-    city_id: Yup.string().required("Please select a city"),
-    latitude: Yup.number()
-      .required("Latitude is required")
-      .min(-90, "Invalid latitude value (min -90)")
-      .max(90, "Invalid latitude value (max 90)"),
-    longitude: Yup.number()
-      .required("Longitude is required")
-      .min(-180, "Invalid longitude value (min -180)")
-      .max(180, "Invalid longitude value (max 180)"),
-    address: Yup.string().required("Address is required"),
-  });
+  useEffect(() => {
+    const fetchTags = async () => {
+      try {
+        const response = await axios.get("/api/tags/attractions");
+        setState((prev) => ({
+          ...prev,
+          tags: { list: response.data || [], error: null },
+        }));
+      } catch {
+        setState((prev) => ({
+          ...prev,
+          tags: { list: [], error: "Failed to load suggested tags" },
+        }));
+      }
+    };
+    fetchTags();
+  }, []);
 
   const formik = useFormik({
     initialValues: {
       name: "",
-      description: "",
-      latitude: "",
-      longitude: "",
       city_id: "",
       address: "",
-      tags: "",
-      image_url: "",
+      latitude: "",
+      longitude: "",
+      description: "",
+      tags: [],
     },
     validationSchema,
-    onSubmit: () => {}, // To be overridden by parent component
+    onSubmit: async (values, { resetForm }) => {
+      setState((prev) => ({
+        ...prev,
+        isSubmitting: true,
+        submissionError: null,
+      }));
+      try {
+        const formData = {
+          ...values,
+          city_id: Number(values.city_id),
+          latitude: parseFloat(values.latitude) || null,
+          longitude: parseFloat(values.longitude) || null,
+          tags: values.tags?.map((tag) => tag.trim()).filter(Boolean) || [],
+          image_url: state.image.urls || [],
+        };
+
+        if (state.isEdit) {
+          await axios.put(
+            `/attractions/${state.selectedAttraction?.attraction_id}`,
+            formData
+          );
+        } else {
+          await axios.post("/attractions", formData);
+        }
+
+        // Refresh attractions
+        try {
+          const response = await axios.get("/attractions");
+          const parsedAttractions = response.data.map((attr) => ({
+            ...attr,
+            image_url:
+              typeof attr.image_url === "string"
+                ? JSON.parse(attr.image_url)
+                : attr.image_url,
+          }));
+          setAttractions(parsedAttractions);
+        } catch {
+          console.error("Failed to refresh attractions");
+        }
+
+        setState((prev) => ({
+          ...prev,
+          isModalOpen: false,
+          isEdit: false,
+          selectedAttraction: null,
+          image: { urls: [], previewUrls: [], error: null },
+        }));
+        resetForm();
+      } catch (error) {
+        setState((prev) => ({
+          ...prev,
+          submissionError:
+            error.response?.data?.message || "Failed to save attraction",
+        }));
+      } finally {
+        setState((prev) => ({ ...prev, isSubmitting: false }));
+      }
+    },
   });
 
-  // Update form values when selectedAttraction changes
-  useEffect(() => {
-    if (selectedAttraction) {
-      formik.setValues({
-        name: selectedAttraction.name || "",
-        description: selectedAttraction.description || "",
-        latitude: selectedAttraction.latitude || "",
-        longitude: selectedAttraction.longitude || "",
-        city_id: selectedAttraction.city_id || "",
-        address: selectedAttraction.address || "",
-        tags: selectedAttraction.tags?.join(", ") || "",
-        image_url: selectedAttraction.image_url || "",
-      });
+  const handleOpenModal = useCallback(
+    (attraction = null) => {
+      setState((prev) => ({
+        ...prev,
+        isModalOpen: true,
+        isEdit: !!attraction,
+        selectedAttraction: attraction,
+        submissionError: null,
+        image: { urls: [], previewUrls: [], error: null },
+      }));
 
-      // Set preview image if it exists
-      if (selectedAttraction.image_url) {
-        setPreviewImage(selectedAttraction.image_url);
-      } else {
-        setPreviewImage("");
-      }
-    }
-  }, [selectedAttraction]);
-
-  const handleOpenModal = (attraction = null) => {
-    setSelectedAttraction(attraction);
-    setIsModalOpen(true);
-    setImageError("");
-    setUploadedFile(null);
-    setPreviewImage("");
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedAttraction(null);
-    formik.resetForm();
-    setImageError("");
-    setUploadedFile(null);
-    setPreviewImage("");
-  };
-
-  const handleImageUrlChange = (e) => {
-    const url = e.target.value;
-    formik.setFieldValue("image_url", url);
-    setPreviewImage(url);
-    setUploadedFile(null);
-  };
-
-  const handleFileChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-
-      // Check file size (max 10MB)
-      if (file.size > 10 * 1024 * 1024) {
-        setImageError("File size exceeds 10MB limit");
-        e.target.value = null;
-        return;
-      }
-
-      setUploadedFile(file);
-      setPreviewImage(URL.createObjectURL(file));
-      formik.setFieldValue("image_url", ""); // Clear URL when file is uploaded
-      setImageError("");
-    }
-  };
-
-  const triggerFileInput = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  };
-
-  const prepareFormData = (values, images) => {
-    const formData = new FormData();
-
-    // Add basic form values
-    Object.keys(values).forEach((key) => {
-      // Skip image_url as we'll handle it separately
-      if (key !== "image_url") {
-        formData.append(key, values[key]);
-      }
-    });
-
-    // Process tags
-    if (values.tags) {
-      const tagsArray = values.tags
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter((tag) => tag);
-
-      formData.append("tags", JSON.stringify(tagsArray));
-    }
-
-    // Process images
-    if (images) {
-      // Handle image URLs
-      if (images.imageUrls && images.imageUrls.length > 0) {
-        // First URL is primary
-        formData.append("image_url", images.imageUrls[0]);
-
-        // Additional URLs
-        if (images.imageUrls.length > 1) {
-          formData.append(
-            "additional_image_urls",
-            JSON.stringify(images.imageUrls.slice(1))
-          );
-        }
-      }
-
-      // Handle uploaded files
-      if (images.uploadedFiles && images.uploadedFiles.length > 0) {
-        images.uploadedFiles.forEach((file, index) => {
-          if (index === 0 && !images.imageUrls.length) {
-            // First file is primary if no URLs
-            formData.append("image_file", file);
-          } else {
-            // Additional files
-            formData.append(`additional_image_files`, file);
-          }
+      if (attraction) {
+        const imageUrls = Array.isArray(attraction.image_url)
+          ? attraction.image_url
+          : [];
+        formik.setValues({
+          name: attraction.name || "",
+          city_id: Number(attraction.city_id) || "",
+          address: attraction.address || "",
+          latitude: parseFloat(attraction.latitude) || "",
+          longitude: parseFloat(attraction.longitude) || "",
+          description: attraction.description || "",
+          tags: Array.isArray(attraction.tags)
+            ? [...new Set(attraction.tags)]
+            : [],
         });
+        setState((prev) => ({
+          ...prev,
+          image: { urls: imageUrls, previewUrls: imageUrls, error: null },
+        }));
+      } else {
+        formik.resetForm();
+        setState((prev) => ({
+          ...prev,
+          image: { urls: [], previewUrls: [], error: null },
+        }));
       }
+    },
+    [formik]
+  );
+
+  const handleCloseModal = useCallback(() => {
+    setState((prev) => ({
+      ...prev,
+      isModalOpen: false,
+      isEdit: false,
+      selectedAttraction: null,
+      submissionError: null,
+      image: { urls: [], previewUrls: [], error: null },
+    }));
+    formik.resetForm();
+  }, [formik]);
+
+  const handleFileChange = useCallback(async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (files.some((file) => file.size > maxSize)) {
+      setState((prev) => ({
+        ...prev,
+        image: { ...prev.image, error: "Some files exceed 10MB limit" },
+      }));
+      return;
     }
 
-    return formData;
-  };
+    const formData = new FormData();
+    files.forEach((file) => formData.append("images", file));
+
+    try {
+      const response = await axios.post("/attractions/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      const newUrls = Array.isArray(response.data.imageUrls)
+        ? response.data.imageUrls
+        : [];
+      setState((prev) => ({
+        ...prev,
+        image: {
+          urls: [...prev.image.urls, ...newUrls],
+          previewUrls: [...prev.image.previewUrls, ...newUrls],
+          error: null,
+        },
+      }));
+    } catch {
+      setState((prev) => ({
+        ...prev,
+        image: { ...prev.image, error: "Failed to upload images" },
+      }));
+    }
+  }, []);
+
+  const triggerFileInput = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const handleTagChange = useCallback(
+    (newValue) => {
+      formik.setFieldValue("tags", [
+        ...new Set(newValue.map((tag) => tag.trim()).filter(Boolean)),
+      ]);
+    },
+    [formik]
+  );
+
+  const removeImage = useCallback((index) => {
+    setState((prev) => {
+      const newUrls = [...prev.image.urls];
+      const newPreviewUrls = [...prev.image.previewUrls];
+      newUrls.splice(index, 1);
+      newPreviewUrls.splice(index, 1);
+      return {
+        ...prev,
+        image: { urls: newUrls, previewUrls: newPreviewUrls, error: null },
+      };
+    });
+  }, []);
+
+  const deleteAttraction = useCallback(
+    async (id) => {
+      try {
+        await axios.delete(`/attractions/${id}`);
+        // Refresh attractions
+        const response = await axios.get("/attractions");
+        const parsedAttractions = response.data.map((attr) => ({
+          ...attr,
+          image_url:
+            typeof attr.image_url === "string"
+              ? JSON.parse(attr.image_url)
+              : attr.image_url,
+        }));
+        setAttractions(parsedAttractions);
+      } catch {
+        console.error("Failed to delete attraction");
+      }
+    },
+    [setAttractions]
+  );
 
   return {
-    // Modal state
-    isModalOpen,
-    selectedAttraction,
+    isModalOpen: state.isModalOpen,
+    isEdit: state.isEdit,
+    selectedAttraction: state.selectedAttraction,
     handleOpenModal,
     handleCloseModal,
-
-    // Form state
-    isEdit,
-    isSubmitting,
-    setIsSubmitting,
+    isSubmitting: state.isSubmitting,
+    submissionError: state.submissionError,
     formik,
-
-    // Image handling
-    previewImage,
-    imageError,
-    uploadedFile,
+    imageUrls: state.image.urls,
+    previewUrls: state.image.previewUrls,
+    imageError: state.image.error,
     fileInputRef,
-    handleImageUrlChange,
     handleFileChange,
     triggerFileInput,
-    setImageError,
-
-    // Submission helper
-    prepareFormData,
+    setImageError: (error) =>
+      setState((prev) => ({ ...prev, image: { ...prev.image, error } })),
+    setImageUrls: (urls) =>
+      setState((prev) => ({
+        ...prev,
+        image: { ...prev.image, urls, previewUrls: urls },
+      })),
+    removeImage,
+    tagList: state.tags.list,
+    tagError: state.tags.error,
+    handleTagChange,
+    deleteAttraction,
   };
 };
 

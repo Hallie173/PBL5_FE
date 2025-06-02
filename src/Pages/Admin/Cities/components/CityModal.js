@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import {
   Dialog,
   DialogActions,
@@ -21,8 +21,11 @@ import ImageUpload from "./ImageUpload";
 const citySchema = Yup.object().shape({
   name: Yup.string()
     .required("City name is required")
-    .max(100, "City name must be less than 100 characters"),
-  description: Yup.string().max(500, "Description too long"),
+    .max(100, "City name must be 100 characters or less")
+    .trim(),
+  description: Yup.string()
+    .max(2000, "Description must be 2000 characters or less")
+    .nullable(),
 });
 
 const CityModal = ({
@@ -38,27 +41,42 @@ const CityModal = ({
 }) => {
   const theme = useTheme();
 
+  // Formik setup for form management
   const formik = useFormik({
     initialValues: {
       name: city?.name || "",
       description: city?.description || "",
     },
     validationSchema: citySchema,
-    onSubmit: (values) => {
-      onSave({
-        ...values,
-        images: imagePreviews,
-      });
+    onSubmit: async (values, { setSubmitting }) => {
+      try {
+        await onSave({
+          ...values,
+          image_url: imagePreviews, // Match backend schema
+        });
+        formik.resetForm();
+      } catch (error) {
+        console.error("Error saving city:", error);
+      } finally {
+        setSubmitting(false);
+      }
     },
     enableReinitialize: true,
   });
 
+  // Memoized close handler to prevent unnecessary re-renders
+  const handleClose = useCallback(() => {
+    formik.resetForm();
+    onClose();
+  }, [formik, onClose]);
+
   return (
     <Dialog
       open={isModalOpen}
-      onClose={onClose}
+      onClose={handleClose}
       fullWidth
       maxWidth="sm"
+      aria-labelledby="city-modal-title"
       PaperProps={{
         sx: {
           borderRadius: 3,
@@ -68,6 +86,7 @@ const CityModal = ({
       }}
     >
       <DialogTitle
+        id="city-modal-title"
         sx={{
           bgcolor: "primary.main",
           color: "white",
@@ -82,20 +101,23 @@ const CityModal = ({
           {mode === "edit" ? "Edit City" : "Add New City"}
         </Typography>
         <IconButton
-          onClick={onClose}
+          onClick={handleClose}
           sx={{ color: "white", "&:hover": { bgcolor: "primary.dark" } }}
+          aria-label="Close modal"
         >
           <FaTimes />
         </IconButton>
       </DialogTitle>
 
-      <form onSubmit={formik.handleSubmit}>
+      <form onSubmit={formik.handleSubmit} noValidate>
         <DialogContent sx={{ py: 4, px: 3, bgcolor: "grey.50" }}>
           <Grid container spacing={2}>
+            {/* Image Upload Section */}
             <Grid item xs={12}>
               <ImageUpload
                 onImageUpload={onImageUpload}
                 fileInputRef={fileInputRef}
+                disabled={formik.isSubmitting}
               />
               {imagePreviews?.length > 0 && (
                 <Box
@@ -120,15 +142,16 @@ const CityModal = ({
                         src={img}
                         variant="rounded"
                         sx={{
-                          width: 100,
-                          height: 100,
+                          width: 80,
+                          height: 80,
                           border: `1px solid ${theme.palette.divider}`,
-                          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
                         }}
+                        alt={`Preview ${index + 1}`}
                       />
                       <IconButton
                         size="small"
                         onClick={() => onRemoveImage(index)}
+                        disabled={formik.isSubmitting}
                         sx={{
                           position: "absolute",
                           top: -10,
@@ -136,10 +159,10 @@ const CityModal = ({
                           bgcolor: "error.main",
                           color: "white",
                           "&:hover": { bgcolor: "error.dark" },
-                          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
                         }}
+                        aria-label={`Remove image ${index + 1}`}
                       >
-                        <FaTrash size={14} />
+                        <FaTrash size={12} />
                       </IconButton>
                     </Box>
                   ))}
@@ -147,6 +170,7 @@ const CityModal = ({
               )}
             </Grid>
 
+            {/* City Name Input */}
             <Grid item xs={12}>
               <TextField
                 fullWidth
@@ -158,15 +182,24 @@ const CityModal = ({
                 error={formik.touched.name && Boolean(formik.errors.name)}
                 helperText={formik.touched.name && formik.errors.name}
                 variant="outlined"
+                disabled={formik.isSubmitting}
                 sx={{
                   "& .MuiOutlinedInput-root": {
                     borderRadius: 2,
                     bgcolor: "white",
+                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "primary.main",
+                    },
+                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "primary.dark",
+                    },
                   },
                 }}
+                inputProps={{ maxLength: 100 }}
               />
             </Grid>
 
+            {/* Description Input */}
             <Grid item xs={12}>
               <TextField
                 fullWidth
@@ -182,15 +215,24 @@ const CityModal = ({
                   Boolean(formik.errors.description)
                 }
                 helperText={
-                  formik.touched.description && formik.errors.description
+                  (formik.touched.description && formik.errors.description) ||
+                  `${formik.values.description?.length || 0}/2000 characters`
                 }
                 variant="outlined"
+                disabled={formik.isSubmitting}
                 sx={{
                   "& .MuiOutlinedInput-root": {
                     borderRadius: 2,
                     bgcolor: "white",
+                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "primary.main",
+                    },
+                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "primary.dark",
+                    },
                   },
                 }}
+                inputProps={{ maxLength: 500 }}
               />
             </Grid>
           </Grid>
@@ -204,17 +246,16 @@ const CityModal = ({
           }}
         >
           <Button
-            onClick={onClose}
+            onClick={handleClose}
             color="inherit"
             startIcon={<FaTimes />}
+            disabled={formik.isSubmitting}
             sx={{
               textTransform: "none",
               px: 3,
               py: 1,
               borderRadius: 2,
-              "&:hover": {
-                bgcolor: "grey.200",
-              },
+              "&:hover": { bgcolor: "grey.200" },
             }}
           >
             Cancel
@@ -224,14 +265,13 @@ const CityModal = ({
             color="primary"
             variant="contained"
             startIcon={mode === "edit" ? <FaSave /> : <FaPlus />}
+            disabled={formik.isSubmitting || !formik.isValid}
             sx={{
               textTransform: "none",
               px: 3,
               py: 1,
               borderRadius: 2,
-              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
               "&:hover": {
-                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
                 transform: "translateY(-1px)",
               },
               transition: "all 0.3s",

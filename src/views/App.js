@@ -86,7 +86,7 @@ function App() {
 
             {/* Route homepage */}
             <Route
-              path="/tripguide/homepage"
+              path="/"
               element={
                 <>
                   <Navbar />
