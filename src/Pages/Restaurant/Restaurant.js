@@ -826,7 +826,7 @@ const ReviewsSection = ({
                 {!isLoggedIn && (
                   <button
                     className="login-to-review"
-                    onClick={() => navigate("/login")}
+                    onClick={() => navigate("/")}
                     aria-label="Log in to write a review"
                   >
                     Log In to Write a Review
@@ -970,7 +970,6 @@ NearbySection.propTypes = {
 // Main Restaurant Component
 const Restaurant = () => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const {
     restaurant,
     city,

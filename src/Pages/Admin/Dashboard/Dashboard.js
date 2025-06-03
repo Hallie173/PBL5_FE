@@ -16,6 +16,9 @@ import BASE_URL from "../../../constants/BASE_URL";
 const apiService = {
   async getStats() {
     try {
+      axios.defaults.headers.common[
+        "Authorization"
+      ] = `Bearer ${localStorage.getItem("token")}`;
       const [usersRes, attractionsRes, restaurantsRes] = await Promise.all([
         axios.get(`${BASE_URL}/users`),
         axios.get(`${BASE_URL}/attractions`),

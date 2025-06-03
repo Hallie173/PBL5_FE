@@ -809,7 +809,7 @@ const AttractionReviews = React.memo(
                   {!isLoggedIn && (
                     <button
                       className="login-to-review"
-                      onClick={() => navigate("/login")}
+                      onClick={() => navigate("/")}
                       aria-label="Log in to write a review"
                     >
                       Log In to Write a Review

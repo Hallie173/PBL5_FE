@@ -18,7 +18,7 @@ export const useUserManagement = () => {
   // Axios instance with default headers
   const axiosInstance = axios.create({
     baseURL: API_BASE_URL,
-    headers: { Authorization: `Bearer ${user?.token}` },
+    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
   });
 
   // Fetch all users (admin only)
