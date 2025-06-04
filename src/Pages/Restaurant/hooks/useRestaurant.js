@@ -81,9 +81,11 @@ const fetchRestaurantDetails = async (restaurantId, user) => {
           ? JSON.parse(restaurantData.hours)
           : restaurantData.hours || {},
       average_rating: normalizedRestaurantRating,
-      image_url: Array.isArray(restaurantData.image_url)
-        ? restaurantData.image_url
-        : [],
+      image_url:
+        Array.isArray(restaurantData.image_url) &&
+        restaurantData.image_url.length > 30
+          ? restaurantData.image_url.slice(0, 30)
+          : restaurantData.image_url || [],
       rating_total: restaurantData.rating_total || 0,
       tags: normalizeTags(restaurantData.tags),
       status: restaurantData.status || "unknown",
@@ -127,11 +129,6 @@ const fetchRestaurantDetails = async (restaurantId, user) => {
         const finalRating = isNaN(parsedRating)
           ? 0
           : Math.max(0, Math.min(5, parsedRating));
-        console.log(
-          `Review ID ${
-            review.review_id
-          }: raw=${rawRating}, type=${typeof rawRating}, parsed=${parsedRating}, final=${finalRating}`
-        );
         if (finalRating === 5 && rawRating !== 5) {
           console.warn(
             `Review ID ${review.review_id} has unexpected rating of 5 (raw was ${rawRating})`
@@ -273,7 +270,6 @@ const useRestaurant = () => {
           const isFilled = star <= Math.floor(numRating);
           const isHalf =
             !isFilled && star === Math.ceil(numRating) && numRating % 1 !== 0;
-          const isEmpty = !isFilled && !isHalf;
 
           // Xác định icon phù hợp
           let icon;
@@ -334,62 +330,60 @@ const useRestaurant = () => {
     }
   };
 
-  const parseHours = (hours) => {
-    let parsedHours = hours;
-    if (typeof hours === "string") {
-      try {
-        parsedHours = JSON.parse(hours);
-      } catch (e) {
-        console.error("Failed to parse hours:", e);
+  const hoursInfo = useMemo(() => {
+    const parseHours = (hours) => {
+      let parsedHours = hours;
+      if (typeof hours === "string") {
+        try {
+          parsedHours = JSON.parse(hours);
+        } catch (e) {
+          console.error("Failed to parse hours:", e);
+          return { formatted: [], status: "Unknown" };
+        }
+      }
+      if (!parsedHours || !parsedHours.weekRanges) {
         return { formatted: [], status: "Unknown" };
       }
-    }
-    if (!parsedHours || !parsedHours.weekRanges) {
-      return { formatted: [], status: "Unknown" };
-    }
 
-    const englishDays = [
-      "Sunday",
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-    ];
-    const todayIndex = new Date().getDay();
-    const formatted = englishDays.map((day, index) => {
-      const dayRanges = parsedHours.weekRanges[index];
-      if (dayRanges && dayRanges.length > 0) {
-        const range = dayRanges[0];
-        return { day, hours: `${range.openHours} - ${range.closeHours}` };
+      const englishDays = [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+      ];
+      const todayIndex = new Date().getDay();
+      const formatted = englishDays.map((day, index) => {
+        const dayRanges = parsedHours.weekRanges[index];
+        if (dayRanges && dayRanges.length > 0) {
+          const range = dayRanges[0];
+          return { day, hours: `${range.openHours} - ${range.closeHours}` };
+        }
+        return { day, hours: "Closed" };
+      });
+
+      const todayRanges = parsedHours.weekRanges[todayIndex];
+      let status = "Closed";
+      if (todayRanges && todayRanges.length > 0) {
+        const range = todayRanges[0];
+        const now = new Date();
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+        if (currentMinutes >= range.open && currentMinutes <= range.close) {
+          status = `Open until ${range.closeHours}`;
+        } else {
+          status = `Closed (Opens at ${range.openHours})`;
+        }
       }
-      return { day, hours: "Closed" };
-    });
 
-    const todayRanges = parsedHours.weekRanges[todayIndex];
-    let status = "Closed";
-    if (todayRanges && todayRanges.length > 0) {
-      const range = todayRanges[0];
-      const now = new Date();
-      const currentMinutes = now.getHours() * 60 + now.getMinutes();
-      if (currentMinutes >= range.open && currentMinutes <= range.close) {
-        status = `Open until ${range.closeHours}`;
-      } else {
-        status = `Closed (Opens at ${range.openHours})`;
-      }
-    }
+      return { formatted, status };
+    };
 
-    return { formatted, status };
-  };
-
-  const hoursInfo = useMemo(
-    () =>
-      restaurant
-        ? parseHours(restaurant.hours)
-        : { formatted: [], status: "Unknown" },
-    [restaurant, parseHours]
-  );
+    return restaurant
+      ? parseHours(restaurant.hours)
+      : { formatted: [], status: "Unknown" };
+  }, [restaurant]);
 
   const sortedReviews = useMemo(
     () => (reviews ? sortReviews(reviews, reviewSort) : []),

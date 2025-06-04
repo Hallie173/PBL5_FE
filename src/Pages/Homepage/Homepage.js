@@ -202,7 +202,6 @@ const HomePage = () => {
       }
 
       const { id, type } = item;
-      console.log("Toggling save:", { item, favorites });
       const isFavorite = favorites.some(
         (fav) =>
           (type === "restaurant" && String(fav.restaurant_id) === String(id)) ||

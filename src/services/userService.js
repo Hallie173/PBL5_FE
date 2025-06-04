@@ -15,7 +15,6 @@ class UserService {
     if (!profileData) throw new Error("Profile data is required");
 
     const normalizedData = this.normalizeProfileData(profileData);
-    // console.log("Sending profile update payload:", normalizedData);
     const response = await this.apiRequest(
       `${API_URL}/${userId}`,
       "PUT",

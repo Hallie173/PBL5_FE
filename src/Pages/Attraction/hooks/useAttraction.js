@@ -1,8 +1,6 @@
-// useAttraction.js
 import { useCallback, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "react-query";
-
 import axios from "axios";
 import BASE_URL from "../../../constants/BASE_URL";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -14,6 +12,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import useFavorites from "../../../hooks/useFavorites";
 import UserService from "../../../services/userService";
+
 const fetchAttractionDetails = async (attractionId, user) => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -97,11 +96,6 @@ const fetchAttractionDetails = async (attractionId, user) => {
         const finalRating = isNaN(parsedRating)
           ? 0
           : Math.max(0, Math.min(5, parsedRating));
-        console.log(
-          `Review ID ${
-            review.review_id
-          }: raw=${rawRating}, type=${typeof rawRating}, parsed=${parsedRating}, final=${finalRating}`
-        );
         if (finalRating === 5 && rawRating !== 5) {
           console.warn(
             `Review ID ${review.review_id} has unexpected rating of 5 (raw was ${rawRating})`
@@ -119,9 +113,17 @@ const fetchAttractionDetails = async (attractionId, user) => {
       })
     );
 
+    // Limit the number of images in attractionData.image_url to 30
+    const limitedImageUrl =
+      Array.isArray(attractionData.image_url) &&
+      attractionData.image_url.length > 30
+        ? attractionData.image_url.slice(0, 30)
+        : attractionData.image_url;
+
     return {
       attraction: {
         ...attractionData,
+        image_url: limitedImageUrl,
         average_rating: parseFloat(attractionData.average_rating) || 0,
       },
       city: cityResponse.data,
@@ -152,7 +154,6 @@ const useAttraction = () => {
   const queryClient = useQueryClient();
   const [reviewSort, setReviewSort] = useState("newest");
 
-  // Use the useFavorites hook
   const {
     favorites,
     isFavoritesLoading,
@@ -199,6 +200,21 @@ const useAttraction = () => {
     );
   }, [favorites, attractionId]);
 
+  const sortReviews = (reviews, sortType) => {
+    return [...reviews].sort((a, b) => {
+      if (sortType === "newest")
+        return new Date(b.created_at) - new Date(a.created_at);
+      if (sortType === "highest") return b.rating - a.rating;
+      if (sortType === "lowest") return a.rating - b.rating;
+      return 0;
+    });
+  };
+
+  const sortedReviews = useMemo(() => {
+    if (!reviews) return [];
+    return sortReviews(reviews, reviewSort);
+  }, [reviews, reviewSort]);
+
   const handleToggleSave = useCallback(() => {
     if (!isLoggedIn || !user?.user_id) {
       alert("Please log in to save this attraction!");
@@ -226,24 +242,13 @@ const useAttraction = () => {
     createFavorite,
     deleteFavorite,
   ]);
-  const sortReviews = (reviews, sortType) => {
-    return [...reviews].sort((a, b) => {
-      if (sortType === "newest")
-        return new Date(b.created_at) - new Date(a.created_at);
-      if (sortType === "highest") return b.rating - a.rating;
-      if (sortType === "lowest") return a.rating - b.rating;
-      return 0;
-    });
-  };
 
   const handleSortChange = (e) => {
     setReviewSort(e.target.value);
   };
-  const renderStars = (rating) => {
-    // Chuyển đổi rating thành số và xử lý giá trị không hợp lệ
-    const numRating = typeof rating === "number" ? rating : parseFloat(rating);
 
-    // Kiểm tra giá trị hợp lệ
+  const renderStars = (rating) => {
+    const numRating = typeof rating === "number" ? rating : parseFloat(rating);
     if (isNaN(numRating) || numRating < 0 || numRating > 5) {
       return <div className="stars-container">Invalid rating</div>;
     }
@@ -251,13 +256,11 @@ const useAttraction = () => {
     return (
       <div className="stars-container">
         {[1, 2, 3, 4, 5].map((star) => {
-          // Tính toán loại sao cho vị trí hiện tại
           const isFilled = star <= Math.floor(numRating);
           const isHalf =
             !isFilled && star === Math.ceil(numRating) && numRating % 1 !== 0;
           const isEmpty = !isFilled && !isHalf;
 
-          // Xác định icon phù hợp
           let icon;
           if (isFilled) {
             icon = solidStar;
@@ -267,7 +270,6 @@ const useAttraction = () => {
             icon = regularStar;
           }
 
-          // Xác định className phù hợp
           let starClass = "star-icon ";
           if (isFilled) {
             starClass += "filled";
@@ -319,12 +321,12 @@ const useAttraction = () => {
   return {
     attraction,
     city,
-    reviews,
+    reviews: sortedReviews,
     nearbyAttractions,
     loading: isLoading || isFavoritesLoading,
     error: attractionError?.message || favoritesError?.message,
     isFavorite,
-    favorites, // Pass favorites for use in NearbyAttractions
+    favorites,
     handleShareClick,
     handleReviewClick,
     handleToggleSave,

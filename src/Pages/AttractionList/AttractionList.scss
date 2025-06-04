@@ -1,0 +1,72 @@
+.container {
+  max-width: 1400px;
+}
+
+/* Search and filter sections */
+.bg-gray-50 {
+  background-color: #f9fafb;
+  border-radius: 8px;
+}
+
+/* Sidebar */
+.md\:w-80 {
+  width: 20rem;
+  min-width: 250px;
+}
+
+/* Attractions list */
+.flex-items {
+  flex: 1 1 auto;
+}
+
+/* LocationCard styles */
+.picture-item {
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.picture-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Grid adjustments */
+.MuiGrid-container {
+  margin: -0.75rem;
+}
+
+.MuiGrid-item {
+  padding: 0.75rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .md\:flex-row {
+    flex-direction: column;
+  }
+
+  .md\:w-80,
+  .flex-items {
+    width: 100%;
+  }
+
+  .picture-item {
+    width: 100%;
+  }
+
+  .MuiGrid-item {
+    padding: 0.5rem;
+  }
+}
+
+/* Pagination */
+.MuiPagination-root {
+  margin-top: 1rem;
+}
+
+.MuiPaginationItem-root {
+  font-size: 0.875rem;
+}

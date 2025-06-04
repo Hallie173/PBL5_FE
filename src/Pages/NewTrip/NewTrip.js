@@ -13,7 +13,7 @@ import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import BASE_URL from "../../constants/BASE_URL";
 import axios from "axios";
-import { Autocomplete, TextField } from '@mui/material';
+import { Autocomplete, TextField } from "@mui/material";
 
 function NewTrip() {
   const location = useLocation();
@@ -48,10 +48,14 @@ function NewTrip() {
         console.log("URL used:", url); // debug
         console.log("Response:", Itiresponse.data);
         setitinararyData(Itiresponse.data);
-        const cityResponse = await axios.get(`${BASE_URL}/cities/${selectedCity}`);
+        const cityResponse = await axios.get(
+          `${BASE_URL}/cities/${selectedCity}`
+        );
         setCity(cityResponse.data);
         console.log(city);
-        const cityAttraction = await axios.get(`${BASE_URL}/attractions/city/${selectedCity}`);
+        const cityAttraction = await axios.get(
+          `${BASE_URL}/attractions/city/${selectedCity}`
+        );
         setCityAttraction(cityAttraction.data);
 
         // return response.data;
@@ -166,8 +170,9 @@ function NewTrip() {
                     </button>
                     <div className="add-location-form">
                       <div
-                        className={`form-container ${addLocation ? "show" : ""
-                          }`}
+                        className={`form-container ${
+                          addLocation ? "show" : ""
+                        }`}
                       >
                         <div className="form-header">
                           <h4>Add location</h4>
@@ -213,10 +218,14 @@ function NewTrip() {
         <div className="city-name-container">
           <img src={newtrippic} alt="City" className="city-image" />
           <div className="title-overlay">
-            <h2>Trip to <span className="destination-name">{city?.name}</span></h2>
+            <h2>
+              Trip to <span className="destination-name">{city?.name}</span>
+            </h2>
             <div className="date-time">
               <FontAwesomeIcon icon={faCalendarDay} className="date-icon" />
-              <span className="date-text">{startDate} - {endDate}</span>
+              <span className="date-text">
+                {startDate} - {endDate}
+              </span>
             </div>
           </div>
         </div>
@@ -236,7 +245,7 @@ function NewTrip() {
                         <div className="timeline-line"></div>
                         <div className="location-card">
                           <img
-                            src={item.image_url[0] || 'fallback.jpg'} // fallback nếu ảnh lỗi
+                            src={item.image_url[0] || "fallback.jpg"} // fallback nếu ảnh lỗi
                             alt={item.name}
                             className="location-img"
                           />
@@ -244,10 +253,15 @@ function NewTrip() {
                             <div className="location-title">{item.name}</div>
                             <div className="item-rating">
                               <span className="rating-dots">🟢🟢🟢🟢</span>
-                              <span className="rating-number">{item.rating_total}</span>
+                              <span className="rating-number">
+                                {item.rating_total}
+                              </span>
                             </div>
                             <div className="location-type">
-                              <FontAwesomeIcon icon={faMountainSun} className="location-type-icon" />
+                              <FontAwesomeIcon
+                                icon={faMountainSun}
+                                className="location-type-icon"
+                              />
                               {item.type}
                             </div>
                           </div>
@@ -256,9 +270,18 @@ function NewTrip() {
                       </div>
                     ))}
                     <div className="add-location">
-                      <button className="add-location-btn" onClick={handleAddLocation}>+ Add</button>
+                      <button
+                        className="add-location-btn"
+                        onClick={handleAddLocation}
+                      >
+                        + Add
+                      </button>
                       <div className="add-location-form">
-                        <div className={`form-container ${addLocation ? 'show' : ''}`}>
+                        <div
+                          className={`form-container ${
+                            addLocation ? "show" : ""
+                          }`}
+                        >
                           <div className="form-header">
                             <h4>Add location</h4>
                           </div>
@@ -268,8 +291,13 @@ function NewTrip() {
                                 <Autocomplete
                                   options={cityAttraction}
                                   getOptionLabel={(option) => option.name}
-                                  renderInput={(params) => <TextField {...params} label="Search for location..." />}
-                                  sx={{ width: '100%' }}
+                                  renderInput={(params) => (
+                                    <TextField
+                                      {...params}
+                                      label="Search for location..."
+                                    />
+                                  )}
+                                  sx={{ width: "100%" }}
                                 />
                               </div>
                               <button className="search-btn">Search</button>
@@ -286,7 +314,12 @@ function NewTrip() {
                             </div>
                           </div>
                           <div className="form-footer">
-                            <button className="cancel-btn" onClick={handleCancel}>Cancel</button>
+                            <button
+                              className="cancel-btn"
+                              onClick={handleCancel}
+                            >
+                              Cancel
+                            </button>
                             <button className="save-btn">Save</button>
                           </div>
                         </div>
@@ -306,7 +339,7 @@ function NewTrip() {
       </div>
       );
     </div>
-  )
+  );
 }
 
 export default NewTrip;
