@@ -963,6 +963,7 @@ const Attraction = () => {
   const { user } = useAuth();
 
   const saveRecentlyViewed = useCallback(async () => {
+    
     if (!attraction || !attraction.attraction_id || !attraction.name) {
       console.warn("Invalid attraction data, skipping saveRecentlyViewed");
       return;

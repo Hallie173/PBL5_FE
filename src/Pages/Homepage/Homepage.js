@@ -43,7 +43,7 @@ const HomePage = () => {
   const navigate = useNavigate();
   const { user, isLoggedIn } = useAuth();
   const [city, setCity] = useState([]);
-
+  const [recommendAttraction, setRecommendAttraction] = useState([]);
   const {
     favorites,
     isFavoritesLoading,
@@ -97,6 +97,7 @@ const HomePage = () => {
 
         // Chuyển Map thành array và giới hạn 4 item
         const uniqueItems = Array.from(uniqueItemsMap.values()).slice(0, 4);
+        const attractionRespone = await axios.get(`${BASE_URL}/attractions/gettoprating`)
         setRecentlyViewedItems(uniqueItems);
       } catch (err) {
         console.error("Failed to fetch recently viewed items:", err);

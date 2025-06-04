@@ -194,6 +194,7 @@ const Form = () => {
           to="/tripguide/newtrip"
           className="continue-button"
           state={{
+            mode:'create',
             selectedTags,
             startDate,
             endDate,
