@@ -17,8 +17,6 @@ import {
   faHeart,
   faImages,
   faExpand,
-  // faStar as solidStar,
-  // faStar as regularStar,
 } from "@fortawesome/free-solid-svg-icons";
 import OpenStreetMap from "../../components/OpenStreetMap/OpenStreetMap";
 import useAttraction from "./hooks/useAttraction";
@@ -27,9 +25,7 @@ import Loading from "../../components/Loading/Loading";
 import { useAuth } from "../../contexts/AuthContext";
 import axios from "axios";
 import BASE_URL from "../../constants/BASE_URL";
-import useFavorites from "../../hooks/useFavorites";
 
-// Error Message Component
 const ErrorMessage = ({ error }) => {
   const navigate = useNavigate();
   return (
@@ -41,7 +37,6 @@ const ErrorMessage = ({ error }) => {
   );
 };
 
-// Attraction Header Component
 const AttractionHeader = ({
   attraction,
   city,
@@ -142,7 +137,6 @@ const AttractionHeader = ({
   );
 };
 
-// Attraction Gallery Component
 const AttractionGallery = React.memo(
   ({
     images,
@@ -447,7 +441,6 @@ const AttractionGallery = React.memo(
     prevProps.isFullScreen === nextProps.isFullScreen
 );
 
-// Attraction Info Component
 const AttractionInfo = React.memo(
   ({ attraction, city, mapCenter, mapError, fetchAttraction }) => {
     return (
@@ -565,7 +558,6 @@ const AttractionInfo = React.memo(
     prevProps.mapError === nextProps.mapError
 );
 
-// Attraction Reviews Component
 const AttractionReviews = React.memo(
   ({
     reviews,
@@ -582,7 +574,6 @@ const AttractionReviews = React.memo(
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const modalRef = useRef(null);
 
-    // Handle modal open/close
     const openModal = (photo) => {
       setSelectedImage(photo);
       document.body.style.overflow = "hidden";
@@ -593,7 +584,6 @@ const AttractionReviews = React.memo(
       document.body.style.overflow = "";
     };
 
-    // Close modal on Escape key
     useEffect(() => {
       const handleKeyDown = (e) => {
         if (e.key === "Escape" && selectedImage) {
@@ -604,7 +594,6 @@ const AttractionReviews = React.memo(
       return () => window.removeEventListener("keydown", handleKeyDown);
     }, [selectedImage]);
 
-    // Focus trap for modal
     useEffect(() => {
       if (selectedImage && modalRef.current) {
         const focusableElements = modalRef.current.querySelectorAll(
@@ -632,13 +621,12 @@ const AttractionReviews = React.memo(
       }
     }, [selectedImage]);
 
-    // Handle load more reviews
     const handleLoadMore = () => {
       setIsLoadingMore(true);
       setTimeout(() => {
         setDisplayCount(displayCount + 5);
         setIsLoadingMore(false);
-      }, 500); // Simulate async loading
+      }, 500);
     };
 
     return (
@@ -769,26 +757,11 @@ const AttractionReviews = React.memo(
                                   src={photo}
                                   alt={`Review photo ${idx + 1}`}
                                   loading="lazy"
-                                  onError={(e) =>
-                                    (e.target.src =
-                                      "https://via.placeholder.com/100?text=Image+Error")
-                                  }
                                 />
                               </div>
                             ))}
                           </div>
                         )}
-                        {/* <div className="review-actions">
-                          {review.isCurrentUser && (
-                            <button
-                              className="edit-review-button"
-                              onClick={() => handleEdit(review)}
-                              aria-label={`Edit your review`}
-                            >
-                              Edit
-                            </button>
-                          )}
-                        </div> */}
                       </div>
                     </div>
                   ))}
@@ -809,7 +782,7 @@ const AttractionReviews = React.memo(
                   {!isLoggedIn && (
                     <button
                       className="login-to-review"
-                      onClick={() => navigate("/login")}
+                      onClick={() => navigate("/")}
                       aria-label="Log in to write a review"
                     >
                       Log In to Write a Review
@@ -845,10 +818,6 @@ const AttractionReviews = React.memo(
                     src={selectedImage}
                     alt="Full-size review photo"
                     className="modal-image"
-                    onError={(e) =>
-                      (e.target.src =
-                        "https://via.placeholder.com/600?text=Image+Error")
-                    }
                   />
                 </div>
               </div>
@@ -861,13 +830,9 @@ const AttractionReviews = React.memo(
   (prevProps, nextProps) =>
     prevProps.reviews === nextProps.reviews &&
     prevProps.reviewSort === nextProps.reviewSort &&
-    prevProps.reviewForm === nextProps.reviewForm &&
-    prevProps.submitting === nextProps.submitting &&
-    prevProps.reviewError === nextProps.reviewError &&
     prevProps.isLoggedIn === nextProps.isLoggedIn
 );
 
-// Nearby Attractions Component
 const NearbyAttractions = React.memo(
   ({ nearbyAttractions, city, renderStars, handleToggleSave, favorites }) => {
     const navigate = useNavigate();
@@ -935,7 +900,6 @@ const NearbyAttractions = React.memo(
   }
 );
 
-// Main Attraction Component
 const Attraction = () => {
   const {
     attraction,
@@ -945,7 +909,7 @@ const Attraction = () => {
     loading,
     error,
     isFavorite,
-    favorites, // Now provided by useAttraction
+    favorites,
     handleShareClick,
     handleReviewClick,
     handleToggleSave,
@@ -1062,6 +1026,10 @@ const Attraction = () => {
     [images]
   );
 
+  useEffect(() => {
+    preloadNextImage(activeImageIndex);
+  }, [activeImageIndex, preloadNextImage]);
+
   const handleKeyDown = useCallback(
     (e) => {
       if (e.key === "ArrowLeft") handlePrevImage();
@@ -1146,7 +1114,6 @@ const Attraction = () => {
         setIsFullScreen={setIsFullScreen}
         handlePrevImage={handlePrevImage}
         handleNextImage={handleNextImage}
-        preloadNextImage={preloadNextImage}
         attractionName={attraction.name}
       />
       <AttractionInfo
@@ -1171,7 +1138,7 @@ const Attraction = () => {
         city={city}
         renderStars={renderStars}
         handleToggleSave={handleToggleSave}
-        favorites={favorites} // Use the centralized favorites list
+        favorites={favorites}
       />
     </div>
   );

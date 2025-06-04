@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect, useRef } from "react";
+import React, { useCallback, useState, useEffect, useRef, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Restaurant.scss";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -16,13 +16,12 @@ import { faHeart as regularHeart } from "@fortawesome/free-regular-svg-icons";
 import OpenStreetMap from "../../components/OpenStreetMap/OpenStreetMap";
 import Loading from "../../components/Loading/Loading";
 import useRestaurant from "./hooks/useRestaurant";
-import PropTypes from "prop-types";
 import LocationCard from "../../components/LocationCard/LocationCard";
 import axios from "axios";
 import BASE_URL from "../../constants/BASE_URL";
 import { useAuth } from "../../contexts/AuthContext";
-import { useQueryClient } from "react-query";
 import debounce from "lodash/debounce";
+
 // Error Message Component
 const ErrorMessage = ({ error }) => {
   const navigate = useNavigate();
@@ -35,8 +34,8 @@ const ErrorMessage = ({ error }) => {
   );
 };
 
-// Breadcrumb Component
-const Breadcrumb = ({ city, restaurant, navigate }) => (
+// Memoized Breadcrumb Component
+const Breadcrumb = memo(({ city, restaurant, navigate }) => (
   <nav className="breadcrumb" aria-label="Breadcrumb">
     <ol className="breadcrumb-list">
       <li className="breadcrumb-item">
@@ -79,208 +78,148 @@ const Breadcrumb = ({ city, restaurant, navigate }) => (
       </li>
     </ol>
   </nav>
-);
+));
 
-Breadcrumb.propTypes = {
-  city: PropTypes.shape({
-    city_id: PropTypes.number,
-    name: PropTypes.string,
-  }),
-  restaurant: PropTypes.shape({
-    name: PropTypes.string.isRequired,
-  }).isRequired,
-  navigate: PropTypes.func.isRequired,
-};
-
-// RestaurantHeader Component
-const RestaurantHeader = ({
-  restaurant,
-  renderStars,
-  city,
-  resRank,
-  handleShareClick,
-  handleReviewClick,
-  isFavorite,
-  handleToggleSave,
-}) => (
-  <header className="restaurant-header">
-    <div className="name-and-action">
-      <div className="name-container">
-        <h1>{restaurant.name}</h1>
-      </div>
-      <div className="restaurant-action">
-        <button
-          className="action-button share-restaurant"
-          onClick={handleShareClick}
-        >
-          <FontAwesomeIcon icon={faSquareShareNodes} className="action-icon" />
-          <span>Share</span>
-        </button>
-        <button
-          className="action-button review-restaurant"
-          onClick={handleReviewClick}
-          aria-label="Write a review"
-        >
-          <FontAwesomeIcon icon={faPen} className="action-icon" />
-          <span>Review</span>
-        </button>
-        <button
-          className={`action-button save-restaurant ${
-            isFavorite ? "saved" : ""
-          }`}
-          onClick={() => handleToggleSave(restaurant.restaurant_id)}
-          aria-label={isFavorite ? "Remove from saved" : "Save to favorites"}
-        >
-          <FontAwesomeIcon
-            icon={isFavorite ? solidHeart : regularHeart}
-            className="action-icon"
-          />
-          <span>{isFavorite ? "Saved" : "Save"}</span>
-        </button>
-      </div>
-    </div>
-    <div className="restaurant-rating">
-      <div className="rating-stars">
-        {renderStars(restaurant.average_rating)}
-        <span className="rating-value">
-          {restaurant.average_rating?.toFixed(1) || "0.0"}
-        </span>
-      </div>
-      <span className="rating-count">
-        {restaurant.rating_total}{" "}
-        {restaurant.rating_total === 1 ? "review" : "reviews"}
-      </span>
-      {resRank && (
-        <span className="rating-rank">
-          #{resRank.rank} among restaurants in {city?.name || "City"}
-        </span>
-      )}
-    </div>
-  </header>
-);
-
-RestaurantHeader.propTypes = {
-  restaurant: PropTypes.object.isRequired,
-  renderStars: PropTypes.func.isRequired,
-  city: PropTypes.object,
-  resRank: PropTypes.object,
-  handleShareClick: PropTypes.func.isRequired,
-  handleReviewClick: PropTypes.func.isRequired,
-  isFavorite: PropTypes.bool.isRequired,
-  handleToggleSave: PropTypes.func.isRequired,
-};
-
-// RestaurantGallery Component (giữ nguyên vì không có biến không sử dụng)
-const RestaurantGallery = ({
-  images,
-  activeImageIndex,
-  setActiveImageIndex,
-  isFullScreen,
-  setIsFullScreen,
-  restaurantName,
-}) => {
-  const handlePrevImage = useCallback(() => {
-    setActiveImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
-  }, [images.length, setActiveImageIndex]);
-
-  const handleNextImage = useCallback(() => {
-    setActiveImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
-  }, [images.length, setActiveImageIndex]);
-
-  useEffect(() => {
-    if (images && images.length > 0) {
-      const preloadImage = (src) => {
-        const link = document.createElement("link");
-        link.rel = "preload";
-        link.as = "image";
-        link.href = src;
-        document.head.appendChild(link);
-        return link;
-      };
-
-      const currentLink = preloadImage(images[activeImageIndex]);
-      const nextIndex = (activeImageIndex + 1) % images.length;
-      const nextLink = preloadImage(images[nextIndex]);
-
-      return () => {
-        document.head.removeChild(currentLink);
-        document.head.removeChild(nextLink);
-      };
-    }
-  }, [images, activeImageIndex]);
-
-  return (
-    <div className="restaurant-gallery">
-      {images && images.length > 0 ? (
-        <>
-          <div
-            className="main-image-container"
-            onClick={() => setIsFullScreen(true)}
+// Memoized RestaurantHeader Component
+const RestaurantHeader = memo(
+  ({
+    restaurant,
+    renderStars,
+    city,
+    resRank,
+    handleShareClick,
+    handleReviewClick,
+    isFavorite,
+    handleToggleSave,
+  }) => (
+    <header className="restaurant-header">
+      <div className="name-and-action">
+        <div className="name-container">
+          <h1>{restaurant.name}</h1>
+        </div>
+        <div className="restaurant-action">
+          <button
+            className="action-button share-restaurant"
+            onClick={handleShareClick}
           >
-            <img
-              src={images[activeImageIndex]}
-              alt={`${restaurantName} - Image ${activeImageIndex + 1}`}
-              className="main-image"
-              srcSet={`${images[activeImageIndex]} 1x`}
-              sizes="100vw"
+            <FontAwesomeIcon
+              icon={faSquareShareNodes}
+              className="action-icon"
             />
-            <div className="image-counter">
-              {activeImageIndex + 1} / {images.length}
-            </div>
-            <button
-              className="fullscreen-button"
-              aria-label="View image in fullscreen"
-            >
-              <FontAwesomeIcon icon={faExpand} />
-            </button>
-            <div className="gallery-controls">
-              <button
-                className="gallery-nav prev"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handlePrevImage();
-                }}
-                aria-label="Previous image"
-              >
-                ‹
-              </button>
-              <button
-                className="gallery-nav next"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleNextImage();
-                }}
-                aria-label="Next image"
-              >
-                ›
-              </button>
-            </div>
-          </div>
-          {isFullScreen && (
+            <span>Share</span>
+          </button>
+          <button
+            className="action-button review-restaurant"
+            onClick={handleReviewClick}
+            aria-label="Write a review"
+          >
+            <FontAwesomeIcon icon={faPen} className="action-icon" />
+            <span>Review</span>
+          </button>
+          <button
+            className={`action-button save-restaurant ${
+              isFavorite ? "saved" : ""
+            }`}
+            onClick={() => handleToggleSave(restaurant.restaurant_id)}
+            aria-label={isFavorite ? "Remove from saved" : "Save to favorites"}
+          >
+            <FontAwesomeIcon
+              icon={isFavorite ? solidHeart : regularHeart}
+              className="action-icon"
+            />
+            <span>{isFavorite ? "Saved" : "Save"}</span>
+          </button>
+        </div>
+      </div>
+      <div className="restaurant-rating">
+        <div className="rating-stars">
+          {renderStars(restaurant.average_rating)}
+          <span className="rating-value">
+            {restaurant.average_rating?.toFixed(1) || "0.0"}
+          </span>
+        </div>
+        <span className="rating-count">
+          {restaurant.rating_total}{" "}
+          {restaurant.rating_total === 1 ? "review" : "reviews"}
+        </span>
+        {resRank && (
+          <span className="rating-rank">
+            #{resRank.rank} among restaurants in {city?.name || "City"}
+          </span>
+        )}
+      </div>
+    </header>
+  )
+);
+
+// Memoized RestaurantGallery Component
+const RestaurantGallery = memo(
+  ({
+    images,
+    activeImageIndex,
+    setActiveImageIndex,
+    isFullScreen,
+    setIsFullScreen,
+    restaurantName,
+  }) => {
+    const handlePrevImage = useCallback(() => {
+      setActiveImageIndex((prev) =>
+        prev === 0 ? images.length - 1 : prev - 1
+      );
+    }, [images.length, setActiveImageIndex]);
+
+    const handleNextImage = useCallback(() => {
+      setActiveImageIndex((prev) =>
+        prev === images.length - 1 ? 0 : prev + 1
+      );
+    }, [images.length, setActiveImageIndex]);
+
+    useEffect(() => {
+      if (images && images.length > 0) {
+        const preloadImage = (src) => {
+          const link = document.createElement("link");
+          link.rel = "preload";
+          link.as = "image";
+          link.href = src;
+          document.head.appendChild(link);
+          return link;
+        };
+
+        const currentLink = preloadImage(images[activeImageIndex]);
+        const nextIndex = (activeImageIndex + 1) % images.length;
+        const nextLink = preloadImage(images[nextIndex]);
+
+        return () => {
+          document.head.removeChild(currentLink);
+          document.head.removeChild(nextLink);
+        };
+      }
+    }, [images, activeImageIndex]);
+    return (
+      <div className="restaurant-gallery">
+        {images && images.length > 0 ? (
+          <>
             <div
-              className="fullscreen-gallery"
-              onClick={() => setIsFullScreen(false)}
+              className="main-image-container"
+              onClick={() => setIsFullScreen(true)}
             >
               <img
                 src={images[activeImageIndex]}
-                alt={`${restaurantName} - Fullscreen Image ${
-                  activeImageIndex + 1
-                }`}
-                className="fullscreen-image"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === "Escape") setIsFullScreen(false);
-                  if (e.key === "ArrowLeft") handlePrevImage();
-                  if (e.key === "ArrowRight") handleNextImage();
-                }}
+                alt={`${restaurantName} - Image ${activeImageIndex + 1}`}
+                className="main-image"
+                srcSet={`${images[activeImageIndex]} 1x`}
+                sizes="100vw"
               />
+              <div className="image-counter">
+                {activeImageIndex + 1} / {images.length}
+              </div>
               <button
-                className="close-fullscreen"
-                aria-label="Close fullscreen"
+                className="fullscreen-button"
+                aria-label="View image in fullscreen"
               >
-                ×
+                <FontAwesomeIcon icon={faExpand} />
               </button>
-              <div className="fullscreen-controls">
+              <div className="gallery-controls">
                 <button
                   className="gallery-nav prev"
                   onClick={(e) => {
@@ -303,499 +242,529 @@ const RestaurantGallery = ({
                 </button>
               </div>
             </div>
-          )}
-          {images.length > 1 && (
-            <div className="thumbnail-gallery">
-              {images.map((img, idx) => (
-                <div
-                  key={idx}
-                  className={`thumbnail ${
-                    activeImageIndex === idx ? "active" : ""
-                  }`}
-                  onClick={() => setActiveImageIndex(idx)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter" || e.key === " ")
-                      setActiveImageIndex(idx);
-                  }}
-                  aria-label={`Select image ${idx + 1}`}
-                >
-                  <img
-                    src={img}
-                    alt={`${restaurantName} thumbnail ${idx + 1}`}
-                    loading="lazy"
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-        </>
-      ) : (
-        <div className="no-image">
-          <FontAwesomeIcon icon={faImages} className="no-image-icon" />
-          <p>No images available</p>
-        </div>
-      )}
-    </div>
-  );
-};
-RestaurantGallery.propTypes = {
-  images: PropTypes.arrayOf(PropTypes.string),
-  activeImageIndex: PropTypes.number.isRequired,
-  setActiveImageIndex: PropTypes.func.isRequired,
-  isFullScreen: PropTypes.bool.isRequired,
-  setIsFullScreen: PropTypes.func.isRequired,
-  restaurantName: PropTypes.string.isRequired,
-};
-
-// RestaurantContent Component
-const RestaurantContent = ({
-  restaurant,
-  city,
-  hoursInfo,
-  showHours,
-  setShowHours,
-  mapCenter,
-  mapError,
-  fetchRestaurant,
-  isRetryingMap,
-  setIsRetryingMap,
-}) => {
-  const MapComponent = useCallback(() => {
-    if (mapError) {
-      return (
-        <div className="map-error" role="alert">
-          {isRetryingMap ? (
-            <Loading message="Retrying map..." />
-          ) : (
-            <>
-              {mapError}
-              <button
-                onClick={async () => {
-                  setIsRetryingMap(true);
-                  try {
-                    await fetchRestaurant();
-                  } finally {
-                    setIsRetryingMap(false);
-                  }
-                }}
-                aria-label="Retry loading map"
+            {isFullScreen && (
+              <div
+                className="fullscreen-gallery"
+                onClick={() => setIsFullScreen(false)}
               >
-                Retry
-              </button>
-            </>
-          )}
-        </div>
-      );
-    }
-    if (!mapCenter || !Array.isArray(mapCenter) || mapCenter.length !== 2) {
-      return (
-        <div className="map-error" role="alert">
-          <Loading message="Loading map..." />
-        </div>
-      );
-    }
-    return (
-      <OpenStreetMap
-        key={`map-${mapCenter[0]}-${mapCenter[1]}`}
-        center={mapCenter}
-        zoom={15}
-        markers={[{ position: mapCenter, title: restaurant.name }]}
-        height="400px"
-        width="100%"
-        showCurrentLocation={true}
-      />
-    );
-  }, [
-    mapCenter,
-    mapError,
-    fetchRestaurant,
-    restaurant.name,
-    isRetryingMap,
-    setIsRetryingMap,
-  ]);
-
-  return (
-    <div className="restaurant-content">
-      <div className="restaurant-info">
-        <section className="info-section">
-          <h2>
-            <FontAwesomeIcon icon={faCircleInfo} className="section-icon" />
-            About
-          </h2>
-          <div className="info-card">
-            <div className="description">
-              {restaurant.description ? (
-                <p>{restaurant.description}</p>
-              ) : (
-                <p className="no-content">No description available.</p>
-              )}
-            </div>
-            {restaurant.tags?.length > 0 && (
-              <div className="tags">
-                {restaurant.tags.map((tag, idx) => (
-                  <span key={idx} className="tag">
-                    {tag}
-                  </span>
+                <img
+                  src={images[activeImageIndex]}
+                  alt={`${restaurantName} - Fullscreen Image ${
+                    activeImageIndex + 1
+                  }`}
+                  className="fullscreen-image"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") setIsFullScreen(false);
+                    if (e.key === "ArrowLeft") handlePrevImage();
+                    if (e.key === "ArrowRight") handleNextImage();
+                  }}
+                />
+                <button
+                  className="close-fullscreen"
+                  aria-label="Close fullscreen"
+                >
+                  ×
+                </button>
+                <div className="fullscreen-controls">
+                  <button
+                    className="gallery-nav prev"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePrevImage();
+                    }}
+                    aria-label="Previous image"
+                  >
+                    ‹
+                  </button>
+                  <button
+                    className="gallery-nav next"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleNextImage();
+                    }}
+                    aria-label="Next image"
+                  >
+                    ›
+                  </button>
+                </div>
+              </div>
+            )}
+            {images.length > 1 && (
+              <div className="thumbnail-gallery">
+                {images.map((img, idx) => (
+                  <div
+                    key={idx}
+                    className={`thumbnail ${
+                      activeImageIndex === idx ? "active" : ""
+                    }`}
+                    onClick={() => setActiveImageIndex(idx)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyPress={(e) => {
+                      if (e.key === "Enter" || e.key === " ")
+                        setActiveImageIndex(idx);
+                    }}
+                    aria-label={`Select image ${idx + 1}`}
+                  >
+                    <img
+                      src={img}
+                      alt={`${restaurantName} thumbnail ${idx + 1}`}
+                      loading="lazy"
+                    />
+                  </div>
                 ))}
               </div>
             )}
-            <div className="contact-details">
-              {restaurant.email && (
-                <p>
-                  <strong>Email:</strong>{" "}
-                  <a href={`mailto:${restaurant.email}`}>{restaurant.email}</a>
-                </p>
+          </>
+        ) : (
+          <div className="no-image">
+            <FontAwesomeIcon icon={faImages} className="no-image-icon" />
+            <p>No images available</p>
+          </div>
+        )}
+      </div>
+    );
+  }
+);
+
+// Memoized RestaurantContent Component
+const RestaurantContent = memo(
+  ({
+    restaurant,
+    city,
+    hoursInfo,
+    showHours,
+    setShowHours,
+    mapCenter,
+    mapError,
+    fetchRestaurant,
+    isRetryingMap,
+    setIsRetryingMap,
+  }) => {
+    const MapComponent = useCallback(() => {
+      if (mapError) {
+        return (
+          <div className="map-error" role="alert">
+            {isRetryingMap ? (
+              <Loading message="Retrying map..." />
+            ) : (
+              <>
+                {mapError}
+                <button
+                  onClick={async () => {
+                    setIsRetryingMap(true);
+                    try {
+                      await fetchRestaurant();
+                    } finally {
+                      setIsRetryingMap(false);
+                    }
+                  }}
+                  aria-label="Retry loading map"
+                >
+                  Retry
+                </button>
+              </>
+            )}
+          </div>
+        );
+      }
+      if (!mapCenter || !Array.isArray(mapCenter) || mapCenter.length !== 2) {
+        return (
+          <div className="map-error" role="alert">
+            <Loading message="Loading map..." />
+          </div>
+        );
+      }
+      return (
+        <OpenStreetMap
+          key={`map-${mapCenter[0]}-${mapCenter[1]}`}
+          center={mapCenter}
+          zoom={15}
+          markers={[{ position: mapCenter, title: restaurant.name }]}
+          height="400px"
+          width="100%"
+          showCurrentLocation={true}
+        />
+      );
+    }, [
+      mapCenter,
+      mapError,
+      fetchRestaurant,
+      restaurant.name,
+      isRetryingMap,
+      setIsRetryingMap,
+    ]);
+    return (
+      <div className="restaurant-content">
+        <div className="restaurant-info">
+          <section className="info-section">
+            <h2>
+              <FontAwesomeIcon icon={faCircleInfo} className="section-icon" />
+              About
+            </h2>
+            <div className="info-card">
+              <div className="description">
+                {restaurant.description ? (
+                  <p>{restaurant.description}</p>
+                ) : (
+                  <p className="no-content">No description available.</p>
+                )}
+              </div>
+              {restaurant.tags?.length > 0 && (
+                <div className="tags">
+                  {restaurant.tags.map((tag, idx) => (
+                    <span key={idx} className="tag">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
               )}
-              {restaurant.website && (
+              <div className="contact-details">
+                {restaurant.email && (
+                  <p>
+                    <strong>Email:</strong>{" "}
+                    <a href={`mailto:${restaurant.email}`}>
+                      {restaurant.email}
+                    </a>
+                  </p>
+                )}
+                {restaurant.website && (
+                  <p>
+                    <strong>Website:</strong>{" "}
+                    <a
+                      href={restaurant.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {restaurant.website}
+                    </a>
+                  </p>
+                )}
+                {restaurant.phone_number && (
+                  <p>
+                    <strong>Phone:</strong>{" "}
+                    <a href={`tel:${restaurant.phone_number}`}>
+                      {restaurant.phone_number}
+                    </a>
+                  </p>
+                )}
                 <p>
-                  <strong>Website:</strong>{" "}
-                  <a
-                    href={restaurant.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {restaurant.website}
-                  </a>
+                  <strong>Reservation:</strong>{" "}
+                  {restaurant.reservation_required
+                    ? "Required"
+                    : "Not required"}
                 </p>
-              )}
-              {restaurant.phone_number && (
                 <p>
-                  <strong>Phone:</strong>{" "}
-                  <a href={`tel:${restaurant.phone_number}`}>
-                    {restaurant.phone_number}
-                  </a>
+                  <strong>Status:</strong>{" "}
+                  {restaurant.status === "open" ? "Open" : "Closed"}
                 </p>
-              )}
-              <p>
+              </div>
+            </div>
+          </section>
+          <section className="info-section">
+            <h2>
+              <FontAwesomeIcon icon={faLocationDot} className="section-icon" />
+              Location
+            </h2>
+            <p className="location-address">
+              {restaurant.address || "Address not available"}
+            </p>
+            <div className="map-container">
+              <MapComponent />
+            </div>
+          </section>
+          <section className="info-section">
+            <h2
+              className="collapsible-header"
+              onClick={() => setShowHours(!showHours)}
+              onKeyPress={(e) => {
+                if (e.key === "Enter" || e.key === " ")
+                  setShowHours(!showHours);
+              }}
+              tabIndex={0}
+              role="button"
+              aria-expanded={showHours}
+              aria-controls="hours-content"
+            >
+              Opening Hours {showHours ? "▲" : "▼"}
+            </h2>
+            <div
+              id="hours-content"
+              className={`hours-content ${showHours ? "open" : ""}`}
+            >
+              <p className="open-status">{hoursInfo.status}</p>
+              <table className="hours-table">
+                <tbody>
+                  {hoursInfo.formatted.map(({ day, hours }, idx) => (
+                    <tr
+                      key={idx}
+                      className={idx === new Date().getDay() ? "today" : ""}
+                    >
+                      <td>{day}</td>
+                      <td>{hours}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+        <div className="restaurant-sidebar">
+          <div className="quick-info">
+            <h3>Quick Info</h3>
+            <ul>
+              <li>
+                <strong>Location:</strong> {city?.name || "Unknown"}, Vietnam
+              </li>
+              <li>
                 <strong>Reservation:</strong>{" "}
                 {restaurant.reservation_required ? "Required" : "Not required"}
-              </p>
-              <p>
+              </li>
+              <li>
                 <strong>Status:</strong>{" "}
                 {restaurant.status === "open" ? "Open" : "Closed"}
-              </p>
-            </div>
+              </li>
+            </ul>
+            {restaurant.reservation_required && (
+              <button
+                className="book-now-button"
+                onClick={() =>
+                  window.open(
+                    restaurant.website || `mailto:${restaurant.email}`,
+                    "_blank"
+                  )
+                }
+              >
+                Book Now
+              </button>
+            )}
           </div>
-        </section>
-        <section className="info-section">
-          <h2>
-            <FontAwesomeIcon icon={faLocationDot} className="section-icon" />
-            Location
-          </h2>
-          <p className="location-address">
-            {restaurant.address || "Address not available"}
-          </p>
-          <div className="map-container">
-            <MapComponent />
-          </div>
-        </section>
-        <section className="info-section">
-          <h2
-            className="collapsible-header"
-            onClick={() => setShowHours(!showHours)}
-            onKeyPress={(e) => {
-              if (e.key === "Enter" || e.key === " ") setShowHours(!showHours);
-            }}
-            tabIndex={0}
-            role="button"
-            aria-expanded={showHours}
-            aria-controls="hours-content"
-          >
-            Opening Hours {showHours ? "▲" : "▼"}
-          </h2>
-          <div
-            id="hours-content"
-            className={`hours-content ${showHours ? "open" : ""}`}
-          >
-            <p className="open-status">{hoursInfo.status}</p>
-            <table className="hours-table">
-              <tbody>
-                {hoursInfo.formatted.map(({ day, hours }, idx) => (
-                  <tr
-                    key={idx}
-                    className={idx === new Date().getDay() ? "today" : ""}
-                  >
-                    <td>{day}</td>
-                    <td>{hours}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      </div>
-      <div className="restaurant-sidebar">
-        <div className="quick-info">
-          <h3>Quick Info</h3>
-          <ul>
-            <li>
-              <strong>Location:</strong> {city?.name || "Unknown"}, Vietnam
-            </li>
-            <li>
-              <strong>Reservation:</strong>{" "}
-              {restaurant.reservation_required ? "Required" : "Not required"}
-            </li>
-            <li>
-              <strong>Status:</strong>{" "}
-              {restaurant.status === "open" ? "Open" : "Closed"}
-            </li>
-          </ul>
-          {restaurant.reservation_required && (
-            <button
-              className="book-now-button"
-              onClick={() =>
-                window.open(
-                  restaurant.website || `mailto:${restaurant.email}`,
-                  "_blank"
-                )
-              }
-            >
-              Book Now
-            </button>
-          )}
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  }
+);
+// Memoized ReviewsSection Component
+const ReviewsSection = memo(
+  ({
+    reviews,
+    restaurant,
+    renderStars,
+    formatDate,
+    reviewSort,
+    handleSortChange,
+    isLoggedIn,
+    navigate,
+    onEditReview,
+  }) => {
+    const [displayCount, setDisplayCount] = useState(5);
+    const [selectedImage, setSelectedImage] = useState(null);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const modalRef = useRef(null);
 
-RestaurantContent.propTypes = {
-  restaurant: PropTypes.object.isRequired,
-  city: PropTypes.object,
-  hoursInfo: PropTypes.object.isRequired,
-  showHours: PropTypes.bool.isRequired,
-  setShowHours: PropTypes.func.isRequired,
-  mapCenter: PropTypes.array,
-  mapError: PropTypes.string,
-  fetchRestaurant: PropTypes.func.isRequired,
-  isRetryingMap: PropTypes.bool.isRequired,
-  setIsRetryingMap: PropTypes.func.isRequired,
-};
-
-// ReviewsSection Component
-const ReviewsSection = ({
-  reviews,
-  restaurant,
-  renderStars,
-  formatDate,
-  reviewSort,
-  handleSortChange,
-  isLoggedIn,
-  navigate,
-  onEditReview,
-}) => {
-  const [displayCount, setDisplayCount] = useState(5);
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const modalRef = useRef(null);
-
-  // Handle modal open/close
-  const openModal = (photo) => {
-    setSelectedImage(photo);
-    document.body.style.overflow = "hidden";
-  };
-
-  const closeModal = () => {
-    setSelectedImage(null);
-    document.body.style.overflow = "";
-  };
-
-  // Close modal on Escape key
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === "Escape" && selectedImage) {
-        closeModal();
-      }
+    // Handle modal open/close
+    const openModal = (photo) => {
+      setSelectedImage(photo);
+      document.body.style.overflow = "hidden";
     };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedImage]);
 
-  // Focus trap for modal
-  useEffect(() => {
-    if (selectedImage && modalRef.current) {
-      const focusableElements = modalRef.current.querySelectorAll(
-        'button, [tabindex]:not([tabindex="-1"])'
-      );
-      const firstElement = focusableElements[0];
-      const lastElement = focusableElements[focusableElements.length - 1];
+    const closeModal = () => {
+      setSelectedImage(null);
+      document.body.style.overflow = "";
+    };
 
-      const handleTab = (e) => {
-        if (e.key === "Tab") {
-          if (e.shiftKey && document.activeElement === firstElement) {
-            e.preventDefault();
-            lastElement.focus();
-          } else if (!e.shiftKey && document.activeElement === lastElement) {
-            e.preventDefault();
-            firstElement.focus();
-          }
+    // Close modal on Escape key
+    useEffect(() => {
+      const handleKeyDown = (e) => {
+        if (e.key === "Escape" && selectedImage) {
+          closeModal();
         }
       };
+      window.addEventListener("keydown", handleKeyDown);
+      return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [selectedImage]);
 
-      modalRef.current.focus();
-      modalRef.current.addEventListener("keydown", handleTab);
-      return () => modalRef.current?.removeEventListener("keydown", handleTab);
-    }
-  }, [selectedImage]);
+    // Focus trap for modal
+    useEffect(() => {
+      if (selectedImage && modalRef.current) {
+        const focusableElements = modalRef.current.querySelectorAll(
+          'button, [tabindex]:not([tabindex="-1"])'
+        );
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
 
-  // Handle load more reviews
-  const handleLoadMore = () => {
-    setIsLoadingMore(true);
-    setTimeout(() => {
-      setDisplayCount(displayCount + 5);
-      setIsLoadingMore(false);
-    }, 500); // Simulate async loading
-  };
+        const handleTab = (e) => {
+          if (e.key === "Tab") {
+            if (e.shiftKey && document.activeElement === firstElement) {
+              e.preventDefault();
+              lastElement.focus();
+            } else if (!e.shiftKey && document.activeElement === lastElement) {
+              e.preventDefault();
+              firstElement.focus();
+            }
+          }
+        };
 
-  // Handle report review
+        modalRef.current.focus();
+        modalRef.current.addEventListener("keydown", handleTab);
+        return () =>
+          modalRef.current?.removeEventListener("keydown", handleTab);
+      }
+    }, [selectedImage]);
 
-  // Handle edit review
-  const handleEdit = (review) => {
-    if (onEditReview) {
-      onEditReview(review);
-    }
-  };
+    // Handle load more reviews
+    const handleLoadMore = () => {
+      setIsLoadingMore(true);
+      setTimeout(() => {
+        setDisplayCount(displayCount + 5);
+        setIsLoadingMore(false);
+      }, 500); // Simulate async loading
+    };
 
-  return (
-    <section id="review-section" className="reviews-section">
-      <div className="reviews-container">
-        <div className="review-stats">
-          <div className="average-rating">
-            <span className="big-rating">
-              {restaurant.average_rating?.toFixed(1) || "0.0"}
-            </span>
-            <div className="rating-label">
-              {renderStars(restaurant.average_rating)}
-              <span>({restaurant.rating_total || 0} reviews)</span>
-            </div>
-          </div>
-          <div className="rating-breakdown">
-            {[5, 4, 3, 2, 1].map((score) => (
-              <div
-                key={score}
-                className="rating-bar"
-                aria-label={`Rating ${score} stars`}
-              >
-                <span className="rating-label">
-                  {score === 5
-                    ? "Excellent"
-                    : score === 4
-                    ? "Very Good"
-                    : score === 3
-                    ? "Average"
-                    : score === 2
-                    ? "Poor"
-                    : "Terrible"}
-                </span>
-                <div className="bar-container">
-                  <div
-                    className="bar"
-                    style={{
-                      width: `${
-                        reviews.filter((r) => Math.floor(r.rating) === score)
-                          .length * 10
-                      }%`,
-                    }}
-                  />
-                </div>
-                <span className="count">
-                  {reviews.filter((r) => Math.floor(r.rating) === score).length}
-                </span>
+    // Handle edit review
+    const handleEdit = (review) => {
+      if (onEditReview) {
+        onEditReview(review);
+      }
+    };
+    return (
+      <section id="review-section" className="reviews-section">
+        <div className="reviews-container">
+          <div className="review-stats">
+            <div className="average-rating">
+              <span className="big-rating">
+                {restaurant.average_rating?.toFixed(1) || "0.0"}
+              </span>
+              <div className="rating-label">
+                {renderStars(restaurant.average_rating)}
+                <span>({restaurant.rating_total || 0} reviews)</span>
               </div>
-            ))}
-          </div>
-        </div>
-        <div className="review-content">
-          <div className="reviews-list">
-            <div className="review-controls">
-              <label htmlFor="sort-reviews">Sort by:</label>
-              <select
-                id="sort-reviews"
-                value={reviewSort}
-                onChange={handleSortChange}
-                aria-label="Sort reviews"
-              >
-                <option value="newest">Newest First</option>
-                <option value="highest">Highest Rated</option>
-                <option value="lowest">Lowest Rated</option>
-              </select>
             </div>
-            {reviews.length > 0 ? (
-              <>
-                {reviews.slice(0, displayCount).map((review, index) => (
-                  <div
-                    className={`review-card ${
-                      review.isCurrentUser ? "current-user" : ""
-                    } fade-in`}
-                    key={review.review_id || index}
-                    aria-labelledby={`review-title-${index}`}
-                  >
-                    <div className="review-header">
-                      <div className="reviewer-info">
-                        <img
-                          src={review.profilePic}
-                          alt={`Avatar of ${review.userName || "Anonymous"}`}
-                          className="reviewer-avatar"
-                          onError={(e) =>
-                            (e.target.src = "https://via.placeholder.com/50")
-                          }
-                        />
-                        <div className="reviewer-details">
-                          <h4>{review.userName}</h4>
-                          <span className="review-date">
-                            {formatDate(review.created_at || new Date())}
-                          </span>
+            <div className="rating-breakdown">
+              {[5, 4, 3, 2, 1].map((score) => (
+                <div
+                  key={score}
+                  className="rating-bar"
+                  aria-label={`Rating ${score} stars`}
+                >
+                  <span className="rating-label">
+                    {score === 5
+                      ? "Excellent"
+                      : score === 4
+                      ? "Very Good"
+                      : score === 3
+                      ? "Average"
+                      : score === 2
+                      ? "Poor"
+                      : "Terrible"}
+                  </span>
+                  <div className="bar-container">
+                    <div
+                      className="bar"
+                      style={{
+                        width: `${
+                          reviews.filter((r) => Math.floor(r.rating) === score)
+                            .length * 10
+                        }%`,
+                      }}
+                    />
+                  </div>
+                  <span className="count">
+                    {
+                      reviews.filter((r) => Math.floor(r.rating) === score)
+                        .length
+                    }
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="review-content">
+            <div className="reviews-list">
+              <div className="review-controls">
+                <label htmlFor="sort-reviews">Sort by:</label>
+                <select
+                  id="sort-reviews"
+                  value={reviewSort}
+                  onChange={handleSortChange}
+                  aria-label="Sort reviews"
+                >
+                  <option value="newest">Newest First</option>
+                  <option value="highest">Highest Rated</option>
+                  <option value="lowest">Lowest Rated</option>
+                </select>
+              </div>
+              {reviews.length > 0 ? (
+                <>
+                  {reviews.slice(0, displayCount).map((review, index) => (
+                    <div
+                      className={`review-card ${
+                        review.isCurrentUser ? "current-user" : ""
+                      } fade-in`}
+                      key={review.review_id || index}
+                      aria-labelledby={`review-title-${index}`}
+                    >
+                      <div className="review-header">
+                        <div className="reviewer-info">
+                          <img
+                            src={review.profilePic}
+                            alt={`Avatar of ${review.userName || "Anonymous"}`}
+                            className="reviewer-avatar"
+                          />
+                          <div className="reviewer-details">
+                            <h4>{review.userName}</h4>
+                            <span className="review-date">
+                              {formatDate(review.created_at || new Date())}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="review-rating">
+                          {typeof review.rating === "number" &&
+                          review.rating >= 0 &&
+                          review.rating <= 5 ? (
+                            renderStars(review.rating)
+                          ) : (
+                            <span>Invalid rating</span>
+                          )}
                         </div>
                       </div>
-                      <div className="review-rating">
-                        {typeof review.rating === "number" &&
-                        review.rating >= 0 &&
-                        review.rating <= 5 ? (
-                          renderStars(review.rating)
-                        ) : (
-                          <span>Invalid rating</span>
+                      <div className="review-body">
+                        <h5
+                          id={`review-title-${index}`}
+                          className="review-title"
+                        >
+                          {review.title || "Untitled Review"}
+                        </h5>
+                        <p>{review.comment || "No comment provided."}</p>
+                        {review.photos && review.photos.length > 0 && (
+                          <div className="review-photos">
+                            {review.photos.map((photo, idx) => (
+                              <div
+                                key={idx}
+                                className="review-photo"
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => openModal(photo)}
+                                onKeyPress={(e) => {
+                                  if (e.key === "Enter" || e.key === " ") {
+                                    openModal(photo);
+                                  }
+                                }}
+                                aria-label={`View review photo ${
+                                  idx + 1
+                                } in full size`}
+                              >
+                                <img
+                                  src={photo}
+                                  alt={`Review photo ${idx + 1}`}
+                                  loading="lazy"
+                                />
+                              </div>
+                            ))}
+                          </div>
                         )}
-                      </div>
-                    </div>
-                    <div className="review-body">
-                      <h5 id={`review-title-${index}`} className="review-title">
-                        {review.title || "Untitled Review"}
-                      </h5>
-                      <p>{review.comment || "No comment provided."}</p>
-                      {review.photos && review.photos.length > 0 && (
-                        <div className="review-photos">
-                          {review.photos.map((photo, idx) => (
-                            <div
-                              key={idx}
-                              className="review-photo"
-                              role="button"
-                              tabIndex={0}
-                              onClick={() => openModal(photo)}
-                              onKeyPress={(e) => {
-                                if (e.key === "Enter" || e.key === " ") {
-                                  openModal(photo);
-                                }
-                              }}
-                              aria-label={`View review photo ${
-                                idx + 1
-                              } in full size`}
-                            >
-                              <img
-                                src={photo}
-                                alt={`Review photo ${idx + 1}`}
-                                loading="lazy"
-                                onError={(e) =>
-                                  (e.target.src =
-                                    "https://via.placeholder.com/100?text=Image+Error")
-                                }
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      {/* <div className="review-actions">
+                        {/* <div className="review-actions">
                         {review.isCurrentUser && (
                           <button
                             className="edit-review-button"
@@ -806,171 +775,137 @@ const ReviewsSection = ({
                           </button>
                         )}
                       </div> */}
+                      </div>
                     </div>
-                  </div>
-                ))}
-                {reviews.length > displayCount && (
+                  ))}
+                  {reviews.length > displayCount && (
+                    <button
+                      className="load-more-button"
+                      onClick={handleLoadMore}
+                      disabled={isLoadingMore}
+                      aria-label="Load more reviews"
+                    >
+                      {isLoadingMore ? "Loading..." : "Load More Reviews"}
+                    </button>
+                  )}
+                </>
+              ) : (
+                <div className="no-reviews">
+                  <p>No reviews yet. Be the first to share your experience!</p>
+                  {!isLoggedIn && (
+                    <button
+                      className="login-to-review"
+                      onClick={() => navigate("/")}
+                      aria-label="Log in to write a review"
+                    >
+                      Log In to Write a Review
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+            {selectedImage && (
+              <div
+                className="image-modal-overlay"
+                onClick={closeModal}
+                role="dialog"
+                aria-modal="true"
+                aria-label="Full-size image viewer"
+                ref={modalRef}
+                tabIndex={-1}
+              >
+                <div
+                  className="image-modal"
+                  onClick={(e) => e.stopPropagation()}
+                  role="document"
+                >
                   <button
-                    className="load-more-button"
-                    onClick={handleLoadMore}
-                    disabled={isLoadingMore}
-                    aria-label="Load more reviews"
+                    className="modal-close-button"
+                    onClick={closeModal}
+                    aria-label="Close image modal"
+                    tabIndex={0}
                   >
-                    {isLoadingMore ? "Loading..." : "Load More Reviews"}
+                    ×
                   </button>
-                )}
-              </>
-            ) : (
-              <div className="no-reviews">
-                <p>No reviews yet. Be the first to share your experience!</p>
-                {!isLoggedIn && (
-                  <button
-                    className="login-to-review"
-                    onClick={() => navigate("/login")}
-                    aria-label="Log in to write a review"
-                  >
-                    Log In to Write a Review
-                  </button>
-                )}
+                  <img
+                    src={selectedImage}
+                    alt="Full-size review photo"
+                    className="modal-image"
+                  />
+                </div>
               </div>
             )}
           </div>
-          {selectedImage && (
-            <div
-              className="image-modal-overlay"
-              onClick={closeModal}
-              role="dialog"
-              aria-modal="true"
-              aria-label="Full-size image viewer"
-              ref={modalRef}
-              tabIndex={-1}
-            >
-              <div
-                className="image-modal"
-                onClick={(e) => e.stopPropagation()}
-                role="document"
-              >
-                <button
-                  className="modal-close-button"
-                  onClick={closeModal}
-                  aria-label="Close image modal"
-                  tabIndex={0}
-                >
-                  ×
-                </button>
-                <img
-                  src={selectedImage}
-                  alt="Full-size review photo"
-                  className="modal-image"
-                  onError={(e) =>
-                    (e.target.src =
-                      "https://via.placeholder.com/600?text=Image+Error")
+        </div>
+      </section>
+    );
+  }
+);
+
+// Memoized NearbySection Component
+const NearbySection = memo(
+  ({
+    nearbyRestaurants,
+    navigate,
+    city,
+    renderStars,
+    handleToggleSave,
+    favorites,
+  }) => {
+    const getValidImageUrl = (imageUrl) => {
+      if (Array.isArray(imageUrl) && imageUrl.length > 0) {
+        return imageUrl[0];
+      }
+      if (typeof imageUrl === "string" && imageUrl.trim()) {
+        return imageUrl;
+      }
+      return "https://via.placeholder.com/280x200?text=Image+Not+Found";
+    };
+    return (
+      <section className="nearby-section">
+        <h2>Featured Nearby</h2>
+        {nearbyRestaurants.length > 0 ? (
+          <div className="nearby-grid">
+            {nearbyRestaurants.slice(0, 4).map((place) => {
+              const isPlaceFavorite = favorites?.some(
+                (fav) =>
+                  String(fav.restaurant_id) === String(place.restaurant_id)
+              );
+              return (
+                <LocationCard
+                  key={place.restaurant_id}
+                  item={{
+                    id: place.restaurant_id,
+                    name: place.name,
+                    image: getValidImageUrl(place.image_url),
+                    rating: parseFloat(place.average_rating) || 0,
+                    reviewCount: place.rating_total || 0,
+                    tags: place.tags || [],
+                    type: "restaurant",
+                  }}
+                  onClick={() =>
+                    navigate(`/tripguide/restaurant/${place.restaurant_id}`)
                   }
+                  renderStars={renderStars}
+                  isSaved={isPlaceFavorite}
+                  onToggleSave={() => handleToggleSave(place.restaurant_id)}
                 />
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </section>
-  );
-};
-
-ReviewsSection.propTypes = {
-  reviews: PropTypes.array.isRequired,
-  restaurant: PropTypes.object.isRequired,
-  renderStars: PropTypes.func.isRequired,
-  formatDate: PropTypes.func.isRequired,
-  reviewSort: PropTypes.string.isRequired,
-  handleSortChange: PropTypes.func.isRequired,
-  isLoggedIn: PropTypes.bool.isRequired,
-  navigate: PropTypes.func.isRequired,
-  onReportReview: PropTypes.func,
-  onEditReview: PropTypes.func,
-};
-
-// NearbySection Component
-const NearbySection = ({
-  nearbyRestaurants,
-  navigate,
-  city,
-  renderStars,
-  handleToggleSave,
-  favorites,
-}) => {
-  const getValidImageUrl = (imageUrl) => {
-    if (Array.isArray(imageUrl) && imageUrl.length > 0) {
-      return imageUrl[0];
-    }
-    if (typeof imageUrl === "string" && imageUrl.trim()) {
-      return imageUrl;
-    }
-    return "https://via.placeholder.com/280x200?text=Image+Not+Found";
-  };
-
-  return (
-    <section className="nearby-section">
-      <h2>Featured Nearby</h2>
-      {nearbyRestaurants.length > 0 ? (
-        <div className="nearby-grid">
-          {nearbyRestaurants.slice(0, 4).map((place) => {
-            const isPlaceFavorite = favorites?.some(
-              (fav) => String(fav.restaurant_id) === String(place.restaurant_id)
-            );
-            return (
-              <LocationCard
-                key={place.restaurant_id}
-                item={{
-                  id: place.restaurant_id,
-                  name: place.name,
-                  image: getValidImageUrl(place.image_url),
-                  rating: parseFloat(place.average_rating) || 0,
-                  reviewCount: place.rating_total || 0,
-                  tags: place.tags || [],
-                  type: "restaurant",
-                }}
-                onClick={() =>
-                  navigate(`/tripguide/restaurant/${place.restaurant_id}`)
-                }
-                renderStars={renderStars}
-                isSaved={isPlaceFavorite}
-                onToggleSave={() => handleToggleSave(place.restaurant_id)}
-              />
-            );
-          })}
-        </div>
-      ) : (
-        <div className="no-nearby">
-          <p>No nearby restaurants found.</p>
-        </div>
-      )}
-      {nearbyRestaurants.length > 4 && (
-        <button
-          className="view-more-button"
-          onClick={() =>
-            navigate(`/tripguide/city/${city?.city_id}/restaurants`)
-          }
-        >
-          View more nearby restaurants
-        </button>
-      )}
-    </section>
-  );
-};
-
-NearbySection.propTypes = {
-  nearbyRestaurants: PropTypes.array.isRequired,
-  navigate: PropTypes.func.isRequired,
-  city: PropTypes.object,
-  renderStars: PropTypes.func.isRequired,
-  handleToggleSave: PropTypes.func.isRequired,
-  favorites: PropTypes.array.isRequired,
-};
+              );
+            })}
+          </div>
+        ) : (
+          <div className="no-nearby">
+            <p>No nearby restaurants found.</p>
+          </div>
+        )}
+      </section>
+    );
+  }
+);
 
 // Main Restaurant Component
 const Restaurant = () => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const {
     restaurant,
     city,
@@ -1045,7 +980,6 @@ const Restaurant = () => {
           "recentlyViewedItems",
           JSON.stringify(recentItems)
         );
-        console.log(`Successfully saved restaurant ${item.id} to localStorage`);
       }
     } catch (err) {
       console.error(

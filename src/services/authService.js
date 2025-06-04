@@ -11,21 +11,6 @@ const apiClient = axios.create({
   },
 });
 
-// Quản lý hàng đợi khi làm mới token
-let isRefreshing = false;
-let failedQueue = [];
-
-const processQueue = (error, token = null) => {
-  failedQueue.forEach((prom) => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(token);
-    }
-  });
-  failedQueue = [];
-};
-
 // Interceptor thêm token vào header
 apiClient.interceptors.request.use(
   (config) => {
@@ -38,69 +23,10 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Interceptor làm mới token
-apiClient.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-    if (
-      error.response?.status === 401 &&
-      error.response?.data?.code === "TOKEN_EXPIRED" &&
-      !originalRequest._retry
-    ) {
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        })
-          .then((token) => {
-            originalRequest.headers["Authorization"] = `Bearer ${token}`;
-            return apiClient(originalRequest);
-          })
-          .catch((err) => Promise.reject(err));
-      }
-
-      originalRequest._retry = true;
-      isRefreshing = true;
-
-      try {
-        const refreshToken = localStorage.getItem("refreshToken");
-        if (!refreshToken) {
-          throw new Error("No refresh token available");
-        }
-        const response = await axios.post(`${API_URL}/refresh`, {
-          refreshToken,
-        });
-        const { accessToken } = response.data;
-        localStorage.setItem("token", accessToken);
-        apiClient.defaults.headers.common[
-          "Authorization"
-        ] = `Bearer ${accessToken}`;
-        originalRequest.headers["Authorization"] = `Bearer ${accessToken}`;
-
-        processQueue(null, accessToken);
-        return apiClient(originalRequest);
-      } catch (refreshError) {
-        processQueue(refreshError, null);
-        localStorage.removeItem("token");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("data");
-        alert("Phiên của bạn đã hết hạn. Vui lòng đăng nhập lại.");
-        window.location.href = "/login";
-        return Promise.reject(refreshError);
-      } finally {
-        isRefreshing = false;
-      }
-    }
-    return Promise.reject(error);
-  }
-);
-
 // Các hàm hỗ trợ
 const saveUserData = (data) => {
-  if (!data?.user || !data.accessToken || !data.refreshToken) {
-    throw new Error(
-      "Invalid API response: Missing user, accessToken, or refreshToken"
-    );
+  if (!data?.user || !data.accessToken) {
+    throw new Error("Invalid API response: Missing user or accessToken");
   }
 
   const userData = {
@@ -119,11 +45,11 @@ const saveUserData = (data) => {
   }
 
   localStorage.setItem("token", data.accessToken);
-  localStorage.setItem("refreshToken", data.refreshToken);
   localStorage.setItem("data", JSON.stringify(userData));
   return userData;
 };
 
+// Xử lý lỗi API
 const handleApiError = (error, defaultMessage) => {
   const errorMessage = error.response?.data?.error || defaultMessage;
   throw new Error(errorMessage);
@@ -183,8 +109,7 @@ export const authService = {
 
   isAuthenticated: () => {
     const token = localStorage.getItem("token");
-    const refreshToken = localStorage.getItem("refreshToken");
-    return !!(token && refreshToken);
+    return !!token;
   },
 
   getToken: () => localStorage.getItem("token"),
@@ -200,7 +125,6 @@ export const authService = {
     }
     localStorage.removeItem("data");
     localStorage.removeItem("token");
-    localStorage.removeItem("refreshToken");
     window.location.href = "/";
   },
 

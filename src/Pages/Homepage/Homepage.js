@@ -197,13 +197,12 @@ const HomePage = () => {
   const toggleSave = useCallback(
     (item) => {
       if (!isLoggedIn) {
-        navigate("/login");
+        navigate("/");
         showNotification("Please log in to save this location!");
         return;
       }
 
       const { id, type } = item;
-      console.log("Toggling save:", { item, favorites });
       const isFavorite = favorites.some(
         (fav) =>
           (type === "restaurant" && String(fav.restaurant_id) === String(id)) ||

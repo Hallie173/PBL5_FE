@@ -1,16 +1,28 @@
 import { useState } from "react";
 import {
-  FaEdit,
-  FaTrash,
-  FaStar,
-  FaMapMarkerAlt,
-  FaPhone,
-  FaClock,
-  FaChevronLeft,
-  FaChevronRight,
-} from "react-icons/fa";
+  Box,
+  Card,
+  CardMedia,
+  CardContent,
+  Typography,
+  IconButton,
+  Grid,
+  Chip,
+  Pagination,
+  useTheme,
+} from "@mui/material";
+import {
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  LocationOn,
+  Star,
+  Phone,
+  AccessTime,
+} from "@mui/icons-material";
+import { toast } from "react-toastify"; // Thêm import react-toastify
 
 const RestaurantList = ({ restaurants, onEdit, onDelete, cities }) => {
+  const theme = useTheme();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
   const totalPages = Math.ceil(restaurants.length / itemsPerPage);
@@ -20,7 +32,7 @@ const RestaurantList = ({ restaurants, onEdit, onDelete, cities }) => {
 
   const getCityName = (cityId) => {
     const city = cities.find((c) => c.city_id === cityId);
-    return city ? city.name : "Unknown City";
+    return city ? city.name : "Thành phố không xác định";
   };
 
   const formatTime = (time) => {
@@ -32,113 +44,256 @@ const RestaurantList = ({ restaurants, onEdit, onDelete, cities }) => {
     return `${formattedHour}:${minute} ${ampm}`;
   };
 
-  const handlePageChange = (page) => {
-    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  const formatHours = (hours) => {
+    if (
+      !hours ||
+      !hours.weekRanges ||
+      !hours.weekRanges[0] ||
+      !hours.weekRanges[0][0]
+    )
+      return "N/A";
+    const { openHours, closeHours } = hours.weekRanges[0][0];
+    return `${formatTime(openHours)} - ${formatTime(closeHours)}`;
+  };
+
+  const handlePageChange = (event, page) => {
+    setCurrentPage(page);
+  };
+
+  const handleDelete = (restaurantId, restaurantName) => {
+    if (
+      window.confirm(`Bạn có chắc muốn xóa nhà hàng "${restaurantName}" không?`)
+    ) {
+      onDelete(restaurantId);
+    }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <Box>
+      <Grid container spacing={3}>
         {currentItems.map((restaurant) => (
-          <div
-            key={restaurant.restaurant_id}
-            className="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-102"
-          >
-            <div className="relative h-48">
-              <img
-                src={
-                  restaurant.image_urls?.[0] ||
-                  "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/12/af/c0/f4/outside.jpg?w=700&h=400&s=1"
-                }
-                alt={restaurant.name}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute top-3 left-3 bg-white/90 rounded-md px-2 py-1 flex items-center gap-1 text-xs font-medium">
-                <FaMapMarkerAlt className="text-blue-500" />
-                {getCityName(restaurant.city_id)}
-              </div>
-              <div className="absolute top-3 right-3 bg-white/90 rounded-md px-2 py-1 flex items-center gap-1 text-xs font-medium">
-                <FaStar className="text-yellow-400" />
-                {restaurant.average_rating.toFixed(1)}
-              </div>
-              {restaurant.reservation_required && (
-                <div className="absolute bottom-3 left-3 bg-red-500 text-white rounded-md px-2 py-1 text-xs font-medium">
-                  Reservation Required
-                </div>
-              )}
-            </div>
-            <div className="p-4">
-              <h3 className="text-lg font-semibold text-gray-800">
-                {restaurant.name}
-              </h3>
-              <p className="text-gray-600 text-sm mt-1 line-clamp-2">
-                {restaurant.description}
-              </p>
-              <div className="mt-2 text-sm text-gray-600">
-                <FaMapMarkerAlt className="inline mr-1" />
-                {restaurant.address}
-              </div>
-              <div className="mt-1 text-sm text-gray-600">
-                <FaPhone className="inline mr-1" />
-                {restaurant.phone_number}
-              </div>
-              <div className="mt-1 text-sm text-gray-600">
-                <FaClock className="inline mr-1" />
-                {formatTime(restaurant.open_time)} -{" "}
-                {formatTime(restaurant.close_time)}
-              </div>
-              <div className="mt-4 flex justify-end gap-2">
-                <button
-                  onClick={() => onEdit(restaurant)}
-                  className="text-blue-600 hover:text-blue-800"
-                  title="Edit restaurant"
-                >
-                  <FaEdit />
-                </button>
-                <button
-                  onClick={() => onDelete(restaurant.restaurant_id)}
-                  className="text-red-600 hover:text-red-800"
-                  title="Delete restaurant"
-                >
-                  <FaTrash />
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-      {restaurants.length > itemsPerPage && (
-        <div className="flex justify-center gap-2 mt-4">
-          <button
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
-          >
-            <FaChevronLeft />
-          </button>
-          {Array.from({ length: totalPages }, (_, i) => (
-            <button
-              key={i}
-              onClick={() => handlePageChange(i + 1)}
-              className={`px-3 py-1 rounded-md ${
-                currentPage === i + 1
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 hover:bg-gray-300"
-              }`}
+          <Grid item xs={12} sm={6} md={4} key={restaurant.restaurant_id}>
+            <Card
+              sx={{
+                borderRadius: 3,
+                boxShadow: theme.shadows[2],
+                height: 480,
+                display: "flex",
+                flexDirection: "column",
+                transition: "box-shadow 0.2s",
+                "&:hover": {
+                  boxShadow: theme.shadows[4],
+                },
+              }}
             >
-              {i + 1}
-            </button>
-          ))}
-          <button
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
-          >
-            <FaChevronRight />
-          </button>
-        </div>
+              <Box sx={{ position: "relative", height: 220 }}>
+                <CardMedia
+                  component="img"
+                  height="220"
+                  image={
+                    restaurant.image_url?.[0] ||
+                    "https://via.placeholder.com/300x220?text=No+Image"
+                  }
+                  alt={restaurant.name}
+                  sx={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    borderBottom: `1px solid ${theme.palette.divider}`,
+                  }}
+                />
+                {restaurant.reservation_required && (
+                  <Chip
+                    label="Yêu cầu Đặt chỗ"
+                    color="error"
+                    size="small"
+                    sx={{
+                      position: "absolute",
+                      top: 8,
+                      left: 8,
+                      bgcolor: "rgba(255, 0, 0, 0.8)",
+                      color: "white",
+                    }}
+                  />
+                )}
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: 8,
+                    right: 8,
+                    bgcolor: "rgba(255, 255, 255, 0.9)",
+                    borderRadius: 1,
+                    px: 1,
+                    py: 0.5,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 0.5,
+                  }}
+                >
+                  <Star fontSize="small" sx={{ color: "#fbc02d" }} />
+                  <Typography variant="body2" fontWeight={500}>
+                    {restaurant.average_rating.toFixed(1)}
+                  </Typography>
+                </Box>
+              </Box>
+              <CardContent
+                sx={{
+                  flexGrow: 1,
+                  padding: "16px",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    mb: 1.5,
+                  }}
+                >
+                  <Typography
+                    variant="h6"
+                    fontWeight="600"
+                    sx={{
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {restaurant.name}
+                  </Typography>
+                  <Box sx={{ display: "flex", gap: 1 }}>
+                    <IconButton
+                      color="primary"
+                      onClick={() => onEdit(restaurant)}
+                      title="Chỉnh sửa nhà hàng"
+                      sx={{
+                        "&:hover": {
+                          bgcolor: theme.palette.primary.light,
+                        },
+                      }}
+                    >
+                      <EditIcon fontSize="medium" />
+                    </IconButton>
+                    <IconButton
+                      color="error"
+                      onClick={() =>
+                        handleDelete(restaurant.restaurant_id, restaurant.name)
+                      }
+                      title="Xóa nhà hàng"
+                      sx={{
+                        "&:hover": {
+                          bgcolor: theme.palette.error.light,
+                        },
+                      }}
+                    >
+                      <DeleteIcon fontSize="medium" />
+                    </IconButton>
+                  </Box>
+                </Box>
+                <Box>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      mb: 1.5,
+                    }}
+                  >
+                    <LocationOn fontSize="small" color="primary" />
+                    <Typography variant="body2" fontWeight={500}>
+                      {getCityName(restaurant.city_id)}
+                    </Typography>
+                  </Box>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{
+                      display: "-webkit-box",
+                      WebkitLineClamp: 3,
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden",
+                      mb: 1.5,
+                      minHeight: 60,
+                    }}
+                  >
+                    {restaurant.description || "Không có mô tả"}
+                  </Typography>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      mb: 1,
+                    }}
+                  >
+                    <LocationOn fontSize="small" color="action" />
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {restaurant.address}
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      mb: 1,
+                    }}
+                  >
+                    <Phone fontSize="small" color="action" />
+                    <Typography variant="body2" color="text.secondary">
+                      {restaurant.phone_number || "N/A"}
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                    }}
+                  >
+                    <AccessTime fontSize="small" color="action" />
+                    <Typography variant="body2" color="text.secondary">
+                      {formatHours(restaurant.hours)}
+                    </Typography>
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+      {restaurants.length > itemsPerPage && (
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+          <Pagination
+            count={totalPages}
+            page={currentPage}
+            onChange={handlePageChange}
+            color="primary"
+            size="large"
+            sx={{
+              "& .MuiPaginationItem-root": {
+                borderRadius: 1,
+                fontWeight: 500,
+                "&:hover": {
+                  bgcolor: theme.palette.primary.light,
+                },
+              },
+            }}
+          />
+        </Box>
       )}
-    </div>
+    </Box>
   );
 };
 

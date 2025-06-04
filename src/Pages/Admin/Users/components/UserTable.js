@@ -1,4 +1,3 @@
-// Pages/Admin/Users/components/UserTable.js
 import React, { useState } from "react";
 import {
   Table,
@@ -17,29 +16,32 @@ import {
 } from "@mui/material";
 import { FaEdit, FaTrash } from "react-icons/fa";
 
-const UserTable = ({ users, onEdit, onDelete }) => {
-  // State cho pagination
+const UserTable = ({ users, onEdit, onDelete, loading }) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  // Xử lý thay đổi trang
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
 
-  // Xử lý thay đổi số dòng mỗi trang
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0); // Reset về trang đầu tiên khi thay đổi số dòng mỗi trang
+    setPage(0);
   };
 
-  // Tính toán dữ liệu hiển thị theo trang hiện tại
   const paginatedUsers = users.slice(
     page * rowsPerPage,
     page * rowsPerPage + rowsPerPage
   );
 
-  // Kiểm tra nếu không có users
+  if (loading) {
+    return (
+      <Box sx={{ p: 3, textAlign: "center" }}>
+        <Typography variant="body1">Loading...</Typography>
+      </Box>
+    );
+  }
+
   if (users.length === 0) {
     return (
       <Box sx={{ p: 3, textAlign: "center" }}>
@@ -64,12 +66,8 @@ const UserTable = ({ users, onEdit, onDelete }) => {
                   padding: "16px 12px",
                   textTransform: "uppercase",
                   letterSpacing: "0.5px",
-                  "&:first-of-type": {
-                    borderTopLeftRadius: "8px",
-                  },
-                  "&:last-of-type": {
-                    borderTopRightRadius: "8px",
-                  },
+                  "&:first-of-type": { borderTopLeftRadius: "8px" },
+                  "&:last-of-type": { borderTopRightRadius: "8px" },
                 },
               }}
             >
@@ -82,8 +80,6 @@ const UserTable = ({ users, onEdit, onDelete }) => {
               <TableCell align="center">Actions</TableCell>
             </TableRow>
           </TableHead>
-
-          {/* Phần TableBody với dữ liệu đã phân trang */}
           <TableBody>
             {paginatedUsers.map((user) => (
               <TableRow
@@ -93,11 +89,10 @@ const UserTable = ({ users, onEdit, onDelete }) => {
                   "&:hover": { backgroundColor: "rgba(25, 118, 210, 0.04)" },
                 }}
               >
-                {/* Các ô dữ liệu giữ nguyên */}
                 <TableCell align="center">
                   <Avatar
                     src={user.avatar_url}
-                    alt={user.full_name}
+                    alt={user.full_name || user.username}
                     sx={{
                       width: 56,
                       height: 56,
@@ -107,7 +102,7 @@ const UserTable = ({ users, onEdit, onDelete }) => {
                   />
                 </TableCell>
                 <TableCell sx={{ fontWeight: 500 }}>{user.username}</TableCell>
-                <TableCell>{user.full_name}</TableCell>
+                <TableCell>{user.full_name || "-"}</TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell align="center">
                   <span
@@ -133,12 +128,13 @@ const UserTable = ({ users, onEdit, onDelete }) => {
                   <Tooltip title="Edit User" arrow>
                     <IconButton
                       color="primary"
-                      onClick={() => onEdit(user)}
+                      onClick={() => onEdit(user.user_id)} // Pass user_id instead of user
                       sx={{
                         "&:hover": {
                           backgroundColor: "rgba(25, 118, 210, 0.1)",
                         },
                       }}
+                      disabled={loading}
                     >
                       <FaEdit />
                     </IconButton>
@@ -153,6 +149,7 @@ const UserTable = ({ users, onEdit, onDelete }) => {
                           backgroundColor: "rgba(244, 67, 54, 0.1)",
                         },
                       }}
+                      disabled={loading}
                     >
                       <FaTrash />
                     </IconButton>
@@ -163,8 +160,6 @@ const UserTable = ({ users, onEdit, onDelete }) => {
           </TableBody>
         </Table>
       </TableContainer>
-
-      {/* Thêm TablePagination ở cuối bảng */}
       <TablePagination
         rowsPerPageOptions={[5, 10, 25]}
         component="div"
@@ -175,9 +170,7 @@ const UserTable = ({ users, onEdit, onDelete }) => {
         onRowsPerPageChange={handleChangeRowsPerPage}
         sx={{
           borderTop: "1px solid rgba(224, 224, 224, 1)",
-          "& .MuiTablePagination-toolbar": {
-            padding: "12px 16px",
-          },
+          "& .MuiTablePagination-toolbar": { padding: "12px 16px" },
           "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
             {
               marginBottom: 0,

@@ -31,6 +31,9 @@ import AttractionReview from "../Pages/ReviewDetail/AttractionReview";
 import RestaurantReview from "../Pages/ReviewDetail/RestaurantReview";
 import Form from "../Pages/NewTrip/Form";
 import OpenStreetMap from "../components/OpenStreetMap/OpenStreetMap";
+import SavedPlaces from "../Pages/SavedPlaces/SavedPlaces";
+import AttractionList from "../Pages/AttractionList/AttractionList";
+import RestaurantList from "../Pages/RestaurantList/RestaurantList";
 
 function App() {
   return (
@@ -86,7 +89,7 @@ function App() {
 
             {/* Route homepage */}
             <Route
-              path="/tripguide/homepage"
+              path="/"
               element={
                 <>
                   <Navbar />
@@ -204,6 +207,36 @@ function App() {
                 <>
                   <Navbar />
                   <OpenStreetMap />
+                  <Footer />
+                </>
+              }
+            />
+            <Route
+              path="/tripguide/saved-places"
+              element={
+                <>
+                  <Navbar />
+                  <SavedPlaces />
+                  <Footer />
+                </>
+              }
+            />
+            <Route
+              path="/tripguide/attractions"
+              element={
+                <>
+                  <Navbar />
+                  <AttractionList />
+                  <Footer />
+                </>
+              }
+            />
+            <Route
+              path="/tripguide/restaurants"
+              element={
+                <>
+                  <Navbar />
+                  <RestaurantList />
                   <Footer />
                 </>
               }
