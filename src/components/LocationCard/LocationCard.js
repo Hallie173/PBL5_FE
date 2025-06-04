@@ -27,7 +27,7 @@ const LocationCard = ({ item, onClick, renderStars }) => {
     (e) => {
       e.stopPropagation();
       if (!isLoggedIn) {
-        navigate("/login");
+        navigate("/");
         alert("Please log in to save this location!");
         return;
       }

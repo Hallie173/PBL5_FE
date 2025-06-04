@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import { useState, useCallback } from "react";
 import {
   Box,
   Button,
@@ -7,6 +7,7 @@ import {
   DialogContent,
   DialogActions,
   TextField,
+  Autocomplete,
   Select,
   MenuItem,
   InputLabel,
@@ -15,21 +16,18 @@ import {
   Typography,
   IconButton,
   Grid,
-  Divider,
-  Stack,
   Chip,
-  Avatar,
+  Stack,
 } from "@mui/material";
 import {
   Close,
   LocationOn,
-  Info,
-  Language,
   Check,
-  LocalOffer,
   Delete,
-  Image as ImageIcon,
+  ChevronLeft,
+  ChevronRight,
 } from "@mui/icons-material";
+import PropTypes from "prop-types";
 import ImageUpload from "./ImageUpload";
 
 const AttractionModal = ({
@@ -37,115 +35,70 @@ const AttractionModal = ({
   onClose,
   onSubmit,
   cities,
-  initialData,
   isEdit,
   isSubmitting,
   formik,
-  previewImage,
+  previewUrls,
   imageError,
-  uploadedFile,
+  imageUrls,
   fileInputRef,
   handleFileChange,
   triggerFileInput,
   setImageError,
+  setImageUrls,
+  removeImage,
+  tagList,
+  tagError,
+  handleTagChange,
 }) => {
-  const [uploadedImages, setUploadedImages] = useState([]);
-  const [imageUrls, setImageUrls] = useState([]);
-  const imageFileInputRef = useRef(null);
+  const [currentImagePage, setCurrentImagePage] = useState(1);
+  const imagesPerPage = 6;
 
-  // Initialize images when modal opens with initial data
-  useEffect(() => {
-    if (initialData) {
-      // Set primary image URL if exists
-      if (initialData.image_url) {
-        setImageUrls([initialData.image_url]);
-      } else {
-        setImageUrls([]);
-      }
+  const totalImagePages = Math.ceil(previewUrls.length / imagesPerPage);
+  const startImageIndex = (currentImagePage - 1) * imagesPerPage;
+  const currentImages = previewUrls.slice(
+    startImageIndex,
+    startImageIndex + imagesPerPage
+  );
 
-      // Add additional images if they exist
-      if (
-        initialData.additional_images &&
-        Array.isArray(initialData.additional_images)
-      ) {
-        setImageUrls((prev) => [...prev, ...initialData.additional_images]);
-      }
-    } else {
-      setImageUrls([]);
-    }
+  const handleImagePageChange = useCallback(
+    (page) => {
+      setCurrentImagePage(Math.max(1, Math.min(page, totalImagePages)));
+    },
+    [totalImagePages]
+  );
 
-    // Reset uploaded files when modal opens/closes
-    setUploadedImages([]);
-  }, [initialData, open]);
-
-  const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length === 0) return;
-
-    // Validate file sizes (max 10MB)
-    const validFiles = files.filter((file) => file.size <= 10 * 1024 * 1024);
-
-    if (validFiles.length < files.length) {
-      setImageError(
-        "Some files exceeded the 10MB size limit and were excluded"
-      );
-    }
-
-    // Update state with new files
-    setUploadedImages((prev) => [...prev, ...validFiles]);
-
-    // Create object URLs for preview
-    const newImageUrls = validFiles.map((file) => URL.createObjectURL(file));
-    setImageUrls((prev) => [...prev, ...newImageUrls]);
-
-    // Reset file input
-    e.target.value = null;
+  const imageContainerSx = {
+    position: "relative",
+    borderRadius: 1,
+    overflow: "hidden",
+    aspectRatio: "4/3",
+    boxShadow: 1,
+    transition: "transform 0.2s",
+    "&:hover": { transform: "scale(1.02)" },
   };
 
-  const removeImage = (index) => {
-    // Remove from URLs array
-    setImageUrls((prev) => prev.filter((_, i) => i !== index));
-
-    // If it's an uploaded file, remove from uploadedImages too
-    if (index < uploadedImages.length) {
-      setUploadedImages((prev) => prev.filter((_, i) => i !== index));
-    }
-  };
-
-  const handleFormSubmit = (e) => {
-    e.preventDefault();
-    formik.handleSubmit(e);
-
-    if (formik.isValid) {
-      // Prepare image data for submission
-      const imageData = {
-        imageUrls: imageUrls.filter((url) => !url.startsWith("blob:")), // Filter out blob URLs
-        uploadedFiles: uploadedImages,
-      };
-
-      onSubmit({
-        ...formik.values,
-        images: imageData,
-      });
-    }
+  const deleteButtonSx = {
+    position: "absolute",
+    top: 6,
+    right: 6,
+    bgcolor: "error.main",
+    color: "#fff",
+    p: 0.5,
+    "&:hover": { bgcolor: "error.dark" },
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      maxWidth="lg"
-      fullWidth
-      sx={{
-        "& .MuiDialog-paper": {
-          borderRadius: 3,
-          overflow: "visible",
-        },
-      }}
-    >
-      <DialogTitle sx={{ borderBottom: "1px solid #eee", py: 2 }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Typography variant="h6" fontWeight="600">
+    <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
+      <DialogTitle sx={{ py: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Typography variant="h6" fontWeight="bold">
             {isEdit ? "Update Attraction" : "Add New Attraction"}
           </Typography>
           <IconButton onClick={onClose} size="small">
@@ -154,285 +107,327 @@ const AttractionModal = ({
         </Box>
       </DialogTitle>
 
-      <DialogContent dividers sx={{ overflowY: "auto", maxHeight: "70vh" }}>
-        <Box component="form" onSubmit={handleFormSubmit} sx={{ mt: 2 }}>
-          <Grid container spacing={3}>
-            {/* Left Column */}
+      <DialogContent sx={{ mt: 2 }}>
+        <Box component="form" onSubmit={onSubmit}>
+          <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
-              <Box mb={3}>
-                <Typography variant="subtitle1" gutterBottom fontWeight="600">
-                  <Info sx={{ color: "primary.main", mr: 1 }} />
-                  Basic Information
-                </Typography>
-
-                <TextField
-                  fullWidth
-                  label="Attraction Name *"
-                  name="name"
-                  value={formik.values.name}
-                  onChange={formik.handleChange}
-                  error={formik.touched.name && Boolean(formik.errors.name)}
-                  helperText={formik.touched.name && formik.errors.name}
-                  sx={{ mb: 2 }}
-                />
-
-                <FormControl fullWidth sx={{ mb: 2 }}>
-                  <InputLabel>City *</InputLabel>
-                  <Select
-                    name="city_id"
-                    value={formik.values.city_id}
-                    onChange={formik.handleChange}
-                    error={
-                      formik.touched.city_id && Boolean(formik.errors.city_id)
-                    }
-                    label="City *"
-                  >
-                    <MenuItem value="">Select a city</MenuItem>
-                    {cities.map((city) => (
-                      <MenuItem key={city.city_id} value={city.city_id}>
-                        {city.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  {formik.touched.city_id && formik.errors.city_id && (
-                    <Typography variant="caption" color="error">
-                      {formik.errors.city_id}
-                    </Typography>
-                  )}
-                </FormControl>
-
-                <TextField
-                  fullWidth
-                  label="Address *"
-                  name="address"
-                  value={formik.values.address}
+              <TextField
+                fullWidth
+                label="Attraction Name *"
+                name="name"
+                value={formik.values.name}
+                onChange={formik.handleChange}
+                error={formik.touched.name && Boolean(formik.errors.name)}
+                helperText={formik.touched.name && formik.errors.name}
+                sx={{ mb: 2 }}
+              />
+              <FormControl fullWidth sx={{ mb: 2 }}>
+                <InputLabel>City *</InputLabel>
+                <Select
+                  name="city_id"
+                  value={formik.values.city_id}
                   onChange={formik.handleChange}
                   error={
-                    formik.touched.address && Boolean(formik.errors.address)
+                    formik.touched.city_id && Boolean(formik.errors.city_id)
                   }
-                  helperText={formik.touched.address && formik.errors.address}
-                  InputProps={{
-                    startAdornment: (
-                      <LocationOn sx={{ color: "action.active", mr: 1 }} />
-                    ),
-                  }}
-                  sx={{ mb: 2 }}
-                />
-
-                <Grid container spacing={2}>
-                  <Grid item xs={6}>
-                    <TextField
-                      fullWidth
-                      label="Latitude *"
-                      name="latitude"
-                      type="number"
-                      inputProps={{ step: "0.0001" }}
-                      value={formik.values.latitude}
-                      onChange={formik.handleChange}
-                      error={
-                        formik.touched.latitude &&
-                        Boolean(formik.errors.latitude)
-                      }
-                      helperText={
-                        formik.touched.latitude && formik.errors.latitude
-                      }
-                    />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField
-                      fullWidth
-                      label="Longitude *"
-                      name="longitude"
-                      type="number"
-                      inputProps={{ step: "0.0001" }}
-                      value={formik.values.longitude}
-                      onChange={formik.handleChange}
-                      error={
-                        formik.touched.longitude &&
-                        Boolean(formik.errors.longitude)
-                      }
-                      helperText={
-                        formik.touched.longitude && formik.errors.longitude
-                      }
-                    />
-                  </Grid>
-                </Grid>
-              </Box>
-
-              <Box mb={3}>
-                <Typography variant="subtitle1" gutterBottom fontWeight="600">
-                  <LocalOffer sx={{ color: "primary.main", mr: 1 }} />
-                  Tags
-                </Typography>
-                <TextField
-                  fullWidth
-                  label="Enter tags (comma separated)"
-                  name="tags"
-                  value={formik.values.tags}
-                  onChange={formik.handleChange}
-                  helperText="Example: tourism, food, history"
-                />
-              </Box>
-            </Grid>
-
-            {/* Right Column */}
-            <Grid item xs={12} md={6}>
-              <Box mb={3}>
-                <Typography variant="subtitle1" gutterBottom fontWeight="600">
-                  <Language sx={{ color: "primary.main", mr: 1 }} />
-                  Description
-                </Typography>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={4}
-                  name="description"
-                  value={formik.values.description}
-                  onChange={formik.handleChange}
-                  placeholder="Enter detailed description about the attraction..."
-                />
-              </Box>
-
-              <Divider sx={{ mb: 3 }} />
-
-              {/* Image Upload Section */}
-              <Box mb={3}>
-                <Typography
-                  variant="subtitle1"
-                  gutterBottom
-                  fontWeight="600"
-                  sx={{ mb: 2 }}
+                  label="City *"
                 >
-                  <ImageIcon sx={{ color: "primary.main", mr: 1 }} />
-                  Images
-                </Typography>
-
-                <ImageUpload
-                  multiple={true}
-                  fileInputRef={imageFileInputRef}
-                  onImageUpload={handleImageUpload}
-                  disabled={isSubmitting}
-                />
-
-                {imageError && (
-                  <Typography
-                    color="error"
-                    variant="caption"
-                    sx={{ mt: 1, display: "block" }}
-                  >
-                    {imageError}
+                  <MenuItem value="">Select a city</MenuItem>
+                  {cities.map((city) => (
+                    <MenuItem key={city.city_id} value={city.city_id}>
+                      {city.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {formik.touched.city_id && formik.errors.city_id && (
+                  <Typography variant="caption" color="error">
+                    {formik.errors.city_id}
                   </Typography>
                 )}
-
-                {/* Image Previews */}
-                {imageUrls.length > 0 && (
-                  <Box sx={{ mt: 3 }}>
-                    <Typography variant="subtitle2" gutterBottom>
-                      {imageUrls.length === 1
-                        ? "1 Image Selected"
-                        : `${imageUrls.length} Images Selected`}
-                      {imageUrls.length > 0 && imageUrls.length <= 10 && (
-                        <Typography
-                          component="span"
-                          variant="caption"
-                          sx={{ ml: 1, color: "text.secondary" }}
-                        >
-                          (First image will be used as the main image)
-                        </Typography>
-                      )}
-                    </Typography>
-
-                    <Grid container spacing={1} sx={{ mt: 1 }}>
-                      {imageUrls.map((url, index) => (
-                        <Grid item xs={4} sm={3} key={index}>
-                          <Box
-                            sx={{
-                              position: "relative",
-                              borderRadius: 1,
-                              overflow: "hidden",
-                              height: 100,
-                              border: "1px solid #eee",
-                              "&:hover .delete-btn": {
-                                opacity: 1,
-                              },
-                            }}
-                          >
-                            <img
-                              src={url}
-                              alt={`Preview ${index + 1}`}
-                              style={{
-                                width: "100%",
-                                height: "100%",
-                                objectFit: "cover",
-                              }}
-                              onError={(e) => {
-                                e.target.src =
-                                  "https://via.placeholder.com/150?text=Error";
-                              }}
-                            />
-                            {index === 0 && (
-                              <Chip
-                                label="Main"
-                                size="small"
-                                color="primary"
-                                sx={{
-                                  position: "absolute",
-                                  top: 5,
-                                  left: 5,
-                                  fontSize: "0.7rem",
-                                }}
-                              />
-                            )}
-                            <IconButton
-                              className="delete-btn"
-                              onClick={() => removeImage(index)}
-                              sx={{
-                                position: "absolute",
-                                top: 5,
-                                right: 5,
-                                bgcolor: "rgba(0, 0, 0, 0.5)",
-                                color: "white",
-                                p: 0.5,
-                                opacity: 0,
-                                transition: "opacity 0.2s",
-                                "&:hover": {
-                                  bgcolor: "rgba(0, 0, 0, 0.7)",
-                                },
-                              }}
-                              size="small"
-                              disabled={isSubmitting}
-                            >
-                              <Delete fontSize="small" />
-                            </IconButton>
-                          </Box>
-                        </Grid>
-                      ))}
-                    </Grid>
-                  </Box>
-                )}
+              </FormControl>
+              <TextField
+                fullWidth
+                label="Address *"
+                name="address"
+                value={formik.values.address}
+                onChange={formik.handleChange}
+                error={formik.touched.address && Boolean(formik.errors.address)}
+                helperText={formik.touched.address && formik.errors.address}
+                InputProps={{
+                  startAdornment: (
+                    <LocationOn sx={{ color: "primary", mr: 1 }} />
+                  ),
+                }}
+                sx={{ mb: 2 }}
+              />
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <TextField
+                    fullWidth
+                    label="Latitude *"
+                    name="latitude"
+                    type="number"
+                    inputProps={{ step: "0.0001" }}
+                    value={formik.values.latitude}
+                    onChange={formik.handleChange}
+                    error={
+                      formik.touched.latitude && Boolean(formik.errors.latitude)
+                    }
+                    helperText={
+                      formik.touched.latitude && formik.errors.latitude
+                    }
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    fullWidth
+                    label="Longitude *"
+                    name="longitude"
+                    type="number"
+                    inputProps={{ step: "0.0001" }}
+                    value={formik.values.longitude}
+                    onChange={formik.handleChange}
+                    error={
+                      formik.touched.longitude &&
+                      Boolean(formik.errors.longitude)
+                    }
+                    helperText={
+                      formik.touched.longitude && formik.errors.longitude
+                    }
+                  />
+                </Grid>
+              </Grid>
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="subtitle1" fontWeight="bold">
+                  Tags
+                </Typography>
+                <Autocomplete
+                  multiple
+                  freeSolo
+                  options={tagList || []}
+                  value={formik.values.tags || []}
+                  onChange={(event, newValue) => handleTagChange(newValue)}
+                  disabled={isSubmitting}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Tags"
+                      placeholder="Type a tag and press Enter"
+                      error={
+                        (formik.touched.tags && Boolean(formik.errors.tags)) ||
+                        Boolean(tagError)
+                      }
+                      helperText={
+                        tagError ||
+                        (formik.touched.tags && formik.errors.tags) ||
+                        (tagList.length === 0
+                          ? "No suggested tags available"
+                          : "Add tags")
+                      }
+                    />
+                  )}
+                  renderTags={(value, getTagProps) =>
+                    value.map((option, index) => (
+                      <Chip
+                        key={index}
+                        label={option}
+                        size="small"
+                        {...getTagProps({ index })}
+                        disabled={isSubmitting}
+                      />
+                    ))
+                  }
+                  sx={{ mb: 2 }}
+                />
               </Box>
             </Grid>
+            <Grid item xs={12} md={6}>
+              <Typography variant="subtitle1" fontWeight="bold">
+                Description
+              </Typography>
+              <TextField
+                fullWidth
+                multiline
+                rows={4}
+                name="description"
+                value={formik.values.description}
+                onChange={formik.handleChange}
+                error={
+                  formik.touched.description &&
+                  Boolean(formik.errors.description)
+                }
+                helperText={
+                  formik.touched.description && formik.errors.description
+                }
+                placeholder="Enter description..."
+                sx={{ mb: 2 }}
+              />
+              <Typography variant="subtitle1" fontWeight="bold">
+                Images
+              </Typography>
+              <ImageUpload
+                multiple={true}
+                fileInputRef={fileInputRef}
+                onImageUpload={handleFileChange}
+                disabled={isSubmitting}
+              />
+              {imageError && (
+                <Typography
+                  color="error"
+                  variant="caption"
+                  sx={{ mt: 1, display: "block" }}
+                >
+                  {imageError}
+                </Typography>
+              )}
+              {previewUrls.length > 0 && (
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="subtitle1" fontWeight="medium">
+                    Preview Images
+                  </Typography>
+                  <Grid container spacing={1} sx={{ mt: 1 }}>
+                    {currentImages.map((url, index) => (
+                      <Grid item xs={4} key={startImageIndex + index}>
+                        <Box sx={imageContainerSx}>
+                          <img
+                            src={url}
+                            alt={`Image ${startImageIndex + index + 1}`}
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                            }}
+                            onError={(e) =>
+                              (e.target.src =
+                                "https://via.placeholder.com/150?text=No+Image")
+                            }
+                          />
+                          <IconButton
+                            onClick={() => {
+                              removeImage(startImageIndex + index);
+                              if (
+                                currentImages.length === 1 &&
+                                currentImagePage > 1
+                              ) {
+                                setCurrentImagePage(currentImagePage - 1);
+                              }
+                            }}
+                            sx={deleteButtonSx}
+                            size="small"
+                            disabled={isSubmitting}
+                          >
+                            <Delete fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      </Grid>
+                    ))}
+                  </Grid>
+                  {previewUrls.length > imagesPerPage && (
+                    <Stack
+                      direction="row"
+                      spacing={1}
+                      alignItems="center"
+                      justifyContent="center"
+                      sx={{ mt: 2 }}
+                    >
+                      <IconButton
+                        onClick={() =>
+                          handleImagePageChange(currentImagePage - 1)
+                        }
+                        disabled={currentImagePage === 1}
+                        size="small"
+                      >
+                        <ChevronLeft />
+                      </IconButton>
+                      {Array.from(
+                        { length: totalImagePages },
+                        (_, i) => i + 1
+                      ).map((page) => (
+                        <Button
+                          key={page}
+                          onClick={() => handleImagePageChange(page)}
+                          variant={
+                            currentImagePage === page ? "contained" : "outlined"
+                          }
+                          size="small"
+                          sx={{ minWidth: 32, px: 0.5 }}
+                        >
+                          {page}
+                        </Button>
+                      ))}
+                      <IconButton
+                        onClick={() =>
+                          handleImagePageChange(currentImagePage + 1)
+                        }
+                        disabled={currentImagePage === totalImagePages}
+                        size="small"
+                      >
+                        <ChevronRight />
+                      </IconButton>
+                    </Stack>
+                  )}
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ mt: 1, display: "block" }}
+                  >
+                    Showing {startImageIndex + 1}-
+                    {Math.min(
+                      startImageIndex + imagesPerPage,
+                      previewUrls.length
+                    )}{" "}
+                    of {previewUrls.length} images
+                  </Typography>
+                </Box>
+              )}
+            </Grid>
           </Grid>
-
-          <DialogActions sx={{ borderTop: "1px solid #eee", mt: 3, py: 2 }}>
-            <Button onClick={onClose} color="inherit">
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={isSubmitting}
-              startIcon={
-                isSubmitting ? <CircularProgress size={20} /> : <Check />
-              }
-            >
-              {isEdit ? "Update" : "Create"}
-            </Button>
-          </DialogActions>
         </Box>
       </DialogContent>
+
+      <DialogActions sx={{ py: 2 }}>
+        <Button onClick={onClose} color="inherit" disabled={isSubmitting}>
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          variant="contained"
+          disabled={isSubmitting}
+          startIcon={isSubmitting ? <CircularProgress size={20} /> : <Check />}
+          onClick={onSubmit}
+        >
+          {isEdit ? "Update" : "Create"}
+        </Button>
+      </DialogActions>
     </Dialog>
   );
+};
+
+AttractionModal.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onSubmit: PropTypes.func.isRequired,
+  cities: PropTypes.arrayOf(
+    PropTypes.shape({
+      city_id: PropTypes.number.isRequired,
+      name: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  isEdit: PropTypes.bool.isRequired,
+  isSubmitting: PropTypes.bool.isRequired,
+  formik: PropTypes.object.isRequired,
+  previewUrls: PropTypes.arrayOf(PropTypes.string).isRequired,
+  imageError: PropTypes.string,
+  imageUrls: PropTypes.arrayOf(PropTypes.string).isRequired,
+  fileInputRef: PropTypes.object.isRequired,
+  handleFileChange: PropTypes.func.isRequired,
+  triggerFileInput: PropTypes.func.isRequired,
+  setImageError: PropTypes.func.isRequired,
+  setImageUrls: PropTypes.func.isRequired,
+  removeImage: PropTypes.func.isRequired,
+  tagList: PropTypes.arrayOf(PropTypes.string),
+  tagError: PropTypes.string,
+  handleTagChange: PropTypes.func.isRequired,
 };
 
 export default AttractionModal;

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Box,
   Grid,
@@ -8,53 +8,76 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
-import { FaEdit, FaTrash, FaPlus, FaImage } from "react-icons/fa";
-import CityModal from "./CityModal";
-import { useCityManagement } from "../hooks/useCityManagement";
+import { FaEdit, FaTrash } from "react-icons/fa";
 
 const CityList = ({ cities, onEdit, onDelete }) => {
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(6);
 
-  // Pagination calculations
-  const totalItems = cities.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const indexOfLastItem = page * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = cities.slice(indexOfFirstItem, indexOfLastItem);
+  // Sort cities alphabetically by name
+  const sortedCities = useMemo(() => {
+    if (!Array.isArray(cities)) return [];
+    return [...cities].sort((a, b) =>
+      (a.name || "").localeCompare(b.name || "")
+    );
+  }, [cities]);
 
-  const handlePageChange = (event, value) => {
-    setPage(value);
+  // Pagination calculations
+  const {
+    currentItems,
+    totalPages,
+    totalItems,
+    indexOfFirstItem,
+    indexOfLastItem,
+  } = useMemo(() => {
+    const totalItems = sortedCities.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const indexOfLastItem = page * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = sortedCities.slice(indexOfFirstItem, indexOfLastItem);
+
+    return {
+      currentItems,
+      totalPages,
+      totalItems,
+      indexOfFirstItem,
+      indexOfLastItem,
+    };
+  }, [sortedCities, page, itemsPerPage]);
+
+  const handlePageChange = (event, newPage) => {
+    setPage(newPage);
   };
 
   const handleItemsPerPageChange = (event) => {
     setItemsPerPage(event.target.value);
-    setPage(1); // Reset to first page when changing items per page
+    setPage(1); // Reset to first page
   };
 
   return (
     <Box sx={{ p: 3 }}>
-      {cities.length === 0 ? (
+      {totalItems === 0 ? (
         <Box
           sx={{
             p: 4,
             textAlign: "center",
-            bgcolor: "grey.100",
+            bgcolor: "grey.50",
             borderRadius: 2,
             border: "1px dashed",
-            borderColor: "grey.300",
+            borderColor: "grey.200",
           }}
         >
           <Typography variant="h6" color="text.secondary" gutterBottom>
             No cities found
           </Typography>
-          <Typography variant="body1" sx={{ mb: 2 }}>
+          <Typography variant="body2" sx={{ mb: 2 }}>
             Start by adding your first city
           </Typography>
         </Box>
       ) : (
         <>
-          <Grid container spacing={3}>
+          {/* City Grid */}
+          <Grid container spacing={2}>
             {currentItems.map((city) => (
               <Grid item xs={12} sm={6} md={4} key={city.city_id}>
                 <Box
@@ -63,47 +86,50 @@ const CityList = ({ cities, onEdit, onDelete }) => {
                     borderRadius: 2,
                     boxShadow: 1,
                     overflow: "hidden",
-                    transition: "box-shadow 0.3s",
+                    transition: "box-shadow 0.3s, transform 0.3s",
                     "&:hover": {
                       boxShadow: 3,
+                      transform: "translateY(-2px)",
                     },
                     height: "100%",
                     display: "flex",
                     flexDirection: "column",
                   }}
                 >
-                  <Box sx={{ position: "relative", height: 160 }}>
+                  {/* City Image */}
+                  <Box sx={{ position: "relative", height: 200 }}>
                     <img
-                      src={city.image_url}
-                      alt={city.name}
+                      src={
+                        Array.isArray(city.image_url) &&
+                        city.image_url.length > 0
+                          ? city.image_url[0]
+                          : ""
+                      }
+                      alt={`${city.name || "City"} cover`}
                       style={{
                         width: "100%",
                         height: "100%",
                         objectFit: "cover",
                         transition: "transform 0.3s",
                       }}
-                      onError={(e) =>
-                        (e.target.src =
-                          "https://via.placeholder.com/400x200?text=No+Image")
-                      }
                       className="hover:scale-105"
                     />
                   </Box>
-
+                  {/* City Details */}
                   <Box sx={{ p: 2, flexGrow: 1 }}>
                     <Box
                       sx={{
                         display: "flex",
                         justifyContent: "space-between",
                         alignItems: "center",
-                        mb: 2,
+                        mb: 1,
                       }}
                     >
                       <Typography
                         variant="h6"
                         sx={{ fontSize: "1.125rem", fontWeight: 600 }}
                       >
-                        {city.name}
+                        {city.name || "Unnamed City"}
                       </Typography>
                       <Box sx={{ display: "flex", gap: 1 }}>
                         <IconButton
@@ -113,7 +139,7 @@ const CityList = ({ cities, onEdit, onDelete }) => {
                             "&:hover": { bgcolor: "blue.50" },
                             color: "blue.600",
                           }}
-                          aria-label="Edit city"
+                          aria-label={`Edit ${city.name || "city"}`}
                         >
                           <FaEdit size={16} />
                         </IconButton>
@@ -124,78 +150,31 @@ const CityList = ({ cities, onEdit, onDelete }) => {
                             "&:hover": { bgcolor: "red.50" },
                             color: "red.600",
                           }}
-                          aria-label="Delete city"
+                          aria-label={`Delete ${city.name || "city"}`}
                         >
                           <FaTrash size={16} />
                         </IconButton>
                       </Box>
                     </Box>
-
                     <Typography
                       variant="body2"
                       color="text.secondary"
                       sx={{
-                        mb: 2,
                         display: "-webkit-box",
-                        WebkitLineClamp: 2,
+                        WebkitLineClamp: 3,
                         WebkitBoxOrient: "vertical",
                         overflow: "hidden",
+                        minHeight: "3.6em",
                       }}
                     >
                       {city.description || "No description available"}
                     </Typography>
-
-                    {city.images?.length > 1 && (
-                      <Box sx={{ display: "flex", gap: 1 }}>
-                        {city.images.slice(1, 4).map((img, index) => (
-                          <Box
-                            key={index}
-                            sx={{
-                              width: 40,
-                              height: 40,
-                              borderRadius: 1,
-                              overflow: "hidden",
-                              position: "relative",
-                            }}
-                          >
-                            <img
-                              src={img}
-                              alt={`${city.name} ${index + 2}`}
-                              style={{
-                                width: "100%",
-                                height: "100%",
-                                objectFit: "cover",
-                              }}
-                            />
-                            {index === 2 && city.images.length > 4 && (
-                              <Box
-                                sx={{
-                                  position: "absolute",
-                                  top: 0,
-                                  left: 0,
-                                  right: 0,
-                                  bottom: 0,
-                                  bgcolor: "rgba(0,0,0,0.5)",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                }}
-                              >
-                                <Typography variant="caption" color="white">
-                                  +{city.images.length - 4}
-                                </Typography>
-                              </Box>
-                            )}
-                          </Box>
-                        ))}
-                      </Box>
-                    )}
                   </Box>
                 </Box>
               </Grid>
             ))}
           </Grid>
-
+          {/* Pagination Controls */}
           {totalItems > 0 && (
             <Box
               sx={{
@@ -215,7 +194,8 @@ const CityList = ({ cities, onEdit, onDelete }) => {
                   value={itemsPerPage}
                   onChange={handleItemsPerPageChange}
                   size="small"
-                  sx={{ bgcolor: "white" }}
+                  sx={{ bgcolor: "white", borderRadius: 1 }}
+                  aria-label="Items per page"
                 >
                   <MenuItem value={6}>6</MenuItem>
                   <MenuItem value={12}>12</MenuItem>
@@ -226,7 +206,6 @@ const CityList = ({ cities, onEdit, onDelete }) => {
                   per page
                 </Typography>
               </Box>
-
               <Pagination
                 count={totalPages}
                 page={page}
@@ -234,8 +213,8 @@ const CityList = ({ cities, onEdit, onDelete }) => {
                 color="primary"
                 shape="rounded"
                 size="medium"
+                aria-label="City list pagination"
               />
-
               <Typography variant="body2" color="text.secondary">
                 Showing {indexOfFirstItem + 1} -{" "}
                 {Math.min(indexOfLastItem, totalItems)} of {totalItems} cities

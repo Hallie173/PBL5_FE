@@ -196,7 +196,7 @@ const HomePage = () => {
   const toggleSave = useCallback(
     (item) => {
       if (!isLoggedIn) {
-        navigate("/login");
+        navigate("/");
         showNotification("Please log in to save this location!");
         return;
       }

@@ -19,7 +19,7 @@ function Footer() {
       <div className="footer-container">
         <div className="footer-grid">
           <div className="footer-col">
-            <Link to="/tripguide/homepage" className="footer-logo">
+            <Link to="/" className="footer-logo">
               <img
                 className="footer-logo-img"
                 src={weblogo}
@@ -52,7 +52,7 @@ function Footer() {
             <h3 className="footer-heading">Explore</h3>
             <ul className="footer-links">
               <li>
-                <Link to="/tripguide/homepage" className="footer-link">
+                <Link to="/" className="footer-link">
                   <FaMapMarkedAlt className="footer-icon" />
                   Discover Destinations
                 </Link>

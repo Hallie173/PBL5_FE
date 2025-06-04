@@ -132,7 +132,7 @@ const fetchRestaurantDetails = async (restaurantId, user) => {
             review.review_id
           }: raw=${rawRating}, type=${typeof rawRating}, parsed=${parsedRating}, final=${finalRating}`
         );
-        if (finalRating === 5 && rawRating != 5) {
+        if (finalRating === 5 && rawRating !== 5) {
           console.warn(
             `Review ID ${review.review_id} has unexpected rating of 5 (raw was ${rawRating})`
           );
@@ -207,7 +207,7 @@ const useRestaurant = () => {
   const handleToggleSave = (restaurantId) => {
     if (!isLoggedIn || !user?.user_id) {
       alert("Please log in to save this restaurant!");
-      navigate("/login");
+      navigate("/");
       return;
     }
 

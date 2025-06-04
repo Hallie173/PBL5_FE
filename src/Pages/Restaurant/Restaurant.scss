@@ -1001,23 +1001,36 @@ $transition: all 0.3s ease;
 
             .review-actions {
               display: flex;
-              justify-content: flex-end;
               gap: 10px;
-              margin-top: 15px;
+              margin-top: 10px;
+            }
 
-              .edit-review-button,
-              .report-review-button {
-                @include button($bg-color: $secondary-color);
-                padding: 8px 16px;
-                font-size: 13px;
-              }
+            .edit-review-button,
+            .delete-review-button {
+              padding: 8px 12px;
+              font-size: 14px;
+              border: none;
+              border-radius: 4px;
+              cursor: pointer;
+              transition: background-color 0.2s;
+            }
 
-              .report-review-button {
-                background: #e74c3c;
-                &:hover {
-                  background: darken(#e74c3c, 10%);
-                }
-              }
+            .edit-review-button {
+              background-color: #4caf50;
+              color: white;
+            }
+
+            .edit-review-button:hover {
+              background-color: #45a049;
+            }
+
+            .delete-review-button {
+              background-color: #f44336;
+              color: white;
+            }
+
+            .delete-review-button:hover {
+              background-color: #da190b;
             }
           }
         }

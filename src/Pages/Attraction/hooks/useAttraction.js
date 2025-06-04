@@ -310,7 +310,7 @@ const useAttraction = () => {
 
   const handleReviewClick = useCallback(() => {
     if (!isLoggedIn) {
-      navigate("/login");
+      navigate("/");
       return;
     }
     navigate(`/tripguide/review/attraction/${attractionId}`);

@@ -1,4 +1,3 @@
-// AuthContext.js
 import React, { createContext, useState, useEffect } from "react";
 import { authService } from "../services/authService";
 
@@ -10,8 +9,6 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const currentUser = authService.getCurrentUser();
-
-    // console.log("Initial user from AuthContext:", currentUser);
     if (currentUser) {
       setUser(currentUser);
       setIsLoggedIn(true);
@@ -40,6 +37,7 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+
 export const useAuth = () => {
   const context = React.useContext(AuthContext);
   if (!context) {
