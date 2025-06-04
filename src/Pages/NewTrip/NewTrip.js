@@ -29,7 +29,7 @@ function NewTrip() {
   const [city, setCity] = useState(null);
   const [itineraryData, setitinararyData] = useState([]);
   const [addLocation, setAddLocation] = useState(false);
-    const [cityAttraction, setCityAttraction] = useState([]);
+  const [cityAttraction, setCityAttraction] = useState([]);
   useEffect(() => {
     setLoading(true);
     const fetchData = async () => {
@@ -48,11 +48,11 @@ function NewTrip() {
         console.log("URL used:", url); // debug
         console.log("Response:", Itiresponse.data);
         setitinararyData(Itiresponse.data);
-                                const cityResponse = await axios.get(`${BASE_URL}/cities/${selectedCity}`);
-                setCity(cityResponse.data);
-                console.log(city);
-                const cityAttraction = await axios.get(`${BASE_URL}/attractions/city/${selectedCity}`);
-                setCityAttraction(cityAttraction.data);
+        const cityResponse = await axios.get(`${BASE_URL}/cities/${selectedCity}`);
+        setCity(cityResponse.data);
+        console.log(city);
+        const cityAttraction = await axios.get(`${BASE_URL}/attractions/city/${selectedCity}`);
+        setCityAttraction(cityAttraction.data);
 
         // return response.data;
         // // const params = new URLSearchParams();
@@ -166,9 +166,8 @@ function NewTrip() {
                     </button>
                     <div className="add-location-form">
                       <div
-                        className={`form-container ${
-                          addLocation ? "show" : ""
-                        }`}
+                        className={`form-container ${addLocation ? "show" : ""
+                          }`}
                       >
                         <div className="form-header">
                           <h4>Add location</h4>
@@ -206,103 +205,108 @@ function NewTrip() {
                 </div>
               </div>
             </div>
-    return (
-        <div className="new-trip-container">
-            <div className="city-name-container">
-                <img src={newtrippic} alt="City" className="city-image" />
-                <div className="title-overlay">
-                    <h2>Trip to <span className="destination-name">{city?.name}</span></h2>
-                    <div className="date-time">
-                        <FontAwesomeIcon icon={faCalendarDay} className="date-icon" />
-                        <span className="date-text">{startDate} - {endDate}</span>
-                    </div>
-                </div>
-            </div>
-            <div className="trip-details">
-                <div className="trip-info">
-                    <div className="trip-itinerary">
-                        <h2 className="trip-itinerary-title">Itinerary</h2>
-                        <div className="trip-day">
-                            <div className="trip-day-header">
-                                <h4>{startDate}</h4>
-                            </div>
-                            <div className="trip-day-content">
-                                <div className="trip-timeline">
-                                    {itineraryData.map((item, index) => (
-                                        <div key={index} className="location-details">
-                                            <div className="time">{item.arrival_time}</div>
-                                            <div className="timeline-line"></div>
-                                            <div className="location-card">
-                                                <img
-                                                    src={item.image_url[0] || 'fallback.jpg'} // fallback nếu ảnh lỗi
-                                                    alt={item.name}
-                                                    className="location-img"
-                                                />
-                                                <div className="location-info">
-                                                    <div className="location-title">{item.name}</div>
-                                                    <div className="item-rating">
-                                                        <span className="rating-dots">🟢🟢🟢🟢</span>
-                                                        <span className="rating-number">{item.rating_total}</span>
-                                                    </div>
-                                                    <div className="location-type">
-                                                        <FontAwesomeIcon icon={faMountainSun} className="location-type-icon" />
-                                                        {item.type}
-                                                    </div>
-                                                </div>
-                                                <div className="location-menu">⋯</div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                    <div className="add-location">
-                                        <button className="add-location-btn" onClick={handleAddLocation}>+ Add</button>
-                                        <div className="add-location-form">
-                                            <div className={`form-container ${addLocation ? 'show' : ''}`}>
-                                                <div className="form-header">
-                                                    <h4>Add location</h4>
-                                                </div>
-                                                <div className="form-body">
-                                                    <div className="form-search-group">
-                                                        <div className="search-box">
-                                                            <Autocomplete
-                                                                options={cityAttraction}
-                                                                getOptionLabel={(option) => option.name}
-                                                                renderInput={(params) => <TextField {...params} label="Search for location..." />}
-                                                                sx={{ width: '100%' }}
-                                                            />
-                                                        </div>
-                                                        <button className="search-btn">Search</button>
-                                                    </div>
-                                                    <div className="form-time-group">
-                                                        <div className="start-time">
-                                                            <label>Start Time</label>
-                                                            <input type="time" />
-                                                        </div>
-                                                        <div className="end-time">
-                                                            <label>End Time</label>
-                                                            <input type="time" />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div className="form-footer">
-                                                    <button className="cancel-btn" onClick={handleCancel}>Cancel</button>
-                                                    <button className="save-btn">Save</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-            {/*add another day*/}
           </div>
         </div>
-        {/* <div className="trip-map">
+      </div>
+      return (
+      <div className="new-trip-container">
+        <div className="city-name-container">
+          <img src={newtrippic} alt="City" className="city-image" />
+          <div className="title-overlay">
+            <h2>Trip to <span className="destination-name">{city?.name}</span></h2>
+            <div className="date-time">
+              <FontAwesomeIcon icon={faCalendarDay} className="date-icon" />
+              <span className="date-text">{startDate} - {endDate}</span>
+            </div>
+          </div>
+        </div>
+        <div className="trip-details">
+          <div className="trip-info">
+            <div className="trip-itinerary">
+              <h2 className="trip-itinerary-title">Itinerary</h2>
+              <div className="trip-day">
+                <div className="trip-day-header">
+                  <h4>{startDate}</h4>
+                </div>
+                <div className="trip-day-content">
+                  <div className="trip-timeline">
+                    {itineraryData.map((item, index) => (
+                      <div key={index} className="location-details">
+                        <div className="time">{item.arrival_time}</div>
+                        <div className="timeline-line"></div>
+                        <div className="location-card">
+                          <img
+                            src={item.image_url[0] || 'fallback.jpg'} // fallback nếu ảnh lỗi
+                            alt={item.name}
+                            className="location-img"
+                          />
+                          <div className="location-info">
+                            <div className="location-title">{item.name}</div>
+                            <div className="item-rating">
+                              <span className="rating-dots">🟢🟢🟢🟢</span>
+                              <span className="rating-number">{item.rating_total}</span>
+                            </div>
+                            <div className="location-type">
+                              <FontAwesomeIcon icon={faMountainSun} className="location-type-icon" />
+                              {item.type}
+                            </div>
+                          </div>
+                          <div className="location-menu">⋯</div>
+                        </div>
+                      </div>
+                    ))}
+                    <div className="add-location">
+                      <button className="add-location-btn" onClick={handleAddLocation}>+ Add</button>
+                      <div className="add-location-form">
+                        <div className={`form-container ${addLocation ? 'show' : ''}`}>
+                          <div className="form-header">
+                            <h4>Add location</h4>
+                          </div>
+                          <div className="form-body">
+                            <div className="form-search-group">
+                              <div className="search-box">
+                                <Autocomplete
+                                  options={cityAttraction}
+                                  getOptionLabel={(option) => option.name}
+                                  renderInput={(params) => <TextField {...params} label="Search for location..." />}
+                                  sx={{ width: '100%' }}
+                                />
+                              </div>
+                              <button className="search-btn">Search</button>
+                            </div>
+                            <div className="form-time-group">
+                              <div className="start-time">
+                                <label>Start Time</label>
+                                <input type="time" />
+                              </div>
+                              <div className="end-time">
+                                <label>End Time</label>
+                                <input type="time" />
+                              </div>
+                            </div>
+                          </div>
+                          <div className="form-footer">
+                            <button className="cancel-btn" onClick={handleCancel}>Cancel</button>
+                            <button className="save-btn">Save</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/*add another day*/}
+            </div>
+          </div>
+          {/* <div className="trip-map">
                     <MapComponent />
                 </div> */}
+        </div>
       </div>
+      );
     </div>
-  );
+  )
 }
 
 export default NewTrip;
