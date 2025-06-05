@@ -15,6 +15,8 @@ import BASE_URL from "../../constants/BASE_URL";
 import axios from "axios";
 import { Autocomplete, selectClasses, TextField } from '@mui/material';
 import { useAuth } from "../../contexts/AuthContext";
+import { FaPen } from "react-icons/fa";
+import { FaXmark } from "react-icons/fa6"; // FontAwesome icons for delete
 function NewTrip() {
   const location = useLocation();
   const {
@@ -295,7 +297,8 @@ function NewTrip() {
                                 {item.type}
                               </div>
                             </div>
-                            <div className="location-menu">⋯</div>
+                            <div className="delete-location"><FaXmark className="delete-icon" /></div>
+                            <div className="edit-location"><FaPen className="edit-icon" /></div>
                           </div>
                         </div>
                       ))}
