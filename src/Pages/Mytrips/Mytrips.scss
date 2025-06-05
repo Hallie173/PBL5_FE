@@ -1,4 +1,6 @@
 // Biến màu
+$primary-color: rgb(45, 122, 97);
+$secondary-color: #1f5b4a;
 $border-color: #ccc;
 $hover-bg: rgba(0, 0, 0, 0.05);
 $badge-bg: black;
@@ -6,7 +8,7 @@ $badge-text: white;
 
 .my-trips-container {
     padding: 20px;
-    max-width: 800px;
+    width: 100%;
     margin: auto;
 
     .my-trips {
@@ -23,19 +25,20 @@ $badge-text: white;
         display: flex;
         flex-direction: column;
         gap: 10px;
-        margin-bottom: 20px;
-        width: 100%;
+        margin: 20px auto;
+        width: 30%;
 
-        .create-trip,
-        .ai-trip {
+        .create-trip {
             min-height: 60px;
             flex: 1;
+            gap: 10px;
             padding: 15px;
             border: 1.5px solid $border-color;
             border-radius: 10px;
             cursor: pointer;
             font-weight: bold;
-            background-color: transparent;
+            background: transparent;
+
             display: flex;
             align-items: center;
             justify-content: center;
@@ -48,12 +51,54 @@ $badge-text: white;
         }
     }
 
-    .upcoming-trip-title,
-    .completed-trip-title {
-        font-size: 20px;
-        font-weight: bold;
-        margin: 20px 0 20px 0;
+    .trip-list {
+        width: 80%;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        gap: 100px;
+
+        .upcoming-trip {
+            width: 50%;
+
+            .upcoming-trip-title {
+                font-size: 20px;
+                font-weight: bold;
+                margin: 20px 0 20px 0;
+            }
+
+            .trip-content {
+                height: 140px;
+
+                h4 {
+                    font-size: 18px;
+                    font-weight: bold;
+                }
+            }
+        }
+
+        .completed-trip {
+            width: 35%;
+
+            .completed-trip-title {
+                font-size: 20px;
+                font-weight: bold;
+                margin: 20px 0 20px 0;
+            }
+
+            .trip-content {
+                height: 100px;
+
+                h4 {
+                    font-size: 15px;
+                    font-weight: bold;
+                }
+            }
+        }
     }
+
+
 
     .trip-content {
         display: flex;
@@ -61,9 +106,8 @@ $badge-text: white;
         border: 1px solid #ddd;
         border-radius: 10px;
         overflow: hidden;
-        margin-bottom: 15px;
+        margin-bottom: 20px;
         width: 100%;
-        height: 140px;
 
         .trip-image {
             height: 100%;
@@ -77,11 +121,6 @@ $badge-text: white;
             flex-direction: column;
             justify-content: center;
             text-align: left;
-
-            h4 {
-                font-size: 18px;
-                font-weight: bold;
-            }
         }
 
         .trip-badge {
