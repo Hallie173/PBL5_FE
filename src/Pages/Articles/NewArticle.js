@@ -94,9 +94,6 @@ function NewArticle() {
       alert("Vui lòng nhập tiêu đề và nội dung trước khi xuất bản.");
       return;
     }
-    console.log("Publishing article...");
-    console.log("Title:", title);
-    console.log("Content:", content);
     alert("Bài viết đã được đăng! (Kiểm tra console log)");
   };
 

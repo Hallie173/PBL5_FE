@@ -1,22 +1,22 @@
 // Variables
-$primary-color: #0077cc;
-$primary-light: #e1f0ff;
-$gray-100: #f8f8f8;
-$gray-200: #f0f0f0;
-$gray-300: #e0e0e0;
-$gray-400: #ddd;
-$gray-500: #aaa;
-$gray-600: #888;
-$gray-700: #777;
-$gray-800: #666;
-$gray-900: #555;
-$dark: #333;
+$primary-color: #4a90e2;
+$primary-light: #d6e4ff;
+$gray-100: #fafafa;
+$gray-200: #f5f5f5;
+$gray-300: #e5e5e5;
+$gray-400: #cccccc;
+$gray-500: #999999;
+$gray-600: #777777;
+$gray-700: #555555;
+$gray-800: #444444;
+$gray-900: #222222;
+$dark: #222222;
 $error: #e74c3c;
-$border-radius-sm: 8px;
-$border-radius-md: 12px;
-$border-radius-lg: 20px;
-$box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-$transition: all 0.2s;
+$border-radius-sm: 12px;
+$border-radius-md: 20px;
+$border-radius-lg: 30px;
+$box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+$transition: all 0.3s ease;
 
 // Mixins
 @mixin flex-center {
@@ -40,7 +40,7 @@ $transition: all 0.2s;
 @mixin focus-state {
   outline: none;
   border-color: $primary-color;
-  box-shadow: 0 0 0 2px rgba($primary-color, 0.2);
+  box-shadow: 0 0 0 3px rgba($primary-color, 0.3);
 }
 
 // Animations
@@ -56,7 +56,7 @@ $transition: all 0.2s;
 @keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(30px);
   }
   to {
     opacity: 1;
@@ -64,7 +64,6 @@ $transition: all 0.2s;
   }
 }
 
-// Modal Base
 .edit-modal {
   &-overlay {
     position: fixed;
@@ -72,24 +71,25 @@ $transition: all 0.2s;
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(255, 255, 255, 0.85);
     @include flex-center;
-    z-index: 1000;
-    backdrop-filter: blur(3px);
-    animation: fadeIn 0.2s ease-out;
+    z-index: 1100;
+    backdrop-filter: blur(4px);
+    /* Removed fadeIn animation for simpler effect */
   }
 
   &-container {
     background-color: #fff;
     border-radius: $border-radius-md;
-    box-shadow: $box-shadow;
+    /* Reduced box-shadow intensity */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     width: 90%;
-    max-width: 550px;
-    max-height: 90vh;
+    max-width: 560px;
+    max-height: 85vh;
     overflow-y: auto;
     position: relative;
     padding: 0;
-    animation: slideUp 0.3s ease-out;
+    /* Removed slideUp animation for simpler effect */
 
     &:focus {
       outline: none;
@@ -103,77 +103,75 @@ $transition: all 0.2s;
 
     h2 {
       margin: 0;
-      font-size: 1.25rem;
-      font-weight: 600;
+      font-size: 1.4rem;
+      font-weight: 700;
       color: $dark;
     }
   }
 
   &-tabs {
     display: flex;
-    border-bottom: 1px solid $gray-300;
-    background-color: $gray-100;
+    border-bottom: none;
+    background-color: transparent;
+    padding: 0 24px;
+    gap: 10px;
   }
 }
 
-// Buttons
 .close-modal-btn {
   background: none;
   border: none;
-  font-size: 1.25rem;
-  color: $gray-800;
+  font-size: 1.4rem;
+  color: $gray-700;
   cursor: pointer;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   @include flex-center;
   transition: $transition;
 
-  &:hover {
-    background-color: $gray-200;
-    color: $dark;
+  &:hover,
+  &:focus {
+    background-color: $primary-light;
+    color: $primary-color;
+    outline: none;
   }
 }
 
 .tab-btn {
-  flex: 1;
+  flex: none;
   background: none;
   border: none;
-  padding: 16px 12px;
-  font-size: 0.9rem;
-  color: $gray-800;
+  padding: 10px 20px;
+  font-size: 0.95rem;
+  color: $gray-700;
   cursor: pointer;
   position: relative;
-  transition: $transition;
+  transition: background-color 0.2s ease, color 0.2s ease;
   @include flex-center;
   gap: 8px;
+  border-radius: $border-radius-lg;
 
   .tab-icon {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
   }
 
-  &:hover {
-    background-color: $gray-200;
-    color: $dark;
+  &:hover,
+  &:focus {
+    background-color: $primary-light;
+    color: $primary-color;
+    outline: none;
   }
 
   &.active {
-    color: $primary-color;
-    font-weight: 600;
-
-    &::after {
-      content: "";
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 3px;
-      background-color: $primary-color;
-    }
+    background-color: $primary-color;
+    color: white;
+    font-weight: 700;
+    /* Reduced box-shadow intensity */
+    box-shadow: 0 2px 8px rgba($primary-color, 0.3);
   }
 }
 
-// Form
 .edit-form {
   padding: 0;
 }
@@ -189,24 +187,31 @@ $transition: all 0.2s;
     label {
       display: block;
       margin-bottom: 8px;
-      font-size: 0.9rem;
-      font-weight: 500;
+      font-size: 0.95rem;
+      font-weight: 600;
       color: $gray-900;
       @include flex-gap(8px);
 
       .field-icon {
-        color: $gray-700;
+        color: $gray-600;
       }
     }
 
-    input,
-    textarea {
+    select {
       width: 100%;
-      padding: 12px 14px;
-      border: 1px solid $gray-400;
-      border-radius: $border-radius-sm;
+      padding: 14px 18px;
+      border: 1px solid $gray-300;
+      border-radius: $border-radius-md;
       font-size: 0.95rem;
-      transition: border 0.2s;
+      transition: border 0.2s, box-shadow 0.2s;
+      background-color: white;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2210%22%20height%3D%227%22%20viewBox%3D%220%200%2010%207%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M0%200l5%207%205-7H0z%22%20fill%3D%22%23777777%22/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      background-size: 10px 7px;
 
       &:focus {
         @include focus-state;
@@ -216,7 +221,33 @@ $transition: all 0.2s;
         border-color: $error;
 
         &:focus {
-          box-shadow: 0 0 0 2px rgba($error, 0.2);
+          box-shadow: 0 0 0 3px rgba($error, 0.3);
+        }
+      }
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      padding: 14px 18px;
+      border: 1px solid $gray-300;
+      border-radius: $border-radius-md;
+      font-size: 0.95rem;
+      transition: border 0.2s, box-shadow 0.2s;
+
+      &::placeholder {
+        color: $gray-400;
+      }
+
+      &:focus {
+        @include focus-state;
+      }
+
+      &.input-error {
+        border-color: $error;
+
+        &:focus {
+          box-shadow: 0 0 0 3px rgba($error, 0.3);
         }
       }
     }
@@ -235,7 +266,7 @@ $transition: all 0.2s;
 
     .field-hint {
       font-size: 0.8rem;
-      color: $gray-700;
+      color: $gray-600;
       margin-top: 6px;
       @include flex-gap(6px);
     }
@@ -255,15 +286,15 @@ $transition: all 0.2s;
     border-top: 1px solid $gray-300;
 
     button {
-      padding: 10px 20px;
-      border-radius: $border-radius-sm;
-      font-size: 0.9rem;
-      font-weight: 500;
+      padding: 10px 24px;
+      border-radius: $border-radius-md;
+      font-size: 0.95rem;
+      font-weight: 600;
       cursor: pointer;
-      transition: $transition;
+      transition: background-color 0.2s ease, color 0.2s ease;
 
       &:disabled {
-        opacity: 0.7;
+        opacity: 0.6;
         cursor: not-allowed;
       }
     }
@@ -280,15 +311,20 @@ $transition: all 0.2s;
     display: flex;
     flex-direction: column;
     align-items: center;
-
     .avatar-preview {
-      width: 100px;
-      height: 100px;
+      width: 110px;
+      height: 110px;
       border-radius: 50%;
       object-fit: cover;
       border: 3px solid #fff;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      margin-bottom: 12px;
+      box-shadow: 0 3px 10px rgba(74, 144, 226, 0.4);
+      margin-bottom: 14px;
+      transition: box-shadow 0.2s ease;
+    }
+
+    .avatar-preview:hover {
+      /* Removed hover shadow effect for cleaner look */
+      box-shadow: 0 3px 10px rgba(74, 144, 226, 0.4);
     }
 
     .avatar-actions {
@@ -299,7 +335,7 @@ $transition: all 0.2s;
     .loading-overlay {
       @include flex-gap(6px);
       justify-content: center;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
 
     .upload-error {
@@ -311,30 +347,38 @@ $transition: all 0.2s;
   }
 }
 
-// Buttons
 .change-avatar-btn {
-  background-color: $gray-200;
+  background-color: $primary-color;
   border: none;
-  padding: 8px 16px;
+  padding: 8px 20px;
   border-radius: $border-radius-lg;
-  font-size: 0.85rem;
-  color: $gray-900;
+  font-size: 0.9rem;
+  color: white;
   cursor: pointer;
   @include flex-gap(6px);
-  transition: $transition;
+  transition: background-color 0.2s ease, color 0.2s ease;
 
-  &:hover {
-    background-color: $gray-300;
+  &:hover,
+  &:focus {
+    background-color: darken($color: $primary-color, $amount: 7%);
+    outline: none;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 }
 
 .cancel-btn {
   background-color: transparent;
   border: 1px solid $gray-400;
-  color: $gray-900;
+  color: $gray-800;
 
-  &:hover:not(:disabled) {
+  &:hover:not(:disabled),
+  &:focus:not(:disabled) {
     background-color: $gray-200;
+    outline: none;
   }
 }
 
@@ -343,44 +387,49 @@ $transition: all 0.2s;
   border: none;
   color: white;
 
-  &:hover:not(:disabled) {
-    background-color: darken($primary-color, 5%);
+  &:hover:not(:disabled),
+  &:focus:not(:disabled) {
+    background-color: darken($color: $primary-color, $amount: 7%);
+    outline: none;
   }
 }
 
-// Preferences
 .preferences {
   &-container {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 12px;
+    gap: 12px;
+    margin-top: 14px;
   }
 
   &-label {
-    font-weight: 600 !important;
+    font-weight: 700 !important;
     color: $dark !important;
   }
 }
 
 .preference-tag {
   background-color: $gray-200;
-  border: 1px solid $gray-400;
+  border: 1px solid $gray-300;
   border-radius: $border-radius-lg;
-  padding: 8px 14px;
+  padding: 8px 16px;
   font-size: 0.85rem;
   cursor: pointer;
-  transition: $transition;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
   @include flex-gap(6px);
 
-  &:hover {
+  &:hover,
+  &:focus {
     background-color: $gray-300;
+    outline: none;
   }
 
   &.selected {
     background-color: $primary-light;
     border-color: $primary-color;
     color: $primary-color;
+    /* Reduced box-shadow intensity */
+    box-shadow: 0 2px 8px rgba($primary-color, 0.3);
   }
 
   &:disabled {
@@ -389,7 +438,7 @@ $transition: all 0.2s;
   }
 
   .check-icon {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
   }
 }
 
@@ -400,7 +449,6 @@ $transition: all 0.2s;
   text-align: right;
 }
 
-// Responsive
 @media (max-width: 480px) {
   .edit-modal-container {
     width: 100%;
@@ -412,11 +460,11 @@ $transition: all 0.2s;
 
   .form-tab-content,
   .form-actions {
-    padding: 16px;
+    padding: 14px 16px;
   }
 
   .tab-btn {
-    font-size: 0.8rem;
-    padding: 12px 8px;
+    font-size: 0.9rem;
+    padding: 12px 10px;
   }
 }

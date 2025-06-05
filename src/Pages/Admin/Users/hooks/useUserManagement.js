@@ -69,7 +69,6 @@ export const useUserManagement = () => {
   // Remove avatar preview
   const handleRemoveAvatar = () => {
     setAvatarPreview(null);
-    console.log("Avatar removed: ", avatarPreview);
 
     if (fileInputRef.current) {
       fileInputRef.current.value = "";

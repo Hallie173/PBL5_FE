@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import DatePicker from "react-datepicker"; // Date picker for selecting dates
+// import DatePicker from "react-datepicker"; // Date picker for selecting dates
 import "./NewTrip.scss"; // Main styles for the new trip page
 import newtrippic from "../../assets/images/Cities/goldenbridge.png";
 import marblemountains from "../../assets/images/Cities/marblemountains.png";

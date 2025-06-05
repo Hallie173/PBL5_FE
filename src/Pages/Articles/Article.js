@@ -18,13 +18,10 @@ const Article = () => {
                 const articleRespone = await axios.get(`${BASE_URL}/articles/${articleId}`);
                 const articleData = articleRespone.data; // Dữ liệu nằm trong data.data theo controller
                 setArticle(articleData);
-                  console.log(article);
-                  console.log(article.user_id);
                 const authorRespone = await axios.get(`${BASE_URL}/users/${article.user_id}`);
                 const authorData = authorRespone.data;
                 setAuthor(authorData);
 
-                console.log(author);
             } catch (error) {
             } finally {
             }
