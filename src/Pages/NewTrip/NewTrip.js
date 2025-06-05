@@ -371,10 +371,6 @@ function NewTrip() {
                             </div>
                             <button className="search-btn">Search</button>
                           </div>
-                          <div className="form-title-group">
-                            <input type="text" placeholder="Title" />
-                            <input type="text" placeholder="Description" />
-                          </div>
                           <div className="form-time-group">
                             <div className="start-time">
                               <label>Start Time</label>

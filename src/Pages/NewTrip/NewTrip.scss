@@ -387,30 +387,6 @@ $hover-color: #81c784;
                       }
                     }
 
-                    .form-title-group {
-                      display: flex;
-                      flex-direction: column;
-                      gap: 10px;
-                      width: 100%;
-
-                      input {
-                        width: 100%;
-                        padding: 15px;
-                        margin-top: 10px;
-                        border: 1px solid $border-color;
-                        border-radius: 12px;
-                        font-size: 16px;
-                        background: white;
-                        transition: all 0.3s ease;
-
-                        &:focus {
-                          border-color: $primary-color;
-                          outline: none;
-                          box-shadow: 0 0 0 3px rgba(45, 122, 97, 0.15);
-                        }
-                      }
-                    }
-
                     .form-time-group {
                       display: flex;
                       flex-direction: row;

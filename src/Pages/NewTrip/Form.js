@@ -9,6 +9,7 @@ import {
   FaTags,
   FaSearchLocation,
   FaCheck,
+  FaPen
 } from "react-icons/fa";
 
 const Form = () => {
@@ -82,6 +83,14 @@ const Form = () => {
       </div>
 
       <div className="form-body">
+        <div className="form-section title-section">
+          <div className="section-header">
+            <FaPen className="section-icon" />
+            <h2>Name Your Trip</h2>
+          </div>
+          <input type="text" placeholder="Title" />
+          <input type="text" placeholder="Description" />
+        </div>
         <div className="form-section destination-section">
           <div className="section-header">
             <FaCity className="section-icon" />
@@ -162,11 +171,11 @@ const Form = () => {
                         <div
                           key={tag}
                           className={`tag ${(type === "Restaurant"
-                              ? selectedResTags
-                              : selectedTags
-                            ).includes(tag)
-                              ? "selected"
-                              : ""
+                            ? selectedResTags
+                            : selectedTags
+                          ).includes(tag)
+                            ? "selected"
+                            : ""
                             }`}
                           onClick={() => toggleTag(tag, type)}
                         >
@@ -194,7 +203,7 @@ const Form = () => {
           to="/tripguide/newtrip"
           className="continue-button"
           state={{
-            mode:'create',
+            mode: 'create',
             selectedTags,
             startDate,
             endDate,
