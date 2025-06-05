@@ -34,11 +34,13 @@ import OpenStreetMap from "../components/OpenStreetMap/OpenStreetMap";
 import SavedPlaces from "../Pages/SavedPlaces/SavedPlaces";
 import AttractionList from "../Pages/AttractionList/AttractionList";
 import RestaurantList from "../Pages/RestaurantList/RestaurantList";
+import ScrollToTop from "../components/ScrollToTop/ScrollToTop";
 
 function App() {
   return (
     <div className="App">
       <Router>
+        <ScrollToTop />
         <AuthProvider>
           <Routes
             future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
