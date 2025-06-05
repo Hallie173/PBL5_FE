@@ -40,9 +40,9 @@ const MyTrips = () => {
 
             <div className="trip-list">
                 <div className="upcoming-trip">
-                    <h3 className="upcoming-trip-title">Upcoming trips</h3>
+                    <h3 className="upcoming-trip-title">upcoming trips</h3>
                     {notfinishItinerary.length === 0 ? (
-                        <p>Không có lịch trình sắp tới.</p>
+                        <p>You dont have any upcoming trips.</p>
                     ) : (
                         finishItinerary.map((trip) => (
                             <Link
@@ -51,7 +51,7 @@ const MyTrips = () => {
                                 className="trip-content"
                             >
                                 <img
-                                    src={trip.image_url?.[0] || "fallback.jpg"} // fallback nếu không có ảnh
+                                    src={trip.image_url || "fallback.jpg"} // fallback nếu không có ảnh
                                     alt={trip.title}
                                     className="trip-image"
                                 />
@@ -63,7 +63,7 @@ const MyTrips = () => {
                                             day: "numeric",
                                             year: "numeric",
                                         })}{" "}
-                                        📍 {trip.location || "Unknown location"}
+                                        📍 {trip.city_name || "Unknown location"}
                                     </p>
                                 </div>
                             </Link>
@@ -72,9 +72,9 @@ const MyTrips = () => {
                 </div>
 
                 <div className="upcoming-trip">
-                    <h3 className="upcoming-trip-title">Upcoming trips</h3>
+                    <h3 className="upcoming-trip-title">Completed trips</h3>
                     {finishItinerary.length === 0 ? (
-                        <p>Không có lịch trình sắp tới.</p>
+                        <p>You don't have any completed trips.</p>
                     ) : (
                         finishItinerary.map((trip) => (
                             <Link
@@ -83,7 +83,7 @@ const MyTrips = () => {
                                 className="trip-content"
                             >
                                 <img
-                                    src={trip.image_url?.[0] || "fallback.jpg"} // fallback nếu không có ảnh
+                                    src={trip.image_url || "fallback.jpg"} // fallback nếu không có ảnh
                                     alt={trip.title}
                                     className="trip-image"
                                 />
@@ -95,7 +95,7 @@ const MyTrips = () => {
                                             day: "numeric",
                                             year: "numeric",
                                         })}{" "}
-                                        📍 {trip.location || "Unknown location"}
+                                        📍 {trip.city_name || "Unknown location"}
                                     </p>
                                 </div>
                             </Link>

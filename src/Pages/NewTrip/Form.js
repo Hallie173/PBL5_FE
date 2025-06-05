@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./Form.scss";
-import { Link } from "react-router-dom";
+import { Link, useAsyncError } from "react-router-dom";
 import BASE_URL from "../../constants/BASE_URL";
 import axios from "axios";
 import {
@@ -27,6 +27,8 @@ const Form = () => {
     Other: [],
     Restaurant: [],
   });
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [activeTab, setActiveTab] = useState("Attractions");
   const [tagSearch, setTagSearch] = useState("");
   const [loading, setLoading] = useState(false);
@@ -88,8 +90,8 @@ const Form = () => {
             <FaPen className="section-icon" />
             <h2>Name Your Trip</h2>
           </div>
-          <input type="text" placeholder="Title" />
-          <input type="text" placeholder="Description" />
+          <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" />
+          <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description" />
         </div>
         <div className="form-section destination-section">
           <div className="section-header">
@@ -209,6 +211,8 @@ const Form = () => {
             endDate,
             selectedCity,
             selectedResTags,
+            title,
+            description
           }}
         >
           Continue Planning <FaCheck />

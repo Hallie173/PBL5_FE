@@ -24,6 +24,8 @@ function NewTrip() {
     selectedCity = "",
     selectedResTags = "",
     mode = "",
+    title = "",
+    description = "",
     itinerary_id = -1,
   } = location.state || {};
   const [loading, setLoading] = useState(true);
@@ -85,21 +87,25 @@ function NewTrip() {
     }
     if (mode == 'create') {
       try {
-        const title = 'Trip to ' + city?.name;
+        
 
-        const response = await axios.post('http://localhost:8081/itinerary/', {
+        const response = await axios.post(`${BASE_URL}/itinerary/`, {
           title: title,
-          description: 'A 3-day trip exploring Da Nang',
+          description: description,
           start_date: startDate,
           end_date: endDate,
           status: 'private',
           user_id: user?.user_id,
+          city_name: city?.name,
+          image_url: city?.image_url[0]
         });
 
         const newItinerary = response.data;
         const newItineraryId = newItinerary.itinerary_id;
 
         alert('Lưu đc r');
+        mode = 'edit';
+        console.log(mode);
       } catch (error) {
         console.error('Err:', error);
         alert('Lưu thất bại');
@@ -234,7 +240,7 @@ function NewTrip() {
         <img src={newtrippic} alt="City" className="city-image" />
         <div className="title-overlay">
           <h2>
-            Trip to {city?.name}<span className="destination-name"></span>
+            {title}<span className="destination-name"></span>
           </h2>
           <div className="date-time">
             <FontAwesomeIcon icon={faCalendarDay} className="date-icon" />
