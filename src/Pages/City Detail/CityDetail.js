@@ -5,7 +5,6 @@ import LocationCard from "../../components/LocationCard/LocationCard";
 import {
   ChevronLeft,
   ChevronRight,
-  Star,
   MapPin,
   Utensils,
   Calendar,
@@ -22,8 +21,7 @@ import {
   Skeleton,
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { Place } from "@mui/icons-material";
-import { parse } from "date-fns";
+
 
 // Theme configuration
 const theme = createTheme({
@@ -251,7 +249,6 @@ const CityDetail = () => {
     renderStars,
     setCurrentIndex,
   } = useCityDetail(cityId);
-  // console.log(placesToVisit);
 
   const [saved, setSaved] = useState(false);
 

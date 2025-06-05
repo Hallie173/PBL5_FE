@@ -17,6 +17,7 @@ import {
   faSpinner,
 } from "@fortawesome/free-solid-svg-icons";
 import "./ProfileEditModal.scss";
+import BASE_URL from "../../constants/BASE_URL";
 
 const validationSchema = Yup.object({
   full_name: Yup.string()
@@ -66,6 +67,8 @@ function ProfileEditModal({
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadError, setUploadError] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const [cities, setCities] = useState([]);
+  const [tags, setTags] = useState([]);
   const fileInputRef = useRef(null);
   const modalRef = useRef(null);
 
@@ -85,6 +88,40 @@ function ProfileEditModal({
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
   }, [onClose]);
+
+  useEffect(() => {
+    if (isOpen) {
+      // Fetch cities
+      fetch(`${BASE_URL}/cities`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (Array.isArray(data)) {
+            setCities(data);
+          } else if (data && Array.isArray(data.cities)) {
+            setCities(data.cities);
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to fetch cities:", err);
+          setCities([]);
+        });
+
+      // Fetch tags
+      fetch(`${BASE_URL}/api/tags/attractions`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (Array.isArray(data)) {
+            setTags(data);
+          } else if (data && Array.isArray(data.tags)) {
+            setTags(data.tags);
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to fetch tags:", err);
+          setTags([]);
+        });
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen && modalRef.current) {
@@ -163,7 +200,6 @@ function ProfileEditModal({
           const response = await onAvatarUpload(selectedFile);
           if (response && response.avatarUrl) {
             finalAvatarUrl = response.avatarUrl;
-            // console.log("Avatar uploaded, URL:", finalAvatarUrl);
           } else {
             throw new Error("Invalid avatar upload response");
           }
@@ -181,7 +217,6 @@ function ProfileEditModal({
           avatar_url: finalAvatarUrl,
         };
 
-        // console.log("Submitting profile data:", updatedUserData);
         await onSave(updatedUserData);
         onClose();
       } catch (error) {
@@ -211,17 +246,24 @@ function ProfileEditModal({
             className="close-modal-btn"
             onClick={onClose}
             aria-label="Close modal"
+            type="button"
           >
             <FontAwesomeIcon icon={faXmark} />
           </button>
         </div>
 
-        <div className="edit-modal-tabs">
+        <div
+          className="edit-modal-tabs"
+          role="tablist"
+          aria-label="Profile edit tabs"
+        >
           <button
             className={`tab-btn ${activeTab === "basic" ? "active" : ""}`}
             onClick={() => setActiveTab("basic")}
             aria-selected={activeTab === "basic"}
             role="tab"
+            type="button"
+            tabIndex={activeTab === "basic" ? 0 : -1}
           >
             <FontAwesomeIcon icon={faUser} className="tab-icon" />
             Basic Info
@@ -231,6 +273,8 @@ function ProfileEditModal({
             onClick={() => setActiveTab("bio")}
             aria-selected={activeTab === "bio"}
             role="tab"
+            type="button"
+            tabIndex={activeTab === "bio" ? 0 : -1}
           >
             <FontAwesomeIcon icon={faPen} className="tab-icon" />
             Bio & Details
@@ -240,6 +284,8 @@ function ProfileEditModal({
             onClick={() => setActiveTab("preferences")}
             aria-selected={activeTab === "preferences"}
             role="tab"
+            type="button"
+            tabIndex={activeTab === "preferences" ? 0 : -1}
           >
             <FontAwesomeIcon icon={faMapMarkerAlt} className="tab-icon" />
             Travel Preferences
@@ -289,7 +335,7 @@ function ProfileEditModal({
                         />
                       </div>
                       {uploadError && (
-                        <div className="upload-error">
+                        <div className="upload-error" role="alert">
                           <FontAwesomeIcon icon={faTimesCircle} /> {uploadError}
                         </div>
                       )}
@@ -313,7 +359,7 @@ function ProfileEditModal({
                           : ""
                       }
                     />
-                    <div className="char-count">
+                    <div className="char-count" aria-live="polite">
                       {values.full_name.length}/30
                     </div>
                     <ErrorMessage
@@ -338,7 +384,7 @@ function ProfileEditModal({
                         errors.username && touched.username ? "input-error" : ""
                       }
                     />
-                    <div className="char-count">
+                    <div className="char-count" aria-live="polite">
                       {values.username.length}/20
                     </div>
                     <div className="field-hint">
@@ -365,17 +411,22 @@ function ProfileEditModal({
                       Current City
                     </label>
                     <Field
-                      type="text"
+                      as="select"
                       id="currentCity"
                       name="currentCity"
-                      placeholder="Where are you based?"
-                      maxLength="50"
                       className={
                         errors.currentCity && touched.currentCity
                           ? "input-error"
                           : ""
                       }
-                    />
+                    >
+                      <option value="">Select your city</option>
+                      {cities.map((city) => (
+                        <option key={city.city_id} value={city.name}>
+                          {city.name}
+                        </option>
+                      ))}
+                    </Field>
                     <ErrorMessage
                       name="currentCity"
                       component="div"
@@ -424,7 +475,9 @@ function ProfileEditModal({
                         errors.about && touched.about ? "input-error" : ""
                       }
                     />
-                    <div className="char-count">{values.about.length}/250</div>
+                    <div className="char-count" aria-live="polite">
+                      {values.about.length}/250
+                    </div>
                     <ErrorMessage
                       name="about"
                       component="div"
@@ -451,32 +504,29 @@ function ProfileEditModal({
                     </div>
 
                     <div className="preferences-container">
-                      {POPULAR_DESTINATIONS.map((destination) => (
+                      {tags.map((tag) => (
                         <button
-                          key={destination}
+                          key={tag}
                           type="button"
                           className={`preference-tag ${
-                            values.location_preferences.includes(destination)
+                            values.location_preferences.includes(tag)
                               ? "selected"
                               : ""
                           }`}
                           onClick={() =>
                             handleLocationPreferenceToggle(
-                              destination,
+                              tag,
                               setFieldValue,
                               values
                             )
                           }
                           disabled={
-                            !values.location_preferences.includes(
-                              destination
-                            ) && values.location_preferences.length >= 5
+                            !values.location_preferences.includes(tag) &&
+                            values.location_preferences.length >= 5
                           }
                         >
-                          {destination}
-                          {values.location_preferences.includes(
-                            destination
-                          ) && (
+                          {tag}
+                          {values.location_preferences.includes(tag) && (
                             <FontAwesomeIcon
                               icon={faCircleCheck}
                               className="check-icon"
@@ -486,7 +536,7 @@ function ProfileEditModal({
                       ))}
                     </div>
 
-                    <div className="selected-count">
+                    <div className="selected-count" aria-live="polite">
                       {values.location_preferences.length}/5 selected
                     </div>
                   </div>
