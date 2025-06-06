@@ -245,7 +245,23 @@ $hover-color: #81c784;
               box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 
               &::before {
+<<<<<<< HEAD
                 left: 100%;
+=======
+                content: "";
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(
+                  120deg,
+                  transparent,
+                  rgba(255, 255, 255, 0.3),
+                  transparent
+                );
+                transition: all 0.4s ease;
+>>>>>>> bcc7e9f81697bda1afe4382fc3c28afa3754255b
               }
             }
 

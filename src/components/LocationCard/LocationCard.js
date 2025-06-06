@@ -1,9 +1,8 @@
 import React, { useCallback } from "react";
 import PropTypes from "prop-types";
 import "./LocationCard.scss";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faHeart as solidHeart } from "@fortawesome/free-solid-svg-icons";
-import { faHeart as regularHeart } from "@fortawesome/free-regular-svg-icons";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import useFavorites from "../../hooks/useFavorites";
@@ -103,7 +102,7 @@ const LocationCard = ({ item, onClick, renderStars }) => {
           alt={name}
           loading="lazy"
           width={280}
-          height={210} // 4:3 aspect ratio (280 * 3 / 4)
+          height={210}
           onError={(e) => (e.target.src = "https://via.placeholder.com/150")}
         />
         <div className="save-overlay">
@@ -112,10 +111,11 @@ const LocationCard = ({ item, onClick, renderStars }) => {
             onClick={handleSaveClick}
             aria-label={isSaved ? "Remove from saved" : "Save to favorites"}
           >
-            <FontAwesomeIcon
-              icon={isSaved ? solidHeart : regularHeart}
-              className="heart-icon"
-            />
+            {isSaved ? (
+              <FavoriteIcon className="heart-icon" />
+            ) : (
+              <FavoriteBorderIcon className="heart-icon" />
+            )}
           </button>
         </div>
       </div>
@@ -131,7 +131,7 @@ const LocationCard = ({ item, onClick, renderStars }) => {
           </div>
         )}
         {tagList.length > 0 && (
-          <ul className="item-tags" role="list" aria-label="Location tags">
+          <ul className="item-tags" aria-label="Location tags">
             {displayedTags.map((tag, index) => (
               <li key={index} className="tag">
                 {tag}

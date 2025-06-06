@@ -7,9 +7,7 @@ import {
   FiChevronRight,
   FiGlobe,
   FiCalendar,
-  FiFileText,
   FiStar,
-  FiActivity,
   FiLogOut,
 } from "react-icons/fi";
 import { BiLandscape } from "react-icons/bi";

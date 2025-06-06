@@ -35,7 +35,8 @@ import SavedPlaces from "../Pages/SavedPlaces/SavedPlaces";
 import AttractionList from "../Pages/AttractionList/AttractionList";
 import RestaurantList from "../Pages/RestaurantList/RestaurantList";
 import ScrollToTop from "../components/ScrollToTop/ScrollToTop";
-
+import ProtectedRoute from "../components/ProtectedRoute/ProtectedRoute";
+import Unauthorized from "../components/Unauthorized/Unauthorized";
 function App() {
   return (
     <div className="App">
@@ -242,7 +243,14 @@ function App() {
               }
             />
             {/* Route admin */}
-            <Route path="/tripguide/admin" element={<AdminLayout />}>
+            <Route
+              path="/tripguide/admin"
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminLayout />
+                </ProtectedRoute>
+              }
+            >
               <Route index element={<Navigate to="dashboard" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="users" element={<Users />} />
@@ -250,6 +258,7 @@ function App() {
               <Route path="attractions" element={<Attractions />} />
               <Route path="restaurants" element={<Restaurants />} />
             </Route>
+            <Route path="/unauthorized" element={<Unauthorized />} />
           </Routes>
         </AuthProvider>
       </Router>
