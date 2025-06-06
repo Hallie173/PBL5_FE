@@ -207,9 +207,7 @@ function App() {
               path="/tripguide/map"
               element={
                 <>
-                  <Navbar />
-                  <OpenStreetMap />
-                  <Footer />
+                  <OpenStreetMap height="800px" width="100%" />
                 </>
               }
             />

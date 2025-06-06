@@ -12,11 +12,10 @@ import {
   faLocationDot,
   faGlobe,
 } from "@fortawesome/free-solid-svg-icons";
-import RecentTrips from "./RecentTrips";
-import RecentReviews from "./RecentReviews";
 import ProfileEditModal from "./ProfileEditModal";
 import formatDate from "../../utils/formatDate";
 import { toast } from "react-toastify";
+import TagsShowcase from "../../components/TagsShowcase/TagsShowcase";
 
 const DEFAULT_AVATAR = "https://i.imgur.com/MO4pS2K.jpeg";
 const DEFAULT_USER = {
@@ -31,10 +30,8 @@ function Profile() {
   const { user, isLoggedIn } = useAuth();
   const [showUploadBox, setShowUploadBox] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [activeTab, setActiveTab] = useState("trips");
   const [userData, setUserData] = useState(DEFAULT_USER);
   const [loading, setLoading] = useState(true);
-  // console.log(user);
 
   // Fetch user data from API
   const fetchUserData = useCallback(async () => {
@@ -160,11 +157,6 @@ function Profile() {
     setShowEditModal(true);
   };
 
-  // Handle tab change
-  const handleTabChange = (tab) => {
-    setActiveTab(tab);
-  };
-
   if (loading) {
     return <div className="profile-page loading">Loading profile...</div>;
   }
@@ -252,48 +244,8 @@ function Profile() {
                 )}
               </ul>
             </div>
-            <div className="advice-card">
-              <h3>Share your travel advice</h3>
-              <div className="advice-buttons">
-                <button className="advice-button">
-                  <FontAwesomeIcon icon={faPen} className="advice-icon" />
-                  Write review
-                </button>
-              </div>
-            </div>
           </aside>
-          <div className="profile-main">
-            <h3>User Details</h3>
-            <div className="user-info">
-              <div className="info-row">
-                <span className="info-label">Full Name:</span>
-                <span className="info-value">{user.full_name}</span>
-              </div>
-              <div className="info-row">
-                <span className="info-label">Username:</span>
-                <span className="info-value">{user.username}</span>
-              </div>
-              <div className="info-row">
-                <span className="info-label">Role:</span>
-                <span className="info-value">{user.role}</span>
-              </div>
-              <div className="info-row">
-                <span className="info-label">Email:</span>
-                <span className="info-value">{user.email}</span>
-              </div>
-              <div className="info-row">
-                <span className="info-label">Created At:</span>
-                <span className="info-value">{new Date(user.created_at).toLocaleString()}</span>
-              </div>
-              <div className="info-row">
-                <span className="info-label">Updated At:</span>
-                <span className="info-value">
-                  {user.updated_at ? new Date(user.updated_at).toLocaleString() : "N/A"}
-                </span>
-              </div>
-            </div>
-          </div>
-
+          <TagsShowcase />
         </div>
       </div>
       <hr className="section-divider" />
