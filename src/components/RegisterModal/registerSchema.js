@@ -5,7 +5,6 @@ export const registerSchema = yup.object().shape({
     .string()
     .required("Vui lòng nhập họ và tên")
     .min(2, "Họ và tên phải có ít nhất 2 ký tự"),
-
   username: yup
     .string()
     .required("Vui lòng nhập tên đăng nhập")
@@ -14,12 +13,10 @@ export const registerSchema = yup.object().shape({
       /^[a-zA-Z0-9_]+$/,
       "Tên đăng nhập chỉ được chứa chữ cái, số và dấu gạch dưới"
     ),
-
   email: yup
     .string()
     .required("Vui lòng nhập email")
     .email("Email không hợp lệ"),
-
   password: yup
     .string()
     .required("Vui lòng nhập mật khẩu")
@@ -28,19 +25,22 @@ export const registerSchema = yup.object().shape({
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/,
       "Mật khẩu phải chứa ít nhất một chữ hoa, một chữ thường và một số"
     ),
-
   confirmPassword: yup
     .string()
     .required("Vui lòng xác nhận mật khẩu")
     .oneOf([yup.ref("password")], "Mật khẩu xác nhận không khớp"),
+  currentCity: yup
+    .string()
+    .required("Vui lòng chọn thành phố hiện tại")
+    .min(2, "Tên thành phố không hợp lệ"),
 });
 
-// Giá trị khởi tạo cho form
 export const initialFormValues = {
   fullName: "",
   username: "",
   email: "",
   password: "",
   confirmPassword: "",
+  currentCity: "",
   agreeTerms: false,
 };

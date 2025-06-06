@@ -158,16 +158,10 @@ export default function AttractionReview() {
               >
                 <div className="mb-4 w-full overflow-hidden rounded-lg shadow-sm relative group">
                   <img
-                    src={
-                      locationData?.image_url ||
-                      "https://via.placeholder.com/300x200?text=No+Image"
-                    }
+                    src={locationData?.image_url || ""}
                     alt={locationData?.name || "Attraction"}
                     className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
-                    onError={(e) =>
-                      (e.target.src =
-                        "https://via.placeholder.com/300x200?text=Image+Error")
-                    }
+                    onError={(e) => (e.target.src = "")}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </div>
@@ -351,7 +345,7 @@ export default function AttractionReview() {
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     disabled={isSubmitting}
-                    maxLength={300}
+                    maxLength={700}
                   />
                   <div className="flex justify-between mt-1">
                     <div className="text-xs text-gray-500">
@@ -361,12 +355,12 @@ export default function AttractionReview() {
                       className="text-xs font-medium"
                       style={{
                         color:
-                          formik.values.review.length > 250
+                          formik.values.review.length > 950
                             ? "#f43f5e"
                             : "#6b7280",
                       }}
                     >
-                      {formik.values.review.length}/300
+                      {formik.values.review.length}/1000
                     </div>
                   </div>
                   <ErrorMessage name="review" formik={formik} />

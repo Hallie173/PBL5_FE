@@ -3,7 +3,6 @@ import BASE_URL from "../constants/BASE_URL";
 
 const API_URL = `${BASE_URL}/auth`;
 
-// Thiết lập Axios instance
 const apiClient = axios.create({
   baseURL: API_URL,
   headers: {
@@ -11,7 +10,6 @@ const apiClient = axios.create({
   },
 });
 
-// Interceptor thêm token vào header
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -23,7 +21,6 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Các hàm hỗ trợ
 const saveUserData = (data) => {
   if (!data?.user || !data.accessToken) {
     throw new Error("Invalid API response: Missing user or accessToken");
@@ -33,7 +30,7 @@ const saveUserData = (data) => {
     user_id: data.user.user_id,
     username: data.user.username || "unknown",
     email: data.user.email || "",
-    full_name: data.user.fullName || "",
+    full_name: data.user.fullName || "", // Map fullName to full_name for storage
     avatar_url: data.user.avatar || "",
     role: data.user.role || "user",
     created_at: data.user.joinedAt || new Date().toISOString(),
@@ -49,13 +46,12 @@ const saveUserData = (data) => {
   return userData;
 };
 
-// Xử lý lỗi API
 const handleApiError = (error, defaultMessage) => {
+  console.error("API Error:", error.response?.data); // Log for debugging
   const errorMessage = error.response?.data?.error || defaultMessage;
   throw new Error(errorMessage);
 };
 
-// Dịch vụ xác thực
 export const authService = {
   login: async (email, password) => {
     try {
@@ -131,11 +127,12 @@ export const authService = {
   register: async (userData) => {
     try {
       const response = await apiClient.post("/register", {
-        fullName: userData.full_name,
+        fullName: userData.fullName, // Changed to fullName
         username: userData.username,
         email: userData.email,
         password: userData.password,
         role: userData.role || "user",
+        bio: userData.bio || null,
       });
       return response.data;
     } catch (error) {

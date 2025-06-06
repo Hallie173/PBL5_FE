@@ -17,7 +17,7 @@ const baseValidationSchema = {
   review: Yup.string()
     .required("Please write your review")
     .min(20, "Your review is too short. Please provide more details.")
-    .max(300, "Your review must be less than 300 characters"),
+    .max(1000, "Your review must be less than 1000 characters"),
 };
 
 // Utility function to convert File to base64

@@ -152,16 +152,10 @@ const RestaurantHeader = memo(
   )
 );
 
-// Memoized RestaurantGallery Component
-const RestaurantGallery = memo(
-  ({
-    images,
-    activeImageIndex,
-    setActiveImageIndex,
-    isFullScreen,
-    setIsFullScreen,
-    restaurantName,
-  }) => {
+const RestaurantGallery = React.memo(
+  ({ images, activeImageIndex, setActiveImageIndex, restaurantName }) => {
+    const [isImageLoaded, setIsImageLoaded] = useState(false);
+
     const handlePrevImage = useCallback(() => {
       setActiveImageIndex((prev) =>
         prev === 0 ? images.length - 1 : prev - 1
@@ -175,157 +169,74 @@ const RestaurantGallery = memo(
     }, [images.length, setActiveImageIndex]);
 
     useEffect(() => {
-      if (images && images.length > 0) {
-        const preloadImage = (src) => {
-          const link = document.createElement("link");
-          link.rel = "preload";
-          link.as = "image";
-          link.href = src;
-          document.head.appendChild(link);
-          return link;
-        };
-
-        const currentLink = preloadImage(images[activeImageIndex]);
-        const nextIndex = (activeImageIndex + 1) % images.length;
-        const nextLink = preloadImage(images[nextIndex]);
-
-        return () => {
-          document.head.removeChild(currentLink);
-          document.head.removeChild(nextLink);
-        };
+      if (images.length > 1) {
+        const timer = setTimeout(() => {
+          handleNextImage();
+        }, 4000);
+        return () => clearTimeout(timer);
       }
-    }, [images, activeImageIndex]);
+    }, [activeImageIndex, handleNextImage, images.length]);
+
+    if (!images || images.length === 0) {
+      return (
+        <div className="restaurant-gallery no-images">
+          <FontAwesomeIcon icon={faImages} className="no-image-icon" />
+          <p>No images available</p>
+        </div>
+      );
+    }
+
     return (
-      <div className="restaurant-gallery">
-        {images && images.length > 0 ? (
-          <>
-            <div
-              className="main-image-container"
-              onClick={() => setIsFullScreen(true)}
-            >
-              <img
-                src={images[activeImageIndex]}
-                alt={`${restaurantName} - Image ${activeImageIndex + 1}`}
-                className="main-image"
-                srcSet={`${images[activeImageIndex]} 1x`}
-                sizes="100vw"
-              />
+      <div className="restaurant-gallery" aria-label="Image gallery">
+        <div
+          className="main-image-container"
+          role="button"
+          tabIndex={0}
+          aria-label="View images"
+        >
+          <img
+            src={images[activeImageIndex]}
+            alt={`${restaurantName || "Restaurant"} - Image ${
+              activeImageIndex + 1
+            }`}
+            className="main-image"
+            loading="lazy"
+            onLoad={() => setIsImageLoaded(true)}
+            style={{
+              opacity: isImageLoaded ? 1 : 0,
+              transition: "opacity 0.5s ease-in-out",
+            }}
+          />
+          {images.length > 1 && (
+            <>
               <div className="image-counter">
-                {activeImageIndex + 1} / {images.length}
+                {activeImageIndex + 1}/{images.length}
               </div>
-              <button
-                className="fullscreen-button"
-                aria-label="View image in fullscreen"
-              >
-                <FontAwesomeIcon icon={faExpand} />
-              </button>
               <div className="gallery-controls">
                 <button
                   className="gallery-nav prev"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handlePrevImage();
-                  }}
+                  onClick={handlePrevImage}
                   aria-label="Previous image"
                 >
                   ‹
                 </button>
                 <button
                   className="gallery-nav next"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleNextImage();
-                  }}
+                  onClick={handleNextImage}
                   aria-label="Next image"
                 >
                   ›
                 </button>
               </div>
-            </div>
-            {isFullScreen && (
-              <div
-                className="fullscreen-gallery"
-                onClick={() => setIsFullScreen(false)}
-              >
-                <img
-                  src={images[activeImageIndex]}
-                  alt={`${restaurantName} - Fullscreen Image ${
-                    activeImageIndex + 1
-                  }`}
-                  className="fullscreen-image"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Escape") setIsFullScreen(false);
-                    if (e.key === "ArrowLeft") handlePrevImage();
-                    if (e.key === "ArrowRight") handleNextImage();
-                  }}
-                />
-                <button
-                  className="close-fullscreen"
-                  aria-label="Close fullscreen"
-                >
-                  ×
-                </button>
-                <div className="fullscreen-controls">
-                  <button
-                    className="gallery-nav prev"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handlePrevImage();
-                    }}
-                    aria-label="Previous image"
-                  >
-                    ‹
-                  </button>
-                  <button
-                    className="gallery-nav next"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleNextImage();
-                    }}
-                    aria-label="Next image"
-                  >
-                    ›
-                  </button>
-                </div>
-              </div>
-            )}
-            {images.length > 1 && (
-              <div className="thumbnail-gallery">
-                {images.map((img, idx) => (
-                  <div
-                    key={idx}
-                    className={`thumbnail ${
-                      activeImageIndex === idx ? "active" : ""
-                    }`}
-                    onClick={() => setActiveImageIndex(idx)}
-                    role="button"
-                    tabIndex={0}
-                    onKeyPress={(e) => {
-                      if (e.key === "Enter" || e.key === " ")
-                        setActiveImageIndex(idx);
-                    }}
-                    aria-label={`Select image ${idx + 1}`}
-                  >
-                    <img
-                      src={img}
-                      alt={`${restaurantName} thumbnail ${idx + 1}`}
-                      loading="lazy"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="no-image">
-            <FontAwesomeIcon icon={faImages} className="no-image-icon" />
-            <p>No images available</p>
-          </div>
-        )}
+            </>
+          )}
+        </div>
       </div>
     );
-  }
+  },
+  (prevProps, nextProps) =>
+    prevProps.images === nextProps.images &&
+    prevProps.activeImageIndex === nextProps.activeImageIndex
 );
 
 // Memoized RestaurantContent Component
@@ -915,14 +826,14 @@ const Restaurant = () => {
     loading,
     error,
     activeImageIndex,
-    isFullScreen,
+    // Removed isFullScreen from destructuring since no longer used
     mapCenter,
     mapError,
     showHours,
     reviewSort,
     isLoggedIn,
     setActiveImageIndex,
-    setIsFullScreen,
+    // Removed setIsFullScreen from destructuring since no longer used
     setShowHours,
     handleSortChange,
     handleShareClick,
@@ -1067,8 +978,6 @@ const Restaurant = () => {
         images={restaurant.image_url}
         activeImageIndex={activeImageIndex}
         setActiveImageIndex={setActiveImageIndex}
-        isFullScreen={isFullScreen}
-        setIsFullScreen={setIsFullScreen}
         restaurantName={restaurant.name}
       />
       <RestaurantContent
