@@ -1,22 +1,16 @@
-import React, { useState } from "react";
-// import DatePicker from "react-datepicker"; // Date picker for selecting dates
-import "./NewTrip.scss"; // Main styles for the new trip page
+import React, { useState, useEffect } from "react";
+import "./NewTrip.scss";
 import newtrippic from "../../assets/images/Cities/goldenbridge.png";
-import marblemountains from "../../assets/images/Cities/marblemountains.png";
-import { faCalendarDay } from "@fortawesome/free-solid-svg-icons";
+import { faCalendarDay, faMountainSun } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMountainSun } from "@fortawesome/free-solid-svg-icons"; // FontAwesome icons for Nature
-import { faUtensils } from "@fortawesome/free-solid-svg-icons"; // FontAwesome icons for Restaurant
-import { faLocationDot } from "@fortawesome/free-solid-svg-icons"; // FontAwesome icons for else
-// import MapComponent from '../../components/GoogleMap/GoogleMap';
 import { useLocation } from "react-router-dom";
-import { useEffect } from "react";
 import BASE_URL from "../../constants/BASE_URL";
 import axios from "axios";
-import { Autocomplete, selectClasses, TextField } from '@mui/material';
+import { Autocomplete, TextField } from '@mui/material';
 import { useAuth } from "../../contexts/AuthContext";
-import { FaPen } from "react-icons/fa";
-import { FaXmark } from "react-icons/fa6"; // FontAwesome icons for delete
+import { FaPen, FaXmark } from "react-icons/fa6";
+import AddLocationForm from "./AddLocationForm";
+
 function NewTrip() {
   const location = useLocation();
   const {
@@ -24,42 +18,45 @@ function NewTrip() {
     startDate = "",
     endDate = "",
     selectedCity = "",
-    selectedResTags = "",
+    selectedResTags = [],
     mode = "",
     itinerary_id = -1,
   } = location.state || {};
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [city, setCity] = useState(null);
-  const [itineraryData, setitinararyData] = useState([]);
-  const [addLocation, setAddLocation] = useState(false);
+  const [itineraryData, setItineraryData] = useState([]);
+  const [formState, setFormState] = useState({
+    visible: false,
+    mode: "add",
+    data: null,
+    editingDay: null,
+    editingIndex: null,
+  });
   const [cityAttraction, setCityAttraction] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const { user } = useAuth();
+
   useEffect(() => {
     setLoading(true);
     const fetchData = async () => {
       try {
-        console.log("tags", selectedTags);
-        console.log("res", selectedResTags);
         const startTime = "09:00";
         const endTime = "15:00";
-        console.log(selectedCity);
         const tagParams = selectedTags.map((tag) => `tags=${tag}`).join("&");
         const restagParams = selectedResTags.map((tag) => `${tag}`).join("&");
         const url = `${BASE_URL}/attractions/tags?city=${selectedCity}&${tagParams}&startTime=${startTime}&endTime=${endTime}&res_tag=${restagParams}&startDate=${startDate}&endDate=${endDate}`;
         const Itiresponse = await axios.get(url);
-        console.log("URL used:", url); // debug
-        console.log("Response:", Itiresponse.data);
-        setitinararyData(Itiresponse.data);
+        setItineraryData(Itiresponse.data);
+
         const cityResponse = await axios.get(`${BASE_URL}/cities/${selectedCity}`);
         setCity(cityResponse.data);
-        console.log(city);
+
         const cityAttraction = await axios.get(`${BASE_URL}/attractions/city/${selectedCity}`);
         setCityAttraction(cityAttraction.data);
-
       } catch (err) {
         setError(err);
       } finally {
@@ -67,53 +64,76 @@ function NewTrip() {
       }
     };
 
-    if (mode == 'create') {
+    if (mode === 'create') {
       fetchData();
-    } else if (mode == 'update' && itinerary_id != -1) {
-
+    } else if (mode === 'update' && itinerary_id !== -1) {
+      // Handle update mode here
     }
   }, []);
 
   const handleAddLocation = () => {
-    setAddLocation(!addLocation);
+    setFormState({
+      visible: true,
+      mode: "add",
+      data: null,
+      editingDay: null,
+      editingIndex: null,
+    });
+  };
+
+  const handleEditLocation = (location, day, index) => {
+    setFormState({
+      visible: true,
+      mode: "edit",
+      data: location,
+      editingDay: day,
+      editingIndex: index,
+    });
   };
 
   const handleCancel = () => {
-    setAddLocation(false);
+    setFormState({
+      visible: false,
+      mode: "add",
+      data: null,
+      editingDay: null,
+      editingIndex: null,
+    });
+    setSelectedLocation(null);
+    setStartTime('');
+    setEndTime('');
   };
 
   const handleSaveItinerary = async () => {
     if (!user?.user_id) {
-      alert('Need login to create itinerary.');
+      alert('Need login to create itinerary!');
       return;
     }
-    if (mode == 'create') {
+
+    if (mode === 'create') {
       try {
         const title = 'Trip to ' + city?.name;
-
-        const response = await axios.post('http://localhost:8081/itinerary/', {
-          title: title,
+        const response = await axios.post(`${BASE_URL}/itinerary/`, {
+          title,
           description: 'A 3-day trip exploring Da Nang',
           start_date: startDate,
           end_date: endDate,
           status: 'private',
-          user_id: user?.user_id,
+          user_id: user.user_id,
         });
 
-        const newItinerary = response.data;
-        const newItineraryId = newItinerary.itinerary_id;
-
-        alert('Lưu đc r');
+        const newItineraryId = response.data.itinerary_id;
+        alert('Itinerary created successfully!');
       } catch (error) {
-        console.error('Err:', error);
-        alert('Lưu thất bại');
+        console.error('Error:', error);
+        alert('Failed to create itinerary');
       }
     }
   };
 
-  const handleSave = () => {
+  const handleSave = (editingDay, editingIndex) => {
     if (!selectedLocation || !startTime || !endTime) {
-      alert("Vui lòng chọn địa điểm và thời gian.");
+      alert("Please select a location and time!");
       return;
     }
 
@@ -122,23 +142,6 @@ function NewTrip() {
       return h * 60 + m;
     };
 
-    const minutesToTime = (minutes) => {
-      const h = Math.floor(minutes / 60);
-      const m = minutes % 60;
-      return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-    };
-
-    const estimateTravelTime = (from, to) => {
-      const distance = haversineDistance(
-        parseFloat(from.latitude),
-        parseFloat(from.longitude),
-        parseFloat(to.latitude),
-        parseFloat(to.longitude)
-      );
-      const speed = 30; // km/h
-      return (distance / speed) * 60;
-    };
-    // lên wiki search haversine là có (tính khoảng cách giữa 2 địa điểm bằng kinh độ và vĩ độ)
     const haversineDistance = (lat1, lon1, lat2, lon2) => {
       const toRad = (x) => (x * Math.PI) / 180;
       const R = 6371;
@@ -151,11 +154,21 @@ function NewTrip() {
       return R * c;
     };
 
+    const estimateTravelTime = (from, to) => {
+      const distance = haversineDistance(
+        parseFloat(from.latitude),
+        parseFloat(from.longitude),
+        parseFloat(to.latitude),
+        parseFloat(to.longitude)
+      );
+      const speed = 30; // km/h
+      return (distance / speed) * 60;
+    };
+
     const arrival = timeToMinutes(startTime);
     const departure = timeToMinutes(endTime);
-
     if (arrival >= departure) {
-      alert("Thời gian bắt đầu phải trước thời gian kết thúc.");
+      alert("Start time must be before end time.");
       return;
     }
 
@@ -167,22 +180,28 @@ function NewTrip() {
       arrival_time: startTime,
       departure_time: endTime,
       duration_minutes: visit_duration,
-      travel_from_prev_minutes: 0, // tạm thời
+      travel_from_prev_minutes: 0,
       average_rating: selectedLocation.average_rating,
       rating_total: selectedLocation.rating_total,
       tags: selectedLocation.tags,
       image_url: selectedLocation.image_url,
       latitude: selectedLocation.latitude,
       longitude: selectedLocation.longitude,
-      warning: ''
+      warning: '',
+      day: selectedLocation.day || 1,
     };
 
-    let updatedItinerary = [...itineraryData, newLocation];
-
+    let updatedItinerary;
+    if (editingDay !== null && editingIndex !== null) {
+      updatedItinerary = itineraryData.map((item, idx) =>
+        item.day === editingDay && idx === editingIndex ? newLocation : item
+      );
+    } else {
+      updatedItinerary = [...itineraryData, newLocation];
+    }
 
     updatedItinerary.sort((a, b) => timeToMinutes(a.arrival_time) - timeToMinutes(b.arrival_time));
 
-    // Cập nhật travel_from_prev_minutes + kiểm tra warning
     for (let i = 0; i < updatedItinerary.length; i++) {
       const curr = updatedItinerary[i];
       const prev = i === 0 ? null : updatedItinerary[i - 1];
@@ -193,217 +212,127 @@ function NewTrip() {
         const currArrival = timeToMinutes(curr.arrival_time);
 
         curr.travel_from_prev_minutes = Math.round(travel);
-
-        if (prevDeparture + travel > currArrival) {
-          curr.warning = "You may not come to this destination on time!";
-        } else {
-          curr.warning = '';
-        }
+        curr.warning = (prevDeparture + travel > currArrival)
+          ? "You may not arrive at this destination on time!"
+          : '';
       } else {
         curr.travel_from_prev_minutes = 0;
         curr.warning = '';
       }
     }
 
-
-    setitinararyData(updatedItinerary);
-    console.log(itineraryData);
+    setItineraryData(updatedItinerary);
     setSelectedLocation(null);
     setStartTime('');
     setEndTime('');
+    handleCancel();
   };
-
-  // const addNewAttraction = async (attraction, arrival_time, depature_time) => {
-  //     const attractionRespone = await axios.get(`${BASE_URL}/attraction/name/${attraction}/cityid/${selectedCity}`);
-  //     const newAttraction = attractionRespone.data;
-  //     itineraryData.push({
-  //         type: "attraction",
-  //         name: attraction,
-  //         arrival_time: minutesToTime(arrival_time),
-  //         departure_time: minutesToTime(depature_time),
-  //         duration_minutes: visit,
-  //         travel_from_prev_minutes: Math.round(travel),
-  //         average_rating: curr.average_rating,
-  //         rating_total: curr.rating_total,
-  //         tags: curr.tags,
-  //         image_url: curr.image_url,
-  //         latitude: curr.latitude,
-  //         longitude: curr.longitude,
-  //     })
-  // }
 
   return (
     <div className="new-trip-container">
       <div className="city-name-container">
-        <img src={newtrippic} alt="City" className="city-image" />
+        <img src={newtrippic} alt="City" className="city-img" />
         <div className="title-overlay">
-          <h2>
-            Trip to {city?.name}<span className="destination-name"></span>
-          </h2>
+          <h2>Trip to {city?.name}</h2>
           <div className="date-time">
             <FontAwesomeIcon icon={faCalendarDay} className="date-icon" />
-            <span className="date-text">
-              {startDate} - {endDate}
-            </span>
+            <span className="date-text">{startDate} - {endDate}</span>
           </div>
         </div>
       </div>
-      <div className="trip-details">
-        <div className="trip-info">
-          <div className="trip-itinerary">
-            <h2 className="trip-itinerary-title">Itinerary</h2>
-            <div className="trip-day">
-              <div className="trip-day-header">
-                <h4>{startDate}</h4>
-              </div>
-              <div className="trip-day-content">
-                <div className="trip-timeline">
-                  {Object.entries(
-                    itineraryData.reduce((acc, item) => {
-                      if (!acc[item.day]) acc[item.day] = [];
-                      acc[item.day].push(item);
-                      return acc;
-                    }, {})
-                  ).map(([day, items]) => (
-                    <div key={day}>
 
-                      <div className="day-divider">
-                        <span className="day-label">Ngày {day}</span>
-                        <hr className="day-line" />
-                      </div>
-                      {items.map((item, index) => (
-                        <div key={index} className="location-details">
-                          <div className="time">{item.arrival_time}</div>
-                          <div className="timeline-line"></div>
-                          <div className="location-card">
-                            <img
-                              src={item.image_url[0] || "fallback.jpg"}
-                              alt={item.name}
-                              className="location-img"
-                            />
-                            <div className="location-info">
-                              <div className="location-title">{item.name}</div>
-                              <div className="item-rating">
-                                <span className="rating-dots">🟢🟢🟢🟢</span>
-                                <span className="rating-number">{item.rating_total}</span>
-                              </div>
-                              <span className="rating-number">{item.warning}</span>
-                              <div className="location-type">
-                                <FontAwesomeIcon icon={faMountainSun} className="location-type-icon" />
-                                {item.type}
-                              </div>
+      <div className="trip-details">
+        <div className="trip-itinerary">
+          <h2 className="trip-itinerary-title">Itinerary</h2>
+          <div className="trip-day">
+            <div className="trip-timeline">
+              {Object.entries(
+                itineraryData.reduce((acc, item) => {
+                  if (!acc[item.day]) acc[item.day] = [];
+                  acc[item.day].push(item);
+                  return acc;
+                }, {})
+              ).map(([day, items]) => (
+                <div key={day}>
+                  <div className="day-divider">
+                    <span className="day-label">Day {day}</span>
+                    <hr className="day-line" />
+                  </div>
+                  {items.map((item, index) => (
+                    <div key={`${day}-${index}`} className="location-details">
+                      <div className="time">{item.arrival_time}</div>
+                      <div className="timeline-line"></div>
+                      <div className="edit-location-card">
+                        <div className="location-card">
+                          <img
+                            src={item.image_url[0] || "fallback.jpg"}
+                            alt={item.name}
+                            className="location-img"
+                          />
+                          <div className="location-info">
+                            <div className="location-title">{item.name}</div>
+                            <div className="item-rating">
+                              <span className="rating-dots">🟢🟢🟢🟢</span>
+                              <span className="rating-number">{item.rating_total}</span>
                             </div>
-                            <div className="delete-location"><FaXmark className="delete-icon" /></div>
-                            <div className="edit-location"><FaPen className="edit-icon" /></div>
+                            <span className="rating-number">{item.warning}</span>
+                            <div className="location-type-info">
+                              <FontAwesomeIcon icon={faMountainSun} className="location-type-icon" />
+                              {item.type}
+                            </div>
+                          </div>
+                          <div className="delete-location">
+                            <FaXmark className="delete-icon" />
+                          </div>
+                          <div className="edit-location">
+                            <FaPen className="edit-icon" onClick={() => handleEditLocation(item, Number(day), index)} />
                           </div>
                         </div>
-                      ))}
+                        <AddLocationForm
+                          visible={formState.visible && formState.editingDay === Number(day) && formState.editingIndex === index}
+                          mode="edit"
+                          editData={formState.data}
+                          cityAttraction={cityAttraction}
+                          selectedLocation={selectedLocation}
+                          setSelectedLocation={setSelectedLocation}
+                          startTime={startTime}
+                          setStartTime={setStartTime}
+                          endTime={endTime}
+                          setEndTime={setEndTime}
+                          itineraryData={itineraryData}
+                          setItineraryData={setItineraryData}
+                          handleCancel={handleCancel}
+                          handleSave={() => handleSave(Number(day), index)}
+                        />
+                      </div>
                     </div>
                   ))}
-                  {/* {itineraryData.map((item, index) => (
-                                        <div key={index} className="location-details">
-                                            <div className="time">{item.arrival_time}</div>
-                                            <div className="timeline-line"></div>
-                                            <div className="location-card">
-                                                <img
-                                                    src={item.image_url[0] || "fallback.jpg"} // fallback nếu ảnh lỗi
-                                                    alt={item.name}
-                                                    className="location-img"
-                                                />
-                                                <div className="location-info">
-                                                    <div className="location-title">{item.name}</div>
-                                                    <div className="item-rating">
-                                                        <span className="rating-dots">🟢🟢🟢🟢</span>
-                                                        <span className="rating-number">
-                                                            {item.rating_total}
-                                                        </span>
-
-
-                                                    </div>
-                                                    <span className="rating-number">{item.warning}</span>
-                                                    <div className="location-type">
-                                                        <FontAwesomeIcon
-                                                            icon={faMountainSun}
-                                                            className="location-type-icon"
-                                                        />
-                                                        {item.type}
-                                                    </div>
-                                                </div>
-                                                <div className="location-menu">⋯</div>
-                                            </div>
-                                        </div>
-                                    ))} */}
-                  <div className="add-location">
-                    <button
-                      className="add-location-btn"
-                      onClick={handleAddLocation}
-                    >
-                      + Add
-                    </button>
-                    <button
-                      className="save-location-btn"
-                      onClick={handleSaveItinerary}
-                    >
-                      Save
-                    </button>
-                    <div className="add-location-form">
-                      <div
-                        className={`form-container ${addLocation ? "show" : ""
-                          }`}
-                      >
-                        <div className="form-header">
-                          <h4>Add location</h4>
-                        </div>
-                        <div className="form-body">
-                          <div className="form-date-group">
-                            <div className="form-date">
-                              <label>Select Date</label>
-                              <input type="date" />
-                            </div>
-                          </div>
-                          <div className="form-search-group">
-                            <div className="search-box">
-                              <Autocomplete
-                                options={cityAttraction}
-                                getOptionLabel={(option) => option.name}
-                                value={selectedLocation}
-                                onChange={(event, newValue) => setSelectedLocation(newValue)}
-                                renderInput={(params) => <TextField {...params} label="Search for location..." />}
-                                sx={{ width: '100%' }}
-                              />
-                            </div>
-                            <button className="search-btn">Search</button>
-                          </div>
-                          <div className="form-time-group">
-                            <div className="start-time">
-                              <label>Start Time</label>
-                              <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
-                            </div>
-                            <div className="end-time">
-                              <label>End Time</label>
-                              <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
-                            </div>
-                          </div>
-                        </div>
-                        <div className="form-footer">
-                          <button className="cancel-btn" onClick={handleCancel}>
-                            Cancel
-                          </button>
-                          <button className="save-btn" onClick={handleSave}>Save</button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
                 </div>
+              ))}
+
+              <div className="add-location">
+                <button className="add-location-btn" onClick={handleAddLocation}>+ Add</button>
+                <button className="save-location-btn" onClick={handleSaveItinerary}>Save</button>
+                <AddLocationForm
+                  visible={formState.visible && formState.mode === "add"}
+                  mode="add"
+                  editData={formState.data}
+                  cityAttraction={cityAttraction}
+                  selectedLocation={selectedLocation}
+                  setSelectedLocation={setSelectedLocation}
+                  startTime={startTime}
+                  setStartTime={setStartTime}
+                  endTime={endTime}
+                  setEndTime={setEndTime}
+                  itineraryData={itineraryData}
+                  setItineraryData={setItineraryData}
+                  handleCancel={handleCancel}
+                  handleSave={() => handleSave(null, null)}
+                />
               </div>
             </div>
-
-            {/*add another day*/}
           </div>
         </div>
-        {/* <div className="trip-map">
-                    <MapComponent />
-                </div> */}
       </div>
     </div>
   );

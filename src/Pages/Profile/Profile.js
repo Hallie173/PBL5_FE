@@ -13,7 +13,6 @@ import {
   faGlobe,
 } from "@fortawesome/free-solid-svg-icons";
 import RecentTrips from "./RecentTrips";
-import RecentSave from "./RecentSave";
 import RecentReviews from "./RecentReviews";
 import ProfileEditModal from "./ProfileEditModal";
 import formatDate from "../../utils/formatDate";
@@ -263,44 +262,38 @@ function Profile() {
               </div>
             </div>
           </aside>
-          <div className="recent-activities">
-            <h3 className="section-title">Your Recent Travel Experiences</h3>
-            <div className="recent-activities-tabs">
-              <div className="tabs-navigation">
-                <button
-                  className={`tab-button ${
-                    activeTab === "trips" ? "active" : ""
-                  }`}
-                  onClick={() => handleTabChange("trips")}
-                >
-                  My Trips
-                </button>
-                <button
-                  className={`tab-button ${
-                    activeTab === "saved" ? "active" : ""
-                  }`}
-                  onClick={() => handleTabChange("saved")}
-                >
-                  Saved
-                </button>
-                <button
-                  className={`tab-button ${
-                    activeTab === "reviews" ? "active" : ""
-                  }`}
-                  onClick={() => handleTabChange("reviews")}
-                >
-                  Reviews
-                </button>
+          <div className="profile-main">
+            <h3>User Details</h3>
+            <div className="user-info">
+              <div className="info-row">
+                <span className="info-label">Full Name:</span>
+                <span className="info-value">{user.full_name}</span>
               </div>
-              <div className="tab-content">
-                {activeTab === "trips" && <RecentTrips userData={userData} />}
-                {activeTab === "saved" && <RecentSave userData={userData} />}
-                {activeTab === "reviews" && (
-                  <RecentReviews userData={userData} />
-                )}
+              <div className="info-row">
+                <span className="info-label">Username:</span>
+                <span className="info-value">{user.username}</span>
+              </div>
+              <div className="info-row">
+                <span className="info-label">Role:</span>
+                <span className="info-value">{user.role}</span>
+              </div>
+              <div className="info-row">
+                <span className="info-label">Email:</span>
+                <span className="info-value">{user.email}</span>
+              </div>
+              <div className="info-row">
+                <span className="info-label">Created At:</span>
+                <span className="info-value">{new Date(user.created_at).toLocaleString()}</span>
+              </div>
+              <div className="info-row">
+                <span className="info-label">Updated At:</span>
+                <span className="info-value">
+                  {user.updated_at ? new Date(user.updated_at).toLocaleString() : "N/A"}
+                </span>
               </div>
             </div>
           </div>
+
         </div>
       </div>
       <hr className="section-divider" />

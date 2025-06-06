@@ -171,7 +171,7 @@ $danger: #e11d48;
 // Card components
 .bio-card,
 .advice-card,
-.recent-activities {
+.profile-main {
   @include card-shadow;
   padding: 16px;
   margin-bottom: 16px;
@@ -240,59 +240,37 @@ $danger: #e11d48;
   margin-right: 10px;
 }
 
-// Recent activities section
-.recent-activities {
+.profile-main {
+  padding: 50px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 0 10px #ddd;
   flex: 1;
-
-  .section-title {
-    margin: 10px 0 20px 0;
-    font-size: 20px;
-  }
 }
 
-.recent-activities-tabs {
+.user-info {
   display: flex;
   flex-direction: column;
+  gap: 12px;
 }
 
-.tabs-navigation {
+.info-row {
   display: flex;
-  border-bottom: 1px solid $border-light;
-  margin-bottom: 20px;
+  justify-content: flex-start;
+  gap: 50px;
 }
 
-.tab-button {
-  background: none;
-  border: none;
-  padding: 10px 20px;
-  font-size: 16px;
-  cursor: pointer;
-  position: relative;
-  color: $text-color;
-
-  &.active {
-    color: $primary-color;
-    font-weight: bold;
-
-    &:after {
-      content: "";
-      position: absolute;
-      bottom: -1px;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background-color: $primary-color;
-    }
-  }
-
-  &:hover {
-    color: $primary-color;
-  }
+.info-label {
+  width: 120px;
+  font-weight: bold;
+  text-align: left;
+  color: #444;
 }
 
-.tab-content {
-  min-height: 300px;
-  padding: 10px 0;
+.info-value {
+  flex: 1;
+  text-align: left;
+  color: $primary-color;
 }
 
 // Upload overlay
