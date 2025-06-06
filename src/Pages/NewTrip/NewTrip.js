@@ -251,53 +251,131 @@ function NewTrip() {
         }
     };
 
+    
 
+    const timeToMinutes = (time) => {
+        const [h, m] = time.split(':').map(Number);
+        return h * 60 + m;
+    };
+    const minutesToTime = (minutes) => {
+        const h = Math.floor(minutes / 60);
+        const m = minutes % 60;
+        return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+    };
 
-    const handleSave = (editingDay, editingIndex) => {
-        if (!selectedLocation || !startTime || !endTime) {
-            alert("Please select a location and time!");
-            return;
-        }
+    const estimateTravelTime = (from, to) => {
+        const distance = haversineDistance(
+            parseFloat(from.latitude),
+            parseFloat(from.longitude),
+            parseFloat(to.latitude),
+            parseFloat(to.longitude)
+        );
+        const speed = 30;
+        return (distance / speed) * 60;
+    };
+    // lên wiki search haversine là có (tính khoảng cách giữa 2 địa điểm bằng kinh độ và vĩ độ)
+    const haversineDistance = (lat1, lon1, lat2, lon2) => {
+        const toRad = (x) => (x * Math.PI) / 180;
+        const R = 6371;
+        const dLat = toRad(lat2 - lat1);
+        const dLon = toRad(lon2 - lon1);
+        const a =
+            Math.sin(dLat / 2) ** 2 +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    };
 
-        const timeToMinutes = (time) => {
-            const [h, m] = time.split(':').map(Number);
-            return h * 60 + m;
-        };
-        const minutesToTime = (minutes) => {
-            const h = Math.floor(minutes / 60);
-            const m = minutes % 60;
-            return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-        };
-
-        const estimateTravelTime = (from, to) => {
-            const distance = haversineDistance(
-                parseFloat(from.latitude),
-                parseFloat(from.longitude),
-                parseFloat(to.latitude),
-                parseFloat(to.longitude)
-            );
-            const speed = 30;
-            return (distance / speed) * 60;
-        };
-        // lên wiki search haversine là có (tính khoảng cách giữa 2 địa điểm bằng kinh độ và vĩ độ)
-        const haversineDistance = (lat1, lon1, lat2, lon2) => {
-            const toRad = (x) => (x * Math.PI) / 180;
-            const R = 6371;
-            const dLat = toRad(lat2 - lat1);
-            const dLon = toRad(lon2 - lon1);
-            const a =
-                Math.sin(dLat / 2) ** 2 +
-                Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            return R * c;
-        };
-
+    const handleEdit = (item, startTime, endTime, selectedDay, location, editingDay, editingIndex) => {
+        console.log("current item", item);
+        console.log("new location: ", location);
+    
         const arrival = timeToMinutes(startTime);
         const departure = timeToMinutes(endTime);
         if (arrival >= departure) {
             alert("Start time must be before end time.");
             return;
         }
+    
+        const newLocation = {
+            type: "attraction",
+            day: selectedDay,
+            id: location.attraction_id,
+            name: location.name,
+            arrival_time: startTime,
+            departure_time: endTime,
+            duration_minutes: location.visit_duration,
+            travel_from_prev_minutes: 0,
+            average_rating: location.average_rating,
+            rating_total: location.rating_total,
+            tags: location.tags,
+            image_url: location.image_url,
+            latitude: location.latitude,
+            longitude: location.longitude,
+            warning: ''
+        };
+    
+        let updatedItinerary;
+    
+        // Chỉnh sửa item tại editingIndex nếu có
+        if (editingDay !== null && editingIndex !== null) {
+            updatedItinerary = itineraryData.map((it, idx) =>
+                it.day === editingDay && idx === editingIndex ? newLocation : it
+            );
+        } else {
+            updatedItinerary = [...itineraryData, newLocation];
+        }
+    
+        // Sắp xếp theo ngày và giờ
+        updatedItinerary.sort((a, b) => {
+            if (a.day !== b.day) return a.day - b.day;
+            return timeToMinutes(a.arrival_time) - timeToMinutes(b.arrival_time);
+        });
+    
+        // Tính travel time và warning
+        for (let i = 0; i < updatedItinerary.length; i++) {
+            const curr = updatedItinerary[i];
+            const prev = i === 0 ? null : updatedItinerary[i - 1];
+    
+            if (prev) {
+                const travel = estimateTravelTime(prev, curr);
+                const prevDeparture = timeToMinutes(prev.departure_time);
+                const currArrival = timeToMinutes(curr.arrival_time);
+                curr.travel_from_prev_minutes = Math.round(travel);
+                curr.warning = prevDeparture + travel > currArrival
+                    ? "You may not come to this destination on time!"
+                    : '';
+            } else {
+                curr.travel_from_prev_minutes = 0;
+                curr.warning = '';
+            }
+        }
+    
+        setitinararyData(updatedItinerary);
+    
+
+        setSelectedLocation(null);
+        setStartTime('');
+        setEndTime('');
+        handleCancel();
+    
+        console.log("Updated itinerary:", updatedItinerary);
+    };
+
+    const handleSave = (editingDay, editingIndex) => {
+        if (!selectedLocation || !startTime || !endTime) {
+            alert("Please select a location and time!");
+            return;
+        }
+    
+        const arrival = timeToMinutes(startTime);
+        const departure = timeToMinutes(endTime);
+    
+        if (arrival >= departure) {
+            alert("Start time must be before end time.");
+            return;
+        }
+    
         const newLocation = {
             type: "attraction",
             day: selectedDay,
@@ -306,7 +384,7 @@ function NewTrip() {
             arrival_time: startTime,
             departure_time: endTime,
             duration_minutes: selectedLocation.visit_duration,
-            travel_from_prev_minutes: 0, // tạm thời
+            travel_from_prev_minutes: 0,
             average_rating: selectedLocation.average_rating,
             rating_total: selectedLocation.rating_total,
             tags: selectedLocation.tags,
@@ -315,8 +393,10 @@ function NewTrip() {
             longitude: selectedLocation.longitude,
             warning: ''
         };
-        console.log(newLocation);
-        let updatedItinerary = [...itineraryData, newLocation];
+    
+        let updatedItinerary;
+    
+       
         if (editingDay !== null && editingIndex !== null) {
             updatedItinerary = itineraryData.map((item, idx) =>
                 item.day === editingDay && idx === editingIndex ? newLocation : item
@@ -324,43 +404,39 @@ function NewTrip() {
         } else {
             updatedItinerary = [...itineraryData, newLocation];
         }
-
+    
+        // Sắp xếp theo ngày và thời gian đến
         updatedItinerary.sort((a, b) => {
-            if (a.day !== b.day) {
-                return a.day - b.day;
-            }
+            if (a.day !== b.day) return a.day - b.day;
             return timeToMinutes(a.arrival_time) - timeToMinutes(b.arrival_time);
         });
-
-
+    
+        // Cập nhật travel_from_prev_minutes và warning
         for (let i = 0; i < updatedItinerary.length; i++) {
             const curr = updatedItinerary[i];
             const prev = i === 0 ? null : updatedItinerary[i - 1];
-            updatedItinerary.sort((a, b) => timeToMinutes(a.arrival_time) - timeToMinutes(b.arrival_time));
-
-            if (prev) {
+    
+            if (prev && curr.day === prev.day) {
                 const travel = estimateTravelTime(prev, curr);
                 const prevDeparture = timeToMinutes(prev.departure_time);
                 const currArrival = timeToMinutes(curr.arrival_time);
+    
                 curr.travel_from_prev_minutes = Math.round(travel);
-                if (prevDeparture + travel > currArrival) {
-                    curr.warning = "You may not come to this destination on time!";
-                } else {
-                    curr.warning = '';
-                }
+                curr.warning = (prevDeparture + travel > currArrival)
+                    ? "You may not come to this destination on time!"
+                    : '';
             } else {
                 curr.travel_from_prev_minutes = 0;
                 curr.warning = '';
             }
-
-            setitinararyData(updatedItinerary);
-            console.log(itineraryData);
-            setSelectedLocation(null);
-            setStartTime('');
-            setEndTime('');
-            handleCancel();
-        };
-
+        }
+        console.log(updatedItinerary);
+        // Cập nhật state và reset form
+        setitinararyData(updatedItinerary);
+        setSelectedLocation(null);
+        setStartTime('');
+        setEndTime('');
+        handleCancel();
     };
 
     return (
@@ -368,7 +444,7 @@ function NewTrip() {
             <div className="city-name-container">
                 <img src={newtrippic} alt="City" className="city-img" />
                 <div className="title-overlay">
-                    <h2>Trip to {city?.name}</h2>
+                    <h2>{title}</h2>
                     <div className="date-time">
                         <FontAwesomeIcon icon={faCalendarDay} className="date-icon" />
                         <span className="date-text">
@@ -447,6 +523,10 @@ function NewTrip() {
                                                         formState.editingIndex === index
                                                     }
                                                     mode="edit"
+                                                    item = {item}
+                                                    numberday = {Number(day)}
+                                                    index = {index}
+                                                    handleedit ={handleEdit}
                                                     daylist={daylist}
                                                     editData={formState.data}
                                                     cityAttraction={cityAttraction}

@@ -18,7 +18,11 @@ const AddLocationForm = ({
     handleCancel,
     handleSave, // Sử dụng prop handleSave từ NewTrip
     selectedDay,
-    setSelectedDay
+    setSelectedDay,
+    handleedit,
+    item,
+    numberday,
+    index,
 }) => {
     useEffect(() => {
         console.log("AddLocationForm visible:", visible, "mode:", mode); // Debug
@@ -96,7 +100,13 @@ const AddLocationForm = ({
                 <button className="cancel-btn" onClick={handleCancel}>
                     Cancel
                 </button>
-                <button className="save-btn" onClick={handleSave}>
+                <button className="save-btn" onClick={() => {
+                    if (mode === "edit") {
+                        handleedit(item, startTime, endTime, selectedDay, selectedLocation, numberday, index);
+                    } else if (mode === "add") {
+                        handleSave()
+                    }
+                }}>
                     Save
                 </button>
             </div>
