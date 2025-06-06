@@ -155,6 +155,7 @@ $transition: all 0.3s ease;
   .item-tags {
     display: flex;
     flex-wrap: wrap;
+    gap: 4px;
     margin-top: 8px;
     min-height: 28px;
     overflow: visible;
