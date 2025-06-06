@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from "react";
 import "./NewTrip.scss";
 import newtrippic from "../../assets/images/Cities/goldenbridge.png";
-import { faCalendarDay, faMountainSun } from "@fortawesome/free-solid-svg-icons";
+import {
+  faCalendarDay,
+  faMountainSun,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useLocation } from "react-router-dom";
 import BASE_URL from "../../constants/BASE_URL";
 import axios from "axios";
-import { Autocomplete, TextField } from '@mui/material';
+import { Autocomplete, TextField } from "@mui/material";
 import { useAuth } from "../../contexts/AuthContext";
 import { FaPen, FaXmark } from "react-icons/fa6";
 import AddLocationForm from "./AddLocationForm";
@@ -42,8 +45,8 @@ function NewTrip() {
   });
   const [cityAttraction, setCityAttraction] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState(null);
-  const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
   const { user } = useAuth();
 
   useEffect(() => {
@@ -58,10 +61,14 @@ function NewTrip() {
         const Itiresponse = await axios.get(url);
         setItineraryData(Itiresponse.data);
 
-        const cityResponse = await axios.get(`${BASE_URL}/cities/${selectedCity}`);
+        const cityResponse = await axios.get(
+          `${BASE_URL}/cities/${selectedCity}`
+        );
         setCity(cityResponse.data);
 
-        const cityAttraction = await axios.get(`${BASE_URL}/attractions/city/${selectedCity}`);
+        const cityAttraction = await axios.get(
+          `${BASE_URL}/attractions/city/${selectedCity}`
+        );
         setCityAttraction(cityAttraction.data);
       } catch (err) {
         setError(err);
@@ -70,9 +77,9 @@ function NewTrip() {
       }
     };
 
-    if (mode === 'create') {
+    if (mode === "create") {
       fetchData();
-    } else if (mode === 'update' && itinerary_id !== -1) {
+    } else if (mode === "update" && itinerary_id !== -1) {
       // Handle update mode here
     }
   }, []);
@@ -129,33 +136,33 @@ function NewTrip() {
       editingIndex: null,
     });
     setSelectedLocation(null);
-    setStartTime('');
-    setEndTime('');
+    setStartTime("");
+    setEndTime("");
   };
 
   const handleSaveItinerary = async () => {
     if (!user?.user_id) {
-      alert('Need login to create itinerary!');
+      alert("Need login to create itinerary!");
       return;
     }
 
-    if (mode === 'create') {
+    if (mode === "create") {
       try {
-        const title = 'Trip to ' + city?.name;
+        const title = "Trip to " + city?.name;
         const response = await axios.post(`${BASE_URL}/itinerary/`, {
           title,
-          description: 'A 3-day trip exploring Da Nang',
+          description: "A 3-day trip exploring Da Nang",
           start_date: startDate,
           end_date: endDate,
-          status: 'private',
+          status: "private",
           user_id: user.user_id,
         });
 
         const newItineraryId = response.data.itinerary_id;
-        alert('Itinerary created successfully!');
+        alert("Itinerary created successfully!");
       } catch (error) {
-        console.error('Error:', error);
-        alert('Failed to create itinerary');
+        console.error("Error:", error);
+        alert("Failed to create itinerary");
       }
     }
   };
@@ -167,7 +174,7 @@ function NewTrip() {
     }
 
     const timeToMinutes = (time) => {
-      const [h, m] = time.split(':').map(Number);
+      const [h, m] = time.split(":").map(Number);
       return h * 60 + m;
     };
 
@@ -216,7 +223,7 @@ function NewTrip() {
       image_url: selectedLocation.image_url,
       latitude: selectedLocation.latitude,
       longitude: selectedLocation.longitude,
-      warning: '',
+      warning: "",
       day: selectedLocation.day || 1,
     };
 
@@ -229,7 +236,9 @@ function NewTrip() {
       updatedItinerary = [...itineraryData, newLocation];
     }
 
-    updatedItinerary.sort((a, b) => timeToMinutes(a.arrival_time) - timeToMinutes(b.arrival_time));
+    updatedItinerary.sort(
+      (a, b) => timeToMinutes(a.arrival_time) - timeToMinutes(b.arrival_time)
+    );
 
     for (let i = 0; i < updatedItinerary.length; i++) {
       const curr = updatedItinerary[i];
@@ -241,19 +250,20 @@ function NewTrip() {
         const currArrival = timeToMinutes(curr.arrival_time);
 
         curr.travel_from_prev_minutes = Math.round(travel);
-        curr.warning = (prevDeparture + travel > currArrival)
-          ? "You may not arrive at this destination on time!"
-          : '';
+        curr.warning =
+          prevDeparture + travel > currArrival
+            ? "You may not arrive at this destination on time!"
+            : "";
       } else {
         curr.travel_from_prev_minutes = 0;
-        curr.warning = '';
+        curr.warning = "";
       }
     }
 
     setItineraryData(updatedItinerary);
     setSelectedLocation(null);
-    setStartTime('');
-    setEndTime('');
+    setStartTime("");
+    setEndTime("");
     handleCancel();
   };
 
@@ -265,7 +275,9 @@ function NewTrip() {
           <h2>Trip to {city?.name}</h2>
           <div className="date-time">
             <FontAwesomeIcon icon={faCalendarDay} className="date-icon" />
-            <span className="date-text">{startDate} - {endDate}</span>
+            <span className="date-text">
+              {startDate} - {endDate}
+            </span>
           </div>
         </div>
       </div>
@@ -302,23 +314,42 @@ function NewTrip() {
                             <div className="location-title">{item.name}</div>
                             <div className="item-rating">
                               <span className="rating-dots">🟢🟢🟢🟢</span>
-                              <span className="rating-number">{item.rating_total}</span>
+                              <span className="rating-number">
+                                {item.rating_total}
+                              </span>
                             </div>
-                            <span className="rating-number">{item.warning}</span>
+                            <span className="rating-number">
+                              {item.warning}
+                            </span>
                             <div className="location-type-info">
-                              <FontAwesomeIcon icon={faMountainSun} className="location-type-icon" />
+                              <FontAwesomeIcon
+                                icon={faMountainSun}
+                                className="location-type-icon"
+                              />
                               {item.type}
                             </div>
                           </div>
                           <div className="delete-location">
-                            <FaXmark className="delete-icon" onClick={() => handleDeleteClick(day, index)} />
+                            <FaXmark
+                              className="delete-icon"
+                              onClick={() => handleDeleteClick(day, index)}
+                            />
                           </div>
                           <div className="edit-location">
-                            <FaPen className="edit-icon" onClick={() => handleEditLocation(item, Number(day), index)} />
+                            <FaPen
+                              className="edit-icon"
+                              onClick={() =>
+                                handleEditLocation(item, Number(day), index)
+                              }
+                            />
                           </div>
                         </div>
                         <AddLocationForm
-                          visible={formState.visible && formState.editingDay === Number(day) && formState.editingIndex === index}
+                          visible={
+                            formState.visible &&
+                            formState.editingDay === Number(day) &&
+                            formState.editingIndex === index
+                          }
                           mode="edit"
                           editData={formState.data}
                           cityAttraction={cityAttraction}
@@ -340,8 +371,18 @@ function NewTrip() {
               ))}
 
               <div className="add-location">
-                <button className="add-location-btn" onClick={handleAddLocation}>+ Add</button>
-                <button className="save-location-btn" onClick={handleSaveItinerary}>Save</button>
+                <button
+                  className="add-location-btn"
+                  onClick={handleAddLocation}
+                >
+                  + Add
+                </button>
+                <button
+                  className="save-location-btn"
+                  onClick={handleSaveItinerary}
+                >
+                  Save
+                </button>
                 <AddLocationForm
                   visible={formState.visible && formState.mode === "add"}
                   mode="add"

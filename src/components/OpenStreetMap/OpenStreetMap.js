@@ -1,6 +1,9 @@
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import "leaflet.markercluster/dist/MarkerCluster.css";
+import "leaflet.markercluster/dist/MarkerCluster.Default.css";
+import "leaflet.markercluster";
 
 const OpenStreetMap = ({
   center = [21.0285, 105.8542],
@@ -16,6 +19,7 @@ const OpenStreetMap = ({
   const markersLayerRef = useRef(null);
   const currentLocationMarkerRef = useRef(null);
   const tileLayerRef = useRef(null);
+  const markerClusterRef = useRef(null);
   const [currentPosition, setCurrentPosition] = useState(null);
   const [isMapReady, setIsMapReady] = useState(false);
   const [mapStyle, setMapStyle] = useState(
@@ -50,7 +54,7 @@ const OpenStreetMap = ({
       will-change: transform, opacity;
       animation: pulse 2s infinite ease-in-out;
     }
-    .locate-button, .style-button, .go-to-marker-button {
+    .locate-button, .style-button, .go-to-marker-button, .fullscreen-button, .reset-button {
       position: absolute;
       z-index: 1000;
       background: white;
@@ -66,8 +70,10 @@ const OpenStreetMap = ({
     .locate-button { bottom: 16px; right: 16px; }
     .style-button { bottom: 60px; right: 16px; }
     .go-to-marker-button { bottom: 104px; right: 16px; }
-    .locate-button:hover, .style-button:hover, .go-to-marker-button:hover { background-color: #f9fafb; }
-    .locate-button svg, .style-button svg, .go-to-marker-button svg { width: 20px; height: 20px; color: #3b82f6; }
+    .fullscreen-button { bottom: 148px; right: 16px; }
+    .reset-button { bottom: 192px; right: 16px; }
+    .locate-button:hover, .style-button:hover, .go-to-marker-button:hover, .fullscreen-button:hover, .reset-button:hover { background-color: #f9fafb; }
+    .locate-button svg, .style-button svg, .go-to-marker-button svg, .fullscreen-button svg, .reset-button svg { width: 20px; height: 20px; color: #3b82f6; }
     .leaflet-popup-content { font-size: 14px; }
   `;
 
@@ -292,6 +298,34 @@ const OpenStreetMap = ({
     setMapStyle(mapStyles[styles[nextIndex]]);
   };
 
+  const handleFullscreen = () => {
+    const mapContainer = mapContainerRef.current;
+    if (!document.fullscreenElement) {
+      mapContainer.requestFullscreen?.() ||
+        mapContainer.webkitRequestFullscreen?.() ||
+        mapContainer.mozRequestFullScreen?.() ||
+        mapContainer.msRequestFullscreen?.();
+    } else {
+      document.exitFullscreen?.() ||
+        document.webkitExitFullscreen?.() ||
+        document.mozCancelFullScreen?.() ||
+        document.msExitFullscreen?.();
+    }
+  };
+
+  const handleResetMap = () => {
+    mapInstanceRef.current.setView(center, zoom);
+    markersLayerRef.current.clearLayers();
+    markers.forEach((marker) => {
+      const { position, popup, icon, title } = marker;
+      L.marker(position, {
+        icon: icon ? L.icon(icon) : standardMarkerIcon,
+      })
+        .bindPopup(popup || title || "Địa điểm")
+        .addTo(markersLayerRef.current);
+    });
+  };
+
   return (
     <div style={{ position: "relative", width, height }}>
       <div ref={mapContainerRef} style={{ width: "100%", height: "100%" }} />
@@ -347,6 +381,34 @@ const OpenStreetMap = ({
           </svg>
         </button>
       )}
+      <button
+        className="fullscreen-button"
+        onClick={handleFullscreen}
+        title="Toàn màn hình"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z" />
+        </svg>
+      </button>
+      <button
+        className="reset-button"
+        onClick={handleResetMap}
+        title="Đặt lại bản đồ"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path d="M3 12a9 9 0 1 0 9-9M12 3v6" />
+        </svg>
+      </button>
     </div>
   );
 };

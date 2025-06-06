@@ -1,11 +1,11 @@
-$primary-color: rgb(45, 122, 97);
-$primary-color-light: rgba(45, 122, 97, 0.3);
-$text-color: #555;
-$text-light: #888;
-$bg-color: #f3f4f6;
-$white: #fff;
-$border-light: #ddd;
-$danger: #e11d48;
+$primary-color: #2c7a64; // Màu xanh đậm hơn một chút
+$primary-color-light: rgba(44, 122, 100, 0.15); // Nhạt hơn để tạo độ tương phản
+$text-color: #2d3748; // Màu text đậm hơn để dễ đọc
+$text-light: #718096; // Màu xám trung tính
+$bg-color: #f7fafc; // Màu nền nhẹ nhàng hơn
+$white: #ffffff;
+$border-light: #e2e8f0;
+$danger: #e53e3e;
 
 // Mixins
 @mixin card-shadow {
@@ -82,12 +82,13 @@ $danger: #e11d48;
 // Profile section
 .profile-section {
   background-color: $white;
-  padding: 20px;
-  display: flex;
-  align-items: center;
-  border-bottom: 2px solid $primary-color-light;
-  border-right: 2px solid $primary-color-light;
-  border-radius: 0 0 10px 10px;
+  padding: 30px; // Padding lớn hơn
+  margin-top: -50px; // Đẩy lên trên để chồng lên cover photo
+  margin-bottom: 30px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); // Shadow nhẹ
+  border-radius: 15px;
+  border: 1px solid $border-light;
+  border-bottom: 3px solid $primary-color-light;
 }
 
 .profile-info {
@@ -97,20 +98,17 @@ $danger: #e11d48;
   position: relative;
 }
 
-.avatar-div {
-  border-right: 1px solid #ccc;
-}
-
 .avatar {
-  width: 120px;
-  height: 120px;
+  width: 150px; // Kích thước lớn hơn
+  height: 150px;
   border-radius: 50%;
-  object-fit: cover;
-  margin-right: 20px;
+  border: 4px solid $white; // Viền trắng
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
   &.small {
     width: 40px;
     height: 40px;
+    border-width: 2px;
   }
 }
 
@@ -120,36 +118,30 @@ $danger: #e11d48;
 }
 
 .display-name {
-  font-size: 25px;
-  font-weight: bold;
+  font-size: 28px;
+  font-weight: 700;
+  color: $text-color;
+  margin-bottom: 5px;
 }
 
 .username {
+  font-size: 16px;
   color: $text-light;
-  font-size: 15px;
+  margin-bottom: 10px;
 }
 
 .edit-button {
-  border: 1px solid $primary-color-light;
-  border-radius: 10px;
-  display: flex;
-  flex-direction: row;
-  position: absolute;
-  top: 0;
-  right: 0;
-  background-color: $white;
-  padding: 8px 16px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background-color 0.2s ease;
+  padding: 10px 20px;
+  border-radius: 25px; // Bo tròn hơn
+  font-weight: 600;
+  background-color: $bg-color;
+  border: 1px solid $border-light;
 
   &:hover {
     background: $primary-color;
     color: $white;
-  }
-
-  span {
-    margin-left: 5px;
+    transform: translateY(-1px); // Hiệu ứng nổi lên
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 }
 
@@ -171,16 +163,18 @@ $danger: #e11d48;
 // Card components
 .bio-card,
 .advice-card,
-.profile-main {
-  @include card-shadow;
-  padding: 16px;
-  margin-bottom: 16px;
-  font-size: 14px;
+.recent-activities {
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+  border: 1px solid $border-light;
+  padding: 20px;
+  margin-bottom: 20px;
 
   h3 {
-    font-size: 18px;
-    font-weight: bold;
-    margin-bottom: 15px;
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: $text-color;
   }
 }
 
@@ -240,37 +234,61 @@ $danger: #e11d48;
   margin-right: 10px;
 }
 
-.profile-main {
-  padding: 50px;
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 0 10px #ddd;
+// Recent activities section
+.recent-activities {
   flex: 1;
+
+  .section-title {
+    margin: 10px 0 20px 0;
+    font-size: 20px;
+  }
 }
 
-.user-info {
+.recent-activities-tabs {
   display: flex;
   flex-direction: column;
-  gap: 12px;
 }
 
-.info-row {
+.tabs-navigation {
   display: flex;
-  justify-content: flex-start;
-  gap: 50px;
+  border-bottom: 1px solid $border-light;
+  margin-bottom: 20px;
 }
 
-.info-label {
-  width: 120px;
-  font-weight: bold;
-  text-align: left;
-  color: #444;
+.tab-button {
+  font-weight: 500;
+  padding: 12px 24px;
+  background: none;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  position: relative;
+  color: $text-color;
+
+  &.active {
+    color: $primary-color;
+    font-weight: bold;
+
+    &:after {
+      content: "";
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background-color: $primary-color;
+    }
+  }
+
+  &:hover {
+    color: $primary-color;
+  }
 }
 
-.info-value {
-  flex: 1;
-  text-align: left;
-  color: $primary-color;
+.tab-content {
+  min-height: 300px;
+  padding: 10px 0;
 }
 
 // Upload overlay
@@ -444,15 +462,12 @@ $danger: #e11d48;
 }
 
 %form-field {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid $border-light;
-  border-radius: 5px;
-  font-size: 14px;
+  padding: 12px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
 
   &:focus {
-    outline: none;
-    border-color: $primary-color;
+    box-shadow: 0 0 0 2px rgba($primary-color, 0.2);
   }
 }
 
@@ -475,11 +490,15 @@ $danger: #e11d48;
 }
 
 .btn {
-  padding: 8px 16px;
-  border-radius: 5px;
-  font-size: 14px;
-  cursor: pointer;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
   transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
 }
 
 .btn-cancel {
