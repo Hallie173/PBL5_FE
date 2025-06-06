@@ -4,6 +4,7 @@ import { Autocomplete, TextField } from "@mui/material";
 const AddLocationForm = ({
     visible,
     mode,
+    daylist,
     editData,
     cityAttraction,
     selectedLocation,
@@ -16,9 +17,12 @@ const AddLocationForm = ({
     setItineraryData,
     handleCancel,
     handleSave, // Sử dụng prop handleSave từ NewTrip
+    selectedDay,         
+    setSelectedDay
 }) => {
     useEffect(() => {
         console.log("AddLocationForm visible:", visible, "mode:", mode); // Debug
+        console.log("Addlocaiton",daylist);
         if (visible) {
             if (mode === "edit" && editData) {
                 setSelectedLocation(editData);
@@ -41,7 +45,16 @@ const AddLocationForm = ({
                 <div className="form-date-group">
                     <div className="form-date">
                         <label>Select Date</label>
-                        <input type="date" />
+                        <Autocomplete
+                            options={daylist}
+                            getOptionLabel={(option) => `Ngày ${option}`}
+                            value={selectedDay}
+                            onChange={(event, newValue) => setSelectedDay(newValue)}
+                            renderInput={(params) => (
+                                <TextField {...params} label="Select Date..." />
+                            )}
+                            sx={{ width: '100%' }}
+                        />
                     </div>
                 </div>
                 <div className="form-search-group">
