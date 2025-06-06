@@ -17,12 +17,12 @@ const AddLocationForm = ({
     setItineraryData,
     handleCancel,
     handleSave, // Sử dụng prop handleSave từ NewTrip
-    selectedDay,         
+    selectedDay,
     setSelectedDay
 }) => {
     useEffect(() => {
         console.log("AddLocationForm visible:", visible, "mode:", mode); // Debug
-        console.log("Addlocaiton",daylist);
+        console.log("Addlocaiton", daylist);
         if (visible) {
             if (mode === "edit" && editData) {
                 setSelectedLocation(editData);
@@ -51,7 +51,7 @@ const AddLocationForm = ({
                             value={selectedDay}
                             onChange={(event, newValue) => setSelectedDay(newValue)}
                             renderInput={(params) => (
-                                <TextField {...params} label="Select Date..." />
+                                <TextField {...params} />
                             )}
                             sx={{ width: '100%' }}
                         />
@@ -59,13 +59,14 @@ const AddLocationForm = ({
                 </div>
                 <div className="form-search-group">
                     <div className="search-box">
+                        <label>Select Location</label>
                         <Autocomplete
                             options={cityAttraction}
                             getOptionLabel={(option) => option.name}
                             value={selectedLocation}
                             onChange={(event, newValue) => setSelectedLocation(newValue)}
                             renderInput={(params) => (
-                                <TextField {...params} label="Search for location..." />
+                                <TextField {...params} />
                             )}
                             sx={{ width: "100%" }}
                         />
