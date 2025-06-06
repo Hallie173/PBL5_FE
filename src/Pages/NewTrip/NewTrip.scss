@@ -178,7 +178,7 @@ $hover-color: #81c784;
                 }
               }
 
-              .delete-location {
+              .delete-location-button {
                 position: absolute;
                 top: 0;
                 right: 0;
@@ -188,7 +188,7 @@ $hover-color: #81c784;
                 cursor: pointer;
               }
 
-              .edit-location {
+              .edit-location-button {
                 position: absolute;
                 bottom: 0;
                 right: 0;
@@ -198,85 +198,59 @@ $hover-color: #81c784;
                 cursor: pointer;
               }
             }
-
-            .add-location {
-              margin-bottom: 40px;
-
-              .add-location-btn {
-                width: 40px;
-                height: 40px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                background: white;
-                color: $primary-color;
-                border: 1px solid $border-color;
-                text-decoration: none;
-                border-radius: 25px;
-                font-size: 20px;
-                font-weight: bold;
-                transition: all 0.3s ease;
-
-                &:hover {
-                  background: $primary-color;
-                  transform: translateY(-2px);
-                  color: white;
-                }
-              }
-            }
           }
+        }
 
-          .add-location {
+        .add-location {
+          display: flex;
+          flex-direction: row;
+
+          .add-location-btn,
+          .save-location-btn {
+            width: 100px;
+            height: 50px;
             display: flex;
-            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 20px;
+            margin-top: 20px;
+            margin-right: 20px;
+            background: $primary-color;
+            color: white;
+            text-decoration: none;
+            border-radius: 40px;
+            font-size: 18px;
+            font-weight: 700;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
 
-            .add-location-btn,
-            .save-location-btn {
-              width: 100px;
-              height: 50px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              padding: 10px 20px;
-              margin-top: 20px;
-              margin-right: 20px;
-              background: $primary-color;
-              color: white;
-              text-decoration: none;
-              border-radius: 40px;
-              font-size: 18px;
-              font-weight: 700;
+            &::before {
+              content: "";
+              position: absolute;
+              top: 0;
+              left: -100%;
+              width: 100%;
+              height: 100%;
+              background: linear-gradient(120deg,
+                  transparent,
+                  rgba(255, 255, 255, 0.3),
+                  transparent);
               transition: all 0.4s ease;
-              position: relative;
-              overflow: hidden;
+            }
+
+            &:hover {
+              background: $secondary-color;
+              transform: translateY(-4px);
+              box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 
               &::before {
-                content: "";
-                position: absolute;
-                top: 0;
-                left: -100%;
-                width: 100%;
-                height: 100%;
-                background: linear-gradient(120deg,
-                    transparent,
-                    rgba(255, 255, 255, 0.3),
-                    transparent);
-                transition: all 0.4s ease;
+                left: 100%;
               }
+            }
 
-              &:hover {
-                background: $secondary-color;
-                transform: translateY(-4px);
-                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-
-                &::before {
-                  left: 100%;
-                }
-              }
-
-              svg {
-                font-size: 24px;
-              }
+            svg {
+              font-size: 24px;
             }
           }
         }
@@ -285,18 +259,24 @@ $hover-color: #81c784;
   }
 }
 
-.edit-location-card {
+.edit-location {
   display: flex;
   flex-direction: column;
   width: 100%;
+
+  .edit-location-form {
+    flex: 1;
+  }
 }
 
-.add-location,
-.edit-location-card {
+.add-location {
   .add-location-form {
     flex: 1;
   }
+}
 
+.edit-location-form,
+.add-location-form {
   .form-container {
     width: 65%;
     margin: 20px 0 20px 0;
