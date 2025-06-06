@@ -18,11 +18,10 @@ const MyTrips = () => {
                 const notfinishItineraryRespone = await axios.get(`${BASE_URL}/itinerary/notfinished/${user?.user_id}`)
 
                 setfItinerary(finishItineraryRespone.data);
-                setnotfItinerary(notfinishItineraryRespone.data);
-
-
-                console.log('gas');
-                console.log(finishItinerary);
+                setnotfItinerary(notfinishItineraryRespone.data);   
+                
+                console.log("notfinish: ",notfinishItinerary);
+                console.log("finish: ", finishItinerary);
             } catch (err) {
 
             }
@@ -40,14 +39,22 @@ const MyTrips = () => {
 
             <div className="trip-list">
                 <div className="upcoming-trip">
-                    <h3 className="upcoming-trip-title">upcoming trips</h3>
+                    <h3 className="upcoming-trip-title">Upcoming trips</h3>
                     {notfinishItinerary.length === 0 ? (
                         <p>You dont have any upcoming trips.</p>
                     ) : (
-                        finishItinerary.map((trip) => (
+                        notfinishItinerary.map((trip) => (
                             <Link
                                 key={trip.itinerary_id}
-                                to={`/tripguide/${trip.itinerary_id}`}
+                                to="/tripguide/newtrip"
+                                state={{
+                                    itinerary_id: trip.itinerary_id,
+                                    mode: 'edit',
+                                    startDate: trip.start_date,
+                                    endDate: trip.end_date,
+                                    title: trip.title,
+                                    selectedCity: trip.city_id,
+                                }}
                                 className="trip-content"
                             >
                                 <img
@@ -79,7 +86,15 @@ const MyTrips = () => {
                         finishItinerary.map((trip) => (
                             <Link
                                 key={trip.itinerary_id}
-                                to={`/tripguide/${trip.itinerary_id}`}
+                                to="/tripguide/newtrip"
+                                state={{
+                                    itinerary_id: trip.itinerary_id,
+                                    mode: 'edit',
+                                    startDate: trip.start_date,
+                                    endDate: trip.end_date,
+                                    title: trip.title,
+                                    selectedCity: trip.city_id,
+                                }}
                                 className="trip-content"
                             >
                                 <img
