@@ -268,10 +268,8 @@ const Review = () => {
 
         {/* Search Section */}
         <div className="mb-16 relative">
-          {" "}
-          {/* Added relative positioning here */}
           <div className="w-full max-w-3xl mx-auto">
-            {/* Search Input with enhanced styling */}
+            {/* Modern Search Input */}
             <div className="relative mb-6">
               <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
                 <Search className="w-5 h-5 text-gray-400" />
@@ -281,118 +279,151 @@ const Review = () => {
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
                 placeholder="Search for places to review..."
-                className="w-full py-4 pl-12 pr-4 text-gray-700 bg-white border-2 border-gray-200 rounded-2xl 
-                  hover:border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none
-                  transition-all duration-200 shadow-sm"
+                className="w-full py-4 pl-12 pr-4 text-gray-700 bg-white/90 backdrop-blur-sm
+                  border-2 border-gray-200 rounded-full shadow-md hover:shadow-xl
+                  focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none
+                  transition-all duration-300 ease-in-out placeholder:text-gray-400"
                 onFocus={() => setShowSuggestions(true)}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
               />
-            </div>
-
-            {/* Improved Filters */}
-            <div className="flex gap-4 mb-6">
-              <select
-                value={searchFilters.type}
-                onChange={(e) => handleFilterChange("type", e.target.value)}
-                className="px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-700 
-                  focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none
-                  cursor-pointer transition-all duration-200 hover:border-gray-300"
-              >
-                <option value="all">All Types</option>
-                <option value="attraction">Attractions</option>
-                <option value="restaurant">Restaurants</option>
-              </select>
-
-              <select
-                value={searchFilters.rating}
-                onChange={(e) =>
-                  handleFilterChange("rating", Number(e.target.value))
-                }
-                className="px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-700 
-                  focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none
-                  cursor-pointer transition-all duration-200 hover:border-gray-300"
-              >
-                <option value="0">Any Rating</option>
-                <option value="3">3+ Stars</option>
-                <option value="4">4+ Stars</option>
-                <option value="4.5">4.5+ Stars</option>
-              </select>
-            </div>
-
-            {/* Enhanced Suggestions Panel - Updated positioning */}
-            {showSuggestions && (
-              <div
-                className="absolute z-10 left-0 right-0 bg-white rounded-2xl shadow-xl border border-gray-100 
-                backdrop-blur-sm backdrop-filter overflow-hidden transition-all duration-200"
-              >
-                <div className="p-4">
-                  {searchResults.length > 0 ? (
-                    <div className="space-y-4">
-                      {searchResults.map((item) => (
-                        <div
-                          key={item.detail_id}
-                          className="flex items-center p-3 rounded-xl hover:bg-gray-50 cursor-pointer
-                            transition-all duration-200"
-                          onClick={() => {
-                            handleItemClick(item);
-                            setShowSuggestions(false);
-                          }}
-                        >
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            className="w-16 h-16 object-cover rounded-lg shadow-sm"
-                          />
-                          <div className="ml-4 flex-grow">
-                            <h3 className="font-semibold text-gray-900">
-                              {item.name}
-                            </h3>
-                            <div className="flex items-center justify-between mt-1">
-                              <p className="text-sm text-gray-500 flex items-center">
-                                {item.type === "attraction" ? (
-                                  <span className="flex items-center">
-                                    <i className="fas fa-landmark mr-1"></i>{" "}
-                                    Tourist Attraction
-                                  </span>
-                                ) : (
-                                  <span className="flex items-center">
-                                    <i className="fas fa-utensils mr-1"></i>{" "}
-                                    Restaurant
-                                  </span>
-                                )}
-                              </p>
-                              <RatingStars rating={item.rating} />
+              {/* Modern Search Results */}
+              {showSuggestions && (
+                <div
+                  className="absolute z-50 left-0 right-0 mt-2 bg-white/95 backdrop-blur-md
+                rounded-3xl shadow-xl border border-gray-100 overflow-hidden
+                transition-all duration-300 ease-in-out animate-fadeIn"
+                >
+                  <div className="p-4">
+                    {searchResults.length > 0 ? (
+                      <div className="space-y-4">
+                        {searchResults.map((item) => (
+                          <div
+                            key={item.detail_id}
+                            className="flex items-center p-4 rounded-2xl hover:bg-blue-50/50
+                            cursor-pointer transition-all duration-200"
+                            onClick={() => {
+                              handleItemClick(item);
+                              setShowSuggestions(false);
+                            }}
+                          >
+                            <div className="relative w-20 h-20 rounded-xl overflow-hidden">
+                              <img
+                                src={item.image}
+                                alt={item.name}
+                                className="w-full h-full object-cover transition-transform duration-200
+                                hover:scale-110"
+                              />
                             </div>
-                            {item.tags && item.tags.length > 0 && (
-                              <div className="flex gap-2 mt-2 flex-wrap">
-                                {item.tags.slice(0, 3).map((tag, index) => (
-                                  <span
-                                    key={index}
-                                    className="text-xs px-2 py-1 bg-blue-50 text-blue-600 rounded-full"
+
+                            <div className="ml-4 flex-grow">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h3
+                                    className="font-semibold text-gray-900 group-hover:text-blue-600
+                                  transition-colors duration-200"
                                   >
-                                    {tag}
-                                  </span>
-                                ))}
+                                    {item.name}
+                                  </h3>
+                                  <p className="text-sm text-gray-500 flex items-center mt-1">
+                                    {item.type === "attraction" ? (
+                                      <span className="flex items-center">
+                                        <i className="fas fa-landmark mr-2"></i>
+                                        Tourist Attraction
+                                      </span>
+                                    ) : (
+                                      <span className="flex items-center">
+                                        <i className="fas fa-utensils mr-2"></i>
+                                        Restaurant
+                                      </span>
+                                    )}
+                                  </p>
+                                </div>
+                                <span
+                                  className="flex items-center bg-blue-50 text-blue-600 px-3 py-1
+                                rounded-full text-sm font-medium"
+                                >
+                                  {item.rating.toFixed(1)}
+                                  <Star className="w-4 h-4 ml-1 text-yellow-400" />
+                                </span>
                               </div>
-                            )}
+
+                              {item.tags && item.tags.length > 0 && (
+                                <div className="flex gap-2 mt-2 flex-wrap">
+                                  {item.tags.slice(0, 3).map((tag, index) => (
+                                    <span
+                                      key={index}
+                                      className="text-xs px-3 py-1 bg-gray-100/80 text-gray-600
+                                      rounded-full transition-colors duration-200
+                                      hover:bg-gray-200/80"
+                                    >
+                                      {tag}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : searchQuery.length > 0 ? (
-                    <div className="py-8 text-center">
-                      <p className="text-gray-500">
-                        No results found for "{searchQuery}"
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="py-8 text-center">
-                      <p className="text-gray-500">Start typing to search...</p>
-                    </div>
-                  )}
+                        ))}
+                      </div>
+                    ) : searchQuery.length > 0 ? (
+                      <div className="py-8 text-center">
+                        <p className="text-gray-500">
+                          No results found for "{searchQuery}"
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="py-8 text-center">
+                        <p className="text-gray-500">
+                          Start typing to search...
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modern Filters */}
+            <div className="flex gap-4">
+              <div className="relative flex-1">
+                <select
+                  value={searchFilters.type}
+                  onChange={(e) => handleFilterChange("type", e.target.value)}
+                  className="w-full appearance-none py-3 pl-4 pr-10 bg-white/90 backdrop-blur-sm
+                    border-2 border-gray-200 rounded-full text-gray-700
+                    focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none
+                    cursor-pointer transition-all duration-300 hover:shadow-md"
+                >
+                  <option value="all">All Types</option>
+                  <option value="attraction">Attractions</option>
+                  <option value="restaurant">Restaurants</option>
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <i className="fas fa-chevron-down text-gray-400"></i>
                 </div>
               </div>
-            )}
+
+              <div className="relative flex-1">
+                <select
+                  value={searchFilters.rating}
+                  onChange={(e) =>
+                    handleFilterChange("rating", Number(e.target.value))
+                  }
+                  className="w-full appearance-none py-3 pl-4 pr-10 bg-white/90
+                    border-2 border-gray-200 rounded-full text-gray-700
+                    focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none
+                    cursor-pointer transition-all duration-300 hover:shadow-md"
+                >
+                  <option value="0">Any Rating</option>
+                  <option value="3">3+ Stars</option>
+                  <option value="4">4+ Stars</option>
+                  <option value="4.5">4.5+ Stars</option>
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <i className="fas fa-chevron-down text-gray-400"></i>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
