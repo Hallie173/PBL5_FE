@@ -54,7 +54,7 @@ function NewTrip() {
   const handleDeleteClick = (item) => {
     setDeleteConfirm({
       isOpen: true,
-      item
+      item,
     });
   };
 
@@ -68,7 +68,6 @@ function NewTrip() {
     console.log("UPDATED: ", updatedItinerary);
     setitinararyData(updatedItinerary);
     setDeleteConfirm({ isOpen: false, day: null, index: null });
-
   };
 
   // Hàm hủy bỏ xóa
@@ -79,8 +78,7 @@ function NewTrip() {
     const start = new Date(startDate);
     const end = new Date(endDate);
 
-    const dayCount =
-      Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
+    const dayCount = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
     console.log("TEST");
     console.log(Array.from({ length: dayCount }, (_, i) => i + 1));
     return Array.from({ length: dayCount }, (_, i) => i + 1);
@@ -97,25 +95,34 @@ function NewTrip() {
           const restagParams = selectedResTags.map((tag) => `${tag}`).join("&");
           const url = `${BASE_URL}/attractions/tags?city=${selectedCity}&${tagParams}&startTime=${startTime}&endTime=${endTime}&res_tag=${restagParams}&startDate=${startDate}&endDate=${endDate}`;
           const Itiresponse = await axios.get(url);
-          const cityResponse = await axios.get(`${BASE_URL}/cities/${selectedCity}`);
+          const cityResponse = await axios.get(
+            `${BASE_URL}/cities/${selectedCity}`
+          );
           setCity(cityResponse.data);
-          const cityAttraction = await axios.get(`${BASE_URL}/attractions/city/${selectedCity}`);
+          const cityAttraction = await axios.get(
+            `${BASE_URL}/attractions/city/${selectedCity}`
+          );
           setCityAttraction(cityAttraction.data);
           setitinararyData(Itiresponse.data);
           setDay(generateDayList(startDate, endDate));
         } else {
-          const Itiresponse = await axios.get(`${BASE_URL}/itineraryDetail/${user?.user_id}/${itinerary_id}`);
+          const Itiresponse = await axios.get(
+            `${BASE_URL}/itineraryDetail/${user?.user_id}/${itinerary_id}`
+          );
           setitinararyData(Itiresponse.data);
-          const cityResponse = await axios.get(`${BASE_URL}/cities/${selectedCity}`);
+          const cityResponse = await axios.get(
+            `${BASE_URL}/cities/${selectedCity}`
+          );
           setCity(cityResponse.data);
-          const cityAttraction = await axios.get(`${BASE_URL}/attractions/city/${selectedCity}`);
+          const cityAttraction = await axios.get(
+            `${BASE_URL}/attractions/city/${selectedCity}`
+          );
           setCityAttraction(cityAttraction.data);
           setDay(generateDayList(startDate, endDate));
           console.log("start", startDate);
           console.log("end", endDate);
           console.log("dayling: ", daylist);
         }
-
       } catch (err) {
         setError(err);
       } finally {
@@ -157,8 +164,8 @@ function NewTrip() {
       editingIndex: null,
     });
     setSelectedLocation(null);
-    setStartTime('');
-    setEndTime('');
+    setStartTime("");
+    setEndTime("");
   };
   // const handleCancel = () => {
   //     setAddLocation(false);
@@ -173,7 +180,7 @@ function NewTrip() {
     if (mode === "create") {
       try {
         if (!user?.user_id) {
-          alert('Need login to create itinerary.');
+          alert("Need login to create itinerary.");
           return;
         }
         const response = await axios.post(`${BASE_URL}/itinerary/`, {
@@ -182,10 +189,10 @@ function NewTrip() {
           description: description,
           start_date: startDate,
           end_date: endDate,
-          status: 'private',
+          status: "private",
           user_id: user?.user_id,
           city_name: city?.name,
-          image_url: city?.image_url[0]
+          image_url: city?.image_url[0],
         });
         const newItinerary = response.data;
         const newItineraryId = newItinerary.itinerary_id;
@@ -207,22 +214,26 @@ function NewTrip() {
             image_url: item.image_url,
             latitude: item.latitude,
             longitude: item.longitude,
-            warning: item.warning || '',
+            warning: item.warning || "",
             day: item.day,
           };
 
-          const response = await axios.post(`${BASE_URL}/itineraryDetail/`, data);
+          const response = await axios.post(
+            `${BASE_URL}/itineraryDetail/`,
+            data
+          );
         }
-        alert('Lưu đc r');
-
+        alert("Lưu đc r");
       } catch (error) {
-        console.error('Err:', error);
-        alert('Lưu thất bại');
+        console.error("Err:", error);
+        alert("Lưu thất bại");
       }
-    } else if (mode == 'edit') {
+    } else if (mode == "edit") {
       console.log(itinerary_id);
       try {
-        const deleteRespone = await axios.delete(`${BASE_URL}/itineraryDetail/delete/${itinerary_id}`,);
+        const deleteRespone = await axios.delete(
+          `${BASE_URL}/itineraryDetail/delete/${itinerary_id}`
+        );
         for (const item of itineraryData) {
           const data = {
             user_id: user?.user_id,
@@ -240,18 +251,19 @@ function NewTrip() {
             image_url: item.image_url,
             latitude: item.latitude,
             longitude: item.longitude,
-            warning: item.warning || '',
+            warning: item.warning || "",
             day: item.day,
           };
-          const response = await axios.post(`${BASE_URL}/itineraryDetail/`, data);
+          const response = await axios.post(
+            `${BASE_URL}/itineraryDetail/`,
+            data
+          );
         }
       } catch (err) {
-        alert('Edit Failed: ', err);
+        alert("Edit Failed: ", err);
       }
     }
   };
-
-
 
   const handleSave = (editingDay, editingIndex) => {
     if (!selectedLocation || !startTime || !endTime) {
@@ -260,13 +272,15 @@ function NewTrip() {
     }
 
     const timeToMinutes = (time) => {
-      const [h, m] = time.split(':').map(Number);
+      const [h, m] = time.split(":").map(Number);
       return h * 60 + m;
     };
     const minutesToTime = (minutes) => {
       const h = Math.floor(minutes / 60);
       const m = minutes % 60;
-      return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+      return `${h.toString().padStart(2, "0")}:${m
+        .toString()
+        .padStart(2, "0")}`;
     };
 
     const estimateTravelTime = (from, to) => {
@@ -313,7 +327,7 @@ function NewTrip() {
       image_url: selectedLocation.image_url,
       latitude: selectedLocation.latitude,
       longitude: selectedLocation.longitude,
-      warning: ''
+      warning: "",
     };
     console.log(newLocation);
     let updatedItinerary = [...itineraryData, newLocation];
@@ -332,11 +346,12 @@ function NewTrip() {
       return timeToMinutes(a.arrival_time) - timeToMinutes(b.arrival_time);
     });
 
-
     for (let i = 0; i < updatedItinerary.length; i++) {
       const curr = updatedItinerary[i];
       const prev = i === 0 ? null : updatedItinerary[i - 1];
-      updatedItinerary.sort((a, b) => timeToMinutes(a.arrival_time) - timeToMinutes(b.arrival_time));
+      updatedItinerary.sort(
+        (a, b) => timeToMinutes(a.arrival_time) - timeToMinutes(b.arrival_time)
+      );
 
       if (prev) {
         const travel = estimateTravelTime(prev, curr);
@@ -346,21 +361,20 @@ function NewTrip() {
         if (prevDeparture + travel > currArrival) {
           curr.warning = "You may not come to this destination on time!";
         } else {
-          curr.warning = '';
+          curr.warning = "";
         }
       } else {
         curr.travel_from_prev_minutes = 0;
-        curr.warning = '';
+        curr.warning = "";
       }
 
       setitinararyData(updatedItinerary);
       console.log(itineraryData);
       setSelectedLocation(null);
-      setStartTime('');
-      setEndTime('');
+      setStartTime("");
+      setEndTime("");
       handleCancel();
-    };
-
+    }
   };
 
   return (
