@@ -10,6 +10,7 @@ import { Autocomplete, TextField } from '@mui/material';
 import { useAuth } from "../../contexts/AuthContext";
 import { FaPen, FaXmark } from "react-icons/fa6";
 import AddLocationForm from "./AddLocationForm";
+import DeleteConfirm from "./DeleteConfirm";
 
 function NewTrip() {
   const location = useLocation();
@@ -33,6 +34,11 @@ function NewTrip() {
     data: null,
     editingDay: null,
     editingIndex: null,
+  });
+  const [deleteConfirm, setDeleteConfirm] = useState({
+    isOpen: false,
+    day: null,
+    index: null,
   });
   const [cityAttraction, setCityAttraction] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState(null);
@@ -70,6 +76,29 @@ function NewTrip() {
       // Handle update mode here
     }
   }, []);
+
+  const handleDeleteClick = (day, index) => {
+    setDeleteConfirm({
+      isOpen: true,
+      day,
+      index,
+    });
+  };
+
+  // Hàm xác nhận xóa
+  const handleDeleteConfirm = () => {
+    const { day, index } = deleteConfirm;
+    const updatedItinerary = itineraryData.filter(
+      (item, idx) => !(item.day === day && idx === index)
+    );
+    setItineraryData(updatedItinerary);
+    setDeleteConfirm({ isOpen: false, day: null, index: null });
+  };
+
+  // Hàm hủy bỏ xóa
+  const handleDeleteCancel = () => {
+    setDeleteConfirm({ isOpen: false, day: null, index: null });
+  };
 
   const handleAddLocation = () => {
     setFormState({
@@ -282,7 +311,7 @@ function NewTrip() {
                             </div>
                           </div>
                           <div className="delete-location">
-                            <FaXmark className="delete-icon" />
+                            <FaXmark className="delete-icon" onClick={() => handleDeleteClick(day, index)} />
                           </div>
                           <div className="edit-location">
                             <FaPen className="edit-icon" onClick={() => handleEditLocation(item, Number(day), index)} />
@@ -334,6 +363,12 @@ function NewTrip() {
           </div>
         </div>
       </div>
+      <DeleteConfirm
+        isOpen={deleteConfirm.isOpen}
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+        message="Are you sure you want to delete this location?"
+      />
     </div>
   );
 }
