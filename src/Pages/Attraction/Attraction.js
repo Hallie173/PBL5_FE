@@ -138,307 +138,90 @@ const AttractionHeader = ({
 };
 
 const AttractionGallery = React.memo(
-  ({
-    images,
-    activeImageIndex,
-    setActiveImageIndex,
-    isFullScreen,
-    setIsFullScreen,
-    handlePrevImage,
-    handleNextImage,
-    attractionName,
-  }) => {
-    const thumbnailContainerRef = useRef(null);
-    const galleryRef = useRef(null);
-    const touchStartX = useRef(null);
-    const [imageError, setImageError] = useState(null);
-    const [thumbnailErrors, setThumbnailErrors] = useState({});
+  ({ images, activeImageIndex, setActiveImageIndex, attractionName }) => {
     const [isImageLoaded, setIsImageLoaded] = useState(false);
 
-    useEffect(() => {
-      if (!images?.length) {
-        setImageError("No images available");
-      } else if (!Array.isArray(images)) {
-        setImageError("Invalid image data");
-      } else {
-        images.forEach((url, idx) => {
-          if (typeof url !== "string" || !url.trim()) {
-            setThumbnailErrors((prev) => ({ ...prev, [idx]: "Invalid URL" }));
-          }
-        });
-      }
-    }, [images]);
-
-    useEffect(() => {
-      if (thumbnailContainerRef.current) {
-        const thumbnails =
-          thumbnailContainerRef.current.querySelectorAll(".thumbnail img");
-        const observer = new IntersectionObserver(
-          (entries) => {
-            entries.forEach((entry) => {
-              if (entry.isIntersecting) {
-                const img = entry.target;
-                if (img.dataset.src) {
-                  img.src = img.dataset.src;
-                }
-                observer.unobserve(img);
-              }
-            });
-          },
-          { rootMargin: "0px" }
-        );
-        thumbnails.forEach((img) => observer.observe(img));
-        return () => observer.disconnect();
-      }
-    }, [images]);
-
-    useEffect(() => {
-      const activeThumbnail = thumbnailContainerRef.current?.querySelector(
-        `.thumbnail:nth-child(${activeImageIndex + 1})`
+    const handlePrevImage = useCallback(() => {
+      setActiveImageIndex((prev) =>
+        prev === 0 ? images.length - 1 : prev - 1
       );
-      if (activeThumbnail) {
-        activeThumbnail.scrollIntoView({
-          behavior: "smooth",
-          inline: "center",
-        });
-      }
-    }, [activeImageIndex]);
+    }, [images.length, setActiveImageIndex]);
+
+    const handleNextImage = useCallback(() => {
+      setActiveImageIndex((prev) =>
+        prev === images.length - 1 ? 0 : prev + 1
+      );
+    }, [images.length, setActiveImageIndex]);
 
     useEffect(() => {
-      if (isFullScreen) {
-        galleryRef.current?.focus();
+      if (images.length > 1) {
+        const timer = setTimeout(() => {
+          handleNextImage();
+        }, 4000);
+        return () => clearTimeout(timer);
       }
-    }, [isFullScreen]);
+    }, [activeImageIndex, handleNextImage, images.length]);
 
-    const handleTouchStart = (e) => {
-      touchStartX.current = e.touches[0].clientX;
-    };
-
-    const handleTouchMove = (e) => {
-      if (touchStartX.current === null) return;
-      const touchEndX = e.touches[0].clientX;
-      const diffX = touchStartX.current - touchEndX;
-      if (Math.abs(diffX) > 50) {
-        if (diffX > 0) handleNextImage();
-        else handlePrevImage();
-        touchStartX.current = null;
-      }
-    };
-
-    const handleTouchEnd = () => {
-      touchStartX.current = null;
-    };
-
-    const handleThumbnailClick = useCallback(
-      (index) => setActiveImageIndex(index),
-      [setActiveImageIndex]
-    );
-
-    const handleThumbnailKeyDown = useCallback(
-      (e, index) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          setActiveImageIndex(index);
-        }
-      },
-      [setActiveImageIndex]
-    );
-
-    const handleImageError = (e, index) => {
-      e.target.src = "https://via.placeholder.com/120x80?text=Image+Not+Found";
-      setThumbnailErrors((prev) => ({ ...prev, [index]: "Failed to load" }));
-    };
-
-    if (imageError) {
+    if (!images || images.length === 0) {
       return (
-        <div className="attraction-gallery error">
-          <div className="image-error">
-            <FontAwesomeIcon icon={faImages} className="no-image-icon" />
-            <p>{imageError}</p>
-          </div>
+        <div className="attraction-gallery no-images">
+          <FontAwesomeIcon icon={faImages} className="no-image-icon" />
+          <p>No images available</p>
         </div>
       );
     }
 
     return (
-      <div
-        className="attraction-gallery"
-        role="region"
-        aria-label="Image gallery"
-        ref={galleryRef}
-        tabIndex={isFullScreen ? 0 : -1}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      >
-        {images?.length > 0 && Array.isArray(images) ? (
-          <>
-            <div
-              className="main-image-container"
-              onClick={() => setIsFullScreen(true)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) =>
-                (e.key === "Enter" || e.key === " ") && setIsFullScreen(true)
-              }
-              aria-label="View images in fullscreen"
-            >
-              <img
-                src={images[activeImageIndex]}
-                alt={`${attractionName || "Attraction"} - Image ${
-                  activeImageIndex + 1
-                }`}
-                className="main-image"
-                loading="lazy"
-                onLoad={() => setIsImageLoaded(true)}
-                onError={(e) => {
-                  handleImageError(e, activeImageIndex);
-                  setIsImageLoaded(true);
-                }}
-                style={{ opacity: isImageLoaded ? 1 : 0 }}
-              />
-              {images.length > 1 && (
-                <>
-                  <div className="image-counter">
-                    {activeImageIndex + 1}/{images.length}
-                  </div>
-                  <button
-                    className="fullscreen-button"
-                    aria-label="View image in fullscreen"
-                  >
-                    <FontAwesomeIcon icon={faExpand} />
-                  </button>
-                  <div className="gallery-controls">
-                    <button
-                      className="gallery-nav prev"
-                      onClick={handlePrevImage}
-                      aria-label="Previous image"
-                    >
-                      ‹
-                    </button>
-                    <button
-                      className="gallery-nav next"
-                      onClick={handleNextImage}
-                      aria-label="Next image"
-                    >
-                      ›
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-            {isFullScreen && (
-              <div
-                className="fullscreen-gallery"
-                onClick={() => setIsFullScreen(false)}
-                role="dialog"
-                aria-label="Fullscreen image gallery"
-                tabIndex={0}
-              >
-                <img
-                  src={images[activeImageIndex]}
-                  alt={`${attractionName || "Attraction"} - Image ${
-                    activeImageIndex + 1
-                  }`}
-                  className="fullscreen-image"
-                  onError={(e) => handleImageError(e, activeImageIndex)}
-                />
-                <div className="image-caption">
-                  {attractionName} - Image {activeImageIndex + 1}
-                </div>
-                <div className="image-counter">
-                  {activeImageIndex + 1}/{images.length}
-                </div>
+      <div className="attraction-gallery" aria-label="Image gallery">
+        <div
+          className="main-image-container"
+          role="button"
+          tabIndex={0}
+          aria-label="View images"
+        >
+          <img
+            src={images[activeImageIndex]}
+            alt={`${attractionName || "Attraction"} - Image ${
+              activeImageIndex + 1
+            }`}
+            className="main-image"
+            loading="lazy"
+            onLoad={() => setIsImageLoaded(true)}
+            style={{
+              opacity: isImageLoaded ? 1 : 0,
+              transition: "opacity 0.5s ease-in-out",
+            }}
+          />
+          {images.length > 1 && (
+            <>
+              <div className="image-counter">
+                {activeImageIndex + 1}/{images.length}
+              </div>
+              <div className="gallery-controls">
                 <button
-                  className="close-fullscreen"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsFullScreen(false);
-                  }}
-                  aria-label="Close fullscreen gallery"
+                  className="gallery-nav prev"
+                  onClick={handlePrevImage}
+                  aria-label="Previous image"
                 >
-                  ×
+                  ‹
                 </button>
-                {images.length > 1 && (
-                  <div className="gallery-controls">
-                    <button
-                      className="gallery-nav prev"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handlePrevImage();
-                      }}
-                      aria-label="Previous image"
-                    >
-                      ‹
-                    </button>
-                    <button
-                      className="gallery-nav next"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleNextImage();
-                      }}
-                      aria-label="Next image"
-                    >
-                      ›
-                    </button>
-                  </div>
-                )}
+                <button
+                  className="gallery-nav next"
+                  onClick={handleNextImage}
+                  aria-label="Next image"
+                >
+                  ›
+                </button>
               </div>
-            )}
-            {images.length > 1 && (
-              <div
-                className="thumbnail-gallery"
-                role="tablist"
-                ref={thumbnailContainerRef}
-              >
-                {images.map((img, idx) => (
-                  <div
-                    key={idx}
-                    className={`thumbnail ${
-                      activeImageIndex === idx ? "active" : ""
-                    } ${thumbnailErrors[idx] ? "error" : ""}`}
-                    role="tab"
-                    tabIndex={0}
-                    onClick={() => handleThumbnailClick(idx)}
-                    onKeyDown={(e) => handleThumbnailKeyDown(e, idx)}
-                    aria-label={`View image ${idx + 1}`}
-                    aria-selected={activeImageIndex === idx}
-                  >
-                    {thumbnailErrors[idx] ? (
-                      <div className="thumbnail-error">
-                        <FontAwesomeIcon
-                          icon={faImages}
-                          className="error-icon"
-                        />
-                        <span>{thumbnailErrors[idx]}</span>
-                      </div>
-                    ) : (
-                      <img
-                        data-src={img}
-                        src={img}
-                        alt={`Thumbnail ${idx + 1}`}
-                        loading="lazy"
-                        onError={(e) => handleImageError(e, idx)}
-                      />
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="no-image">
-            <FontAwesomeIcon icon={faImages} className="no-image-icon" />
-            <p>No images available</p>
-          </div>
-        )}
+            </>
+          )}
+        </div>
       </div>
     );
   },
   (prevProps, nextProps) =>
     prevProps.images === nextProps.images &&
-    prevProps.activeImageIndex === nextProps.activeImageIndex &&
-    prevProps.isFullScreen === nextProps.isFullScreen
+    prevProps.activeImageIndex === nextProps.activeImageIndex
 );
 
 const AttractionInfo = React.memo(
@@ -836,8 +619,6 @@ const AttractionReviews = React.memo(
 const NearbyAttractions = React.memo(
   ({ nearbyAttractions, city, renderStars, handleToggleSave, favorites }) => {
     const navigate = useNavigate();
-    const { user } = useAuth();
-
     const getValidImageUrl = (imageUrl) => {
       if (Array.isArray(imageUrl) && imageUrl.length > 0) {
         return imageUrl[0];
@@ -927,7 +708,6 @@ const Attraction = () => {
   const { user } = useAuth();
 
   const saveRecentlyViewed = useCallback(async () => {
-    
     if (!attraction || !attraction.attraction_id || !attraction.name) {
       console.warn("Invalid attraction data, skipping saveRecentlyViewed");
       return;
@@ -1110,10 +890,6 @@ const Attraction = () => {
         images={images}
         activeImageIndex={activeImageIndex}
         setActiveImageIndex={setActiveImageIndex}
-        isFullScreen={isFullScreen}
-        setIsFullScreen={setIsFullScreen}
-        handlePrevImage={handlePrevImage}
-        handleNextImage={handleNextImage}
         attractionName={attraction.name}
       />
       <AttractionInfo

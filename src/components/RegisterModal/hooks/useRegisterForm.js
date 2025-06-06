@@ -1,21 +1,40 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useFormik } from "formik";
 import { registerSchema, initialFormValues } from "../registerSchema";
 import { authService } from "../../../services/authService";
+import axios from "axios";
+import BASE_URL from "../../../constants/BASE_URL";
 
 export const useRegisterForm = ({ onSwitchToLogin, onRegisterSuccess }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formError, setFormError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [cities, setCities] = useState([]);
+  const [isCitiesLoading, setIsCitiesLoading] = useState(false);
 
-  // Kiểm tra email đã tồn tại chưa
+  useEffect(() => {
+    const fetchCities = async () => {
+      setIsCitiesLoading(true);
+      try {
+        const response = await axios.get(`${BASE_URL}/cities`);
+        setCities(response.data);
+      } catch (error) {
+        setFormError(
+          "Không thể tải danh sách thành phố. Vui lòng thử lại sau."
+        );
+      } finally {
+        setIsCitiesLoading(false);
+      }
+    };
 
-  // Sử dụng formik với yup schema
+    fetchCities();
+  }, []);
+
   const formik = useFormik({
     initialValues: initialFormValues,
     validationSchema: registerSchema,
-    validateOnChange: false, // Chỉ validate khi submit hoặc blur
+    validateOnChange: false,
     validateOnBlur: true,
     onSubmit: async (values) => {
       setIsLoading(true);
@@ -23,22 +42,20 @@ export const useRegisterForm = ({ onSwitchToLogin, onRegisterSuccess }) => {
 
       try {
         const userData = {
-          fullName: values.fullName,
+          fullName: values.fullName, // Changed to fullName
           username: values.username,
           email: values.email,
           password: values.password,
+          bio: {
+            currentCity: values.currentCity,
+            about: "",
+            website: "",
+            location_preferences: [],
+          },
         };
 
-        // Gọi API đăng ký
         const response = await authService.register(userData);
-
-        // Xử lý khi đăng ký thành công
-        if (onRegisterSuccess) {
-          onRegisterSuccess(response);
-        } else {
-          // Nếu không có callback thành công, chuyển sang màn hình đăng nhập
-          onSwitchToLogin();
-        }
+        onRegisterSuccess(response);
       } catch (error) {
         setFormError(
           error.message || "Đăng ký không thành công. Vui lòng thử lại sau."
@@ -49,17 +66,14 @@ export const useRegisterForm = ({ onSwitchToLogin, onRegisterSuccess }) => {
     },
   });
 
-  // Toggle hiển thị mật khẩu
   const togglePasswordVisibility = () => {
     setShowPassword((prev) => !prev);
   };
 
-  // Toggle hiển thị xác nhận mật khẩu
   const toggleConfirmPasswordVisibility = () => {
     setShowConfirmPassword((prev) => !prev);
   };
 
-  // Xử lý khi đóng thông báo lỗi
   const clearFormError = () => {
     setFormError("");
   };
@@ -73,5 +87,7 @@ export const useRegisterForm = ({ onSwitchToLogin, onRegisterSuccess }) => {
     togglePasswordVisibility,
     toggleConfirmPasswordVisibility,
     clearFormError,
+    cities,
+    isCitiesLoading,
   };
 };
