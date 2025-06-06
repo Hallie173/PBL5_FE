@@ -398,7 +398,7 @@ export default function RestaurantReview() {
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     disabled={isSubmitting}
-                    maxLength={300}
+                    maxLength={700}
                   />
                   <div className="flex justify-between mt-1">
                     <div className="text-xs text-gray-500">
@@ -408,12 +408,12 @@ export default function RestaurantReview() {
                       className="text-xs font-medium"
                       style={{
                         color:
-                          formik.values.review.length > 250
+                          formik.values.review.length > 950
                             ? "#f43f5e"
                             : "#6b7280",
                       }}
                     >
-                      {formik.values.review.length}/300
+                      {formik.values.review.length}/1000
                     </div>
                   </div>
                   <ErrorMessage name="review" formik={formik} />
