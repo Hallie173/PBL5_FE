@@ -51,7 +51,7 @@ const Breadcrumb = memo(({ city, restaurant, navigate }) => (
       </li>
       <li className="breadcrumb-item">
         <button
-          onClick={() => navigate(`/tripguide/city/${city?.city_id}`)}
+          onClick={() => navigate(`/tripguide/citydetail/${city?.city_id}`)}
           aria-label={`Go to ${city?.name}`}
         >
           {city?.name || "City"}
@@ -63,7 +63,7 @@ const Breadcrumb = memo(({ city, restaurant, navigate }) => (
       <li className="breadcrumb-item">
         <button
           onClick={() =>
-            navigate(`/tripguide/city/${city?.city_id}/restaurants`)
+            navigate(`/tripguide/citydetail/${city?.city_id}/restaurants`)
           }
           aria-label={`Go to restaurants in ${city?.name}`}
         >
@@ -117,9 +117,8 @@ const RestaurantHeader = memo(
             <span>Review</span>
           </button>
           <button
-            className={`action-button save-restaurant ${
-              isFavorite ? "saved" : ""
-            }`}
+            className={`action-button save-restaurant ${isFavorite ? "saved" : ""
+              }`}
             onClick={() => handleToggleSave(restaurant.restaurant_id)}
             aria-label={isFavorite ? "Remove from saved" : "Save to favorites"}
           >
@@ -196,9 +195,8 @@ const RestaurantGallery = React.memo(
         >
           <img
             src={images[activeImageIndex]}
-            alt={`${restaurantName || "Restaurant"} - Image ${
-              activeImageIndex + 1
-            }`}
+            alt={`${restaurantName || "Restaurant"} - Image ${activeImageIndex + 1
+              }`}
             className="main-image"
             loading="lazy"
             onLoad={() => setIsImageLoaded(true)}
@@ -563,21 +561,20 @@ const ReviewsSection = memo(
                     {score === 5
                       ? "Excellent"
                       : score === 4
-                      ? "Very Good"
-                      : score === 3
-                      ? "Average"
-                      : score === 2
-                      ? "Poor"
-                      : "Terrible"}
+                        ? "Very Good"
+                        : score === 3
+                          ? "Average"
+                          : score === 2
+                            ? "Poor"
+                            : "Terrible"}
                   </span>
                   <div className="bar-container">
                     <div
                       className="bar"
                       style={{
-                        width: `${
-                          reviews.filter((r) => Math.floor(r.rating) === score)
-                            .length * 10
-                        }%`,
+                        width: `${reviews.filter((r) => Math.floor(r.rating) === score)
+                          .length * 10
+                          }%`,
                       }}
                     />
                   </div>
@@ -610,9 +607,8 @@ const ReviewsSection = memo(
                 <>
                   {reviews.slice(0, displayCount).map((review, index) => (
                     <div
-                      className={`review-card ${
-                        review.isCurrentUser ? "current-user" : ""
-                      } fade-in`}
+                      className={`review-card ${review.isCurrentUser ? "current-user" : ""
+                        } fade-in`}
                       key={review.review_id || index}
                       aria-labelledby={`review-title-${index}`}
                     >
@@ -632,8 +628,8 @@ const ReviewsSection = memo(
                         </div>
                         <div className="review-rating">
                           {typeof review.rating === "number" &&
-                          review.rating >= 0 &&
-                          review.rating <= 5 ? (
+                            review.rating >= 0 &&
+                            review.rating <= 5 ? (
                             renderStars(review.rating)
                           ) : (
                             <span>Invalid rating</span>
@@ -662,9 +658,8 @@ const ReviewsSection = memo(
                                     openModal(photo);
                                   }
                                 }}
-                                aria-label={`View review photo ${
-                                  idx + 1
-                                } in full size`}
+                                aria-label={`View review photo ${idx + 1
+                                  } in full size`}
                               >
                                 <img
                                   src={photo}
@@ -949,9 +944,8 @@ const Restaurant = () => {
           <span>Review</span>
         </button>
         <button
-          className={`action-button save-restaurant ${
-            isFavorite ? "saved" : ""
-          }`}
+          className={`action-button save-restaurant ${isFavorite ? "saved" : ""
+            }`}
           onClick={() => handleToggleSave(restaurant.restaurant_id)}
           aria-label={isFavorite ? "Remove from saved" : "Save to favorites"}
         >
