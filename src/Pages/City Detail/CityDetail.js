@@ -22,7 +22,6 @@ import {
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
-
 // Theme configuration
 const theme = createTheme({
   palette: {
@@ -57,45 +56,6 @@ const theme = createTheme({
     },
   },
 });
-
-// FAQ Data
-const faqData = [
-  {
-    question: "What are the best beachfront accommodations in Da Nang?",
-    answer:
-      "Da Nang offers a range of beachfront accommodations, from luxury resorts like InterContinental Danang Sun Peninsula to budget-friendly options like Sea Phoenix Hotel.",
-  },
-  {
-    question: "What are popular dining options in Da Nang?",
-    answer:
-      "Popular dining spots include Madame Lan for authentic Vietnamese cuisine, Waterfront Restaurant for seafood, and Olivia’s Prime Grill for Western dishes.",
-  },
-  {
-    question: "What are the transportation options from Da Nang airport?",
-    answer:
-      "From Da Nang airport, you can take taxis, Grab rides, airport shuttles, or rent a motorbike. Taxis and Grab are the most convenient for tourists.",
-  },
-  {
-    question: "What should I know about visiting Ba Na Hills?",
-    answer:
-      "Ba Na Hills is famous for its Golden Bridge and cable car. Visit early to avoid crowds, and bring a jacket as it can be cooler at higher altitudes.",
-  },
-  {
-    question: "What is the typical weather like in Da Nang?",
-    answer:
-      "Da Nang has a tropical climate with a wet season (September–January) and a dry season (February–August). Expect warm temperatures year-round, averaging 25–30°C.",
-  },
-  {
-    question: "What are the recommended ways to experience Hai Van Pass?",
-    answer:
-      "Hai Van Pass is best experienced by motorbike or guided tour for stunning views. Ensure you have a reliable vehicle and check weather conditions before traveling.",
-  },
-  {
-    question: "What are the travel highlights for Bana Hills?",
-    answer:
-      "Highlights include the Golden Bridge, Fantasy Park, French Village, and the cable car ride offering panoramic views of the surrounding mountains.",
-  },
-];
 
 // Component con cho Carousel
 const ImageCarousel = React.memo(
@@ -202,38 +162,38 @@ const ImageCarousel = React.memo(
 );
 
 // Component con cho FAQ Item
-const FAQItem = React.memo(
-  ({ question, answer, index, activeIndex, toggleFaq }) => (
-    <Box sx={{ borderBottom: "1px solid", borderColor: "grey.200" }}>
-      <Button
-        fullWidth
-        sx={{
-          justifyContent: "space-between",
-          py: 2,
-          color: "text.primary",
-          "&:hover": { color: "primary.main" },
-          transition: "color 0.3s ease",
-        }}
-        onClick={() => toggleFaq(index)}
-      >
-        <Typography
-          variant="body1"
-          sx={{ textAlign: "left", fontWeight: "medium", flex: 1 }}
-        >
-          {question}
-        </Typography>
-        <Typography sx={{ color: "primary.main", fontSize: "1rem" }}>
-          {activeIndex === index ? "▴" : "▾"}
-        </Typography>
-      </Button>
-      <Collapse in={activeIndex === index}>
-        <Typography variant="body2" sx={{ pb: 2, color: "text.secondary" }}>
-          {answer}
-        </Typography>
-      </Collapse>
-    </Box>
-  )
-);
+// const FAQItem = React.memo(
+//   ({ question, answer, index, activeIndex, toggleFaq }) => (
+//     <Box sx={{ borderBottom: "1px solid", borderColor: "grey.200" }}>
+//       <Button
+//         fullWidth
+//         sx={{
+//           justifyContent: "space-between",
+//           py: 2,
+//           color: "text.primary",
+//           "&:hover": { color: "primary.main" },
+//           transition: "color 0.3s ease",
+//         }}
+//         onClick={() => toggleFaq(index)}
+//       >
+//         <Typography
+//           variant="body1"
+//           sx={{ textAlign: "left", fontWeight: "medium", flex: 1 }}
+//         >
+//           {question}
+//         </Typography>
+//         <Typography sx={{ color: "primary.main", fontSize: "1rem" }}>
+//           {activeIndex === index ? "▴" : "▾"}
+//         </Typography>
+//       </Button>
+//       <Collapse in={activeIndex === index}>
+//         <Typography variant="body2" sx={{ pb: 2, color: "text.secondary" }}>
+//           {answer}
+//         </Typography>
+//       </Collapse>
+//     </Box>
+//   )
+// );
 
 const CityDetail = () => {
   const { id: cityId } = useParams();
@@ -250,9 +210,6 @@ const CityDetail = () => {
     setCurrentIndex,
   } = useCityDetail(cityId);
 
-  const [saved, setSaved] = useState(false);
-
-  const toggleSaveCity = () => setSaved((prev) => !prev);
   const toggleFaq = useCallback((index) => {
     setActiveFaqIndex((prev) => (prev === index ? null : index));
   }, []);
@@ -333,52 +290,6 @@ const CityDetail = () => {
           currentIndex={currentIndex}
           setCurrentIndex={setCurrentIndex}
         />
-
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mt: 4,
-            flexWrap: "wrap",
-            gap: 2,
-          }}
-        >
-          <Typography variant="h3" sx={{ color: "text.primary" }}>
-            {city?.name}
-          </Typography>
-          <Tooltip
-            title={saved ? "Remove from Saved" : "Save this city"}
-            placement="top"
-          >
-            <Button
-              variant="outlined"
-              startIcon={
-                <Heart
-                  sx={{
-                    width: 20,
-                    height: 20,
-                    color: saved ? "red" : "primary.main",
-                    fill: saved ? "red" : "none",
-                    transition: "all 0.3s ease",
-                  }}
-                />
-              }
-              sx={{
-                borderColor: saved ? "primary.main" : "grey.300",
-                bgcolor: saved ? "primary.main/0.1" : "transparent",
-                "&:hover": {
-                  bgcolor: "primary.main/0.2",
-                  borderColor: "primary.main",
-                },
-                transition: "all 0.3s ease",
-              }}
-              onClick={toggleSaveCity}
-            >
-              {saved ? "Saved" : "Save"}
-            </Button>
-          </Tooltip>
-        </Box>
 
         <Typography
           variant="body1"
@@ -489,7 +400,7 @@ const CityDetail = () => {
           </Box>
         </Box>
 
-        <Box sx={{ mt: 8 }}>
+        {/* <Box sx={{ mt: 8 }}>
           <Typography variant="h5" sx={{ color: "text.primary", mb: 4 }}>
             Our Recommended Plan for Your Trip
           </Typography>
@@ -595,7 +506,7 @@ const CityDetail = () => {
               />
             ))}
           </Box>
-        </Box>
+        </Box> */}
       </Container>
     </ThemeProvider>
   );

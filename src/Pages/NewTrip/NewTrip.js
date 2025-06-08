@@ -196,7 +196,7 @@ function NewTrip() {
         });
         const newItinerary = response.data;
         const newItineraryId = newItinerary.itinerary_id;
-        console.log(itineraryData)
+        console.log(itineraryData);
         for (const item of itineraryData) {
           const data = {
             user_id: user?.user_id,
@@ -218,18 +218,22 @@ function NewTrip() {
             day: item.day,
           };
 
-          const response = await axios.post(`${BASE_URL}/itineraryDetail/`, data);
+          const response = await axios.post(
+            `${BASE_URL}/itineraryDetail/`,
+            data
+          );
         }
-        alert('Lưu đc r');
-
+        alert("Lưu đc r");
       } catch (error) {
-        console.error('Err:', error);
-        alert('Lưu thất bại');
+        console.error("Err:", error);
+        alert("Lưu thất bại");
       }
-    } else if (mode == 'edit') {
+    } else if (mode == "edit") {
       console.log(itinerary_id);
       try {
-        const deleteRespone = await axios.delete(`${BASE_URL}/itineraryDetail/delete/${itinerary_id}`,);
+        const deleteRespone = await axios.delete(
+          `${BASE_URL}/itineraryDetail/delete/${itinerary_id}`
+        );
         for (const item of itineraryData) {
           const data = {
             user_id: user?.user_id,
@@ -247,28 +251,29 @@ function NewTrip() {
             image_url: item.image_url,
             latitude: item.latitude,
             longitude: item.longitude,
-            warning: item.warning || '',
+            warning: item.warning || "",
             day: item.day,
           };
-          const response = await axios.post(`${BASE_URL}/itineraryDetail/`, data);
+          const response = await axios.post(
+            `${BASE_URL}/itineraryDetail/`,
+            data
+          );
         }
-        alert('Edit success!')
+        alert("Edit success!");
       } catch (err) {
-        alert('Edit Failed: ', err);
+        alert("Edit Failed: ", err);
       }
     }
   };
 
-
-
   const timeToMinutes = (time) => {
-    const [h, m] = time.split(':').map(Number);
+    const [h, m] = time.split(":").map(Number);
     return h * 60 + m;
   };
   const minutesToTime = (minutes) => {
     const h = Math.floor(minutes / 60);
     const m = minutes % 60;
-    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+    return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
   };
 
   const estimateTravelTime = (from, to) => {
@@ -294,7 +299,15 @@ function NewTrip() {
     return R * c;
   };
 
-  const handleEdit = (item, startTime, endTime, selectedDay, location, editingDay, editingIndex) => {
+  const handleEdit = (
+    item,
+    startTime,
+    endTime,
+    selectedDay,
+    location,
+    editingDay,
+    editingIndex
+  ) => {
     console.log("current item", item);
     console.log("new location: ", location);
 
@@ -320,7 +333,7 @@ function NewTrip() {
       image_url: location.image_url,
       latitude: location.latitude,
       longitude: location.longitude,
-      warning: ''
+      warning: "",
     };
 
     console.log("Attraction id: ", location.id);
@@ -336,12 +349,11 @@ function NewTrip() {
     //     updatedItinerary = [...itineraryData, newLocation];
     // }
 
-
     // xoas item cần sửa trong list đi r thêm newLocation vào
     let updatedItinerary = [
       ...itineraryData.filter((i) => i !== item),
       newLocation,
-    ]
+    ];
 
     // Sắp xếp theo ngày và giờ
     updatedItinerary.sort((a, b) => {
@@ -356,7 +368,7 @@ function NewTrip() {
       if (!prev || curr.day !== prev.day) {
         // Điểm đầu tiên của ngày mới
         curr.travel_from_prev_minutes = 0;
-        curr.warning = '';
+        curr.warning = "";
         continue;
       }
       if (prev) {
@@ -364,12 +376,13 @@ function NewTrip() {
         const prevDeparture = timeToMinutes(prev.departure_time);
         const currArrival = timeToMinutes(curr.arrival_time);
         curr.travel_from_prev_minutes = Math.round(travel);
-        curr.warning = prevDeparture + travel > currArrival
-          ? "You may not come to this destination on time!"
-          : '';
+        curr.warning =
+          prevDeparture + travel > currArrival
+            ? "You may not come to this destination on time!"
+            : "";
       } else {
         curr.travel_from_prev_minutes = 0;
-        curr.warning = '';
+        curr.warning = "";
       }
     }
 
@@ -378,8 +391,8 @@ function NewTrip() {
 
     // 👇 Reset UI & log
     setSelectedLocation(null);
-    setStartTime('');
-    setEndTime('');
+    setStartTime("");
+    setEndTime("");
     handleCancel();
 
     console.log("Updated itinerary:", updatedItinerary);
@@ -414,11 +427,10 @@ function NewTrip() {
       image_url: selectedLocation.image_url,
       latitude: selectedLocation.latitude,
       longitude: selectedLocation.longitude,
-      warning: ''
+      warning: "",
     };
 
     let updatedItinerary;
-
 
     if (editingDay !== null && editingIndex !== null) {
       updatedItinerary = itineraryData.map((item, idx) =>
@@ -445,20 +457,21 @@ function NewTrip() {
         const currArrival = timeToMinutes(curr.arrival_time);
 
         curr.travel_from_prev_minutes = Math.round(travel);
-        curr.warning = (prevDeparture + travel > currArrival)
-          ? "You may not come to this destination on time!"
-          : '';
+        curr.warning =
+          prevDeparture + travel > currArrival
+            ? "You may not come to this destination on time!"
+            : "";
       } else {
         curr.travel_from_prev_minutes = 0;
-        curr.warning = '';
+        curr.warning = "";
       }
     }
     console.log(updatedItinerary);
     // Cập nhật state và reset form
     setitinararyData(updatedItinerary);
     setSelectedLocation(null);
-    setStartTime('');
-    setEndTime('');
+    setStartTime("");
+    setEndTime("");
     handleCancel();
   };
 
@@ -481,12 +494,13 @@ function NewTrip() {
         <div className="trip-description">
           <h2 className="trip-description-title">Trip Description</h2>
           <div className="trip-description-content">
-            <textarea id="autoHeightTextArea" rows="1" className="trip-description-input" placeholder="Describe Your Trip..." />
-            <button
-              className="save-description-btn"
-            >
-              Save
-            </button>
+            <textarea
+              id="autoHeightTextArea"
+              rows="1"
+              className="trip-description-input"
+              placeholder="Describe Your Trip..."
+            />
+            <button className="save-description-btn">Save</button>
           </div>
         </div>
         <div className="trip-itinerary">

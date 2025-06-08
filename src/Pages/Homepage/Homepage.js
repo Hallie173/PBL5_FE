@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 import { useNavigate } from "react-router-dom";
 import "./Homepage.scss";
 import { FaSearch } from "react-icons/fa";
@@ -22,6 +28,9 @@ const HomePage = () => {
   const [error, setError] = useState(null);
   const [famousAttractions, setFamousAttractions] = useState([]);
   const [famousRestaurants, setFamousRestaurants] = useState([]);
+  const [suggestions, setSuggestions] = useState([]);
+  const [activeSuggestion, setActiveSuggestion] = useState(-1);
+  const suggestionsRef = useRef();
   const navigate = useNavigate();
   const { user, isLoggedIn } = useAuth();
   const [city, setCity] = useState([]);
@@ -30,13 +39,19 @@ const HomePage = () => {
     isLoggedIn
   );
 
+  // Sửa lại userCityId để chuẩn hóa so sánh tên thành phố
   const userCityId = useMemo(() => {
-    if (isLoggedIn && user?.user_id) {
-      return city.find((c) => c.name === user.bio.currentCity)?.city_id || null;
+    if (isLoggedIn && user?.user_id && user?.bio?.currentCity) {
+      const userCityLower = user.bio.currentCity.trim().toLowerCase();
+      return (
+        city.find((c) => c.name.trim().toLowerCase() === userCityLower)
+          ?.city_id || null
+      );
     }
     return null;
   }, [isLoggedIn, user, city]);
 
+  // Lấy danh sách recently viewed items
   useEffect(() => {
     const fetchRecentlyViewed = async () => {
       try {
@@ -64,7 +79,6 @@ const HomePage = () => {
           .forEach((item) => {
             const key = `${item.type}-${item.id}`;
             if (!uniqueItemsMap.has(key)) {
-              // Normalize image_url (JSONB) to image string
               const image =
                 item.image ||
                 (Array.isArray(item.image_url)
@@ -100,6 +114,7 @@ const HomePage = () => {
     fetchRecentlyViewed();
   }, [isLoggedIn, user]);
 
+  // Lấy danh sách thành phố
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -113,6 +128,7 @@ const HomePage = () => {
     fetchData();
   }, []);
 
+  // Lấy danh sách famous attractions và restaurants
   useEffect(() => {
     const fetchFamousItems = async () => {
       if (!userCityId) return;
@@ -164,6 +180,164 @@ const HomePage = () => {
     fetchFamousItems();
   }, [userCityId]);
 
+  // Lấy gợi ý tìm kiếm
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (!searchText.trim()) {
+        setSuggestions([]);
+        return;
+      }
+      try {
+        const encodedQuery = encodeURIComponent(searchText.trim());
+        const [cityRes, restaurantRes, attractionRes] = await axios.all([
+          axios.get(`${BASE_URL}/cities/search/${encodedQuery}`),
+          axios.get(`${BASE_URL}/restaurants/search`, {
+            params: { q: searchText.trim() },
+          }),
+          axios.get(`${BASE_URL}/attractions/search`, {
+            params: { q: searchText.trim() },
+          }),
+        ]);
+
+        const citySuggestions = (
+          Array.isArray(cityRes.data) ? cityRes.data : [cityRes.data] || []
+        ).map((item) => ({
+          ...item,
+          type: "city",
+          displayName: item.name,
+          image: Array.isArray(item.image_url)
+            ? item.image_url[0]
+            : item.image_url || "",
+          city_id: item.city_id,
+        }));
+
+        const restaurantSuggestions = (
+          Array.isArray(restaurantRes.data)
+            ? restaurantRes.data
+            : [restaurantRes.data] || []
+        ).map((item) => ({
+          ...item,
+          id: item.restaurant_id,
+          type: "restaurant",
+          displayName: item.name,
+          image: Array.isArray(item.image_url)
+            ? item.image_url[0]
+            : item.image_url?.primary || item.image_url || "",
+          rating: Number(item.average_rating) || 0,
+          reviewCount: Number(item.rating_total) || 0,
+          tags: Array.isArray(item.tags)
+            ? item.tags
+            : item.tags
+            ? [item.tags]
+            : [],
+        }));
+
+        const attractionSuggestions = (
+          Array.isArray(attractionRes.data)
+            ? attractionRes.data
+            : [attractionRes.data] || []
+        ).map((item) => ({
+          ...item,
+          id: item.attraction_id,
+          type: "attraction",
+          displayName: item.name,
+          image: Array.isArray(item.image_url)
+            ? item.image_url[0]
+            : item.image_url?.primary || item.image_url || "",
+          rating: Number(item.average_rating) || 0,
+          reviewCount: Number(item.rating_total) || 0,
+          tags: Array.isArray(item.tags)
+            ? item.tags
+            : item.tags
+            ? [item.tags]
+            : [],
+        }));
+
+        const maxSuggestions = 10;
+        const sources = [
+          citySuggestions,
+          restaurantSuggestions,
+          attractionSuggestions,
+        ];
+        const combinedSuggestions = [];
+        let pointers = [0, 0, 0];
+
+        while (combinedSuggestions.length < maxSuggestions) {
+          let added = false;
+          for (let i = 0; i < sources.length; i++) {
+            if (pointers[i] < sources[i].length) {
+              combinedSuggestions.push(sources[i][pointers[i]]);
+              pointers[i]++;
+              added = true;
+              if (combinedSuggestions.length === maxSuggestions) break;
+            }
+          }
+          if (!added) break; // Không còn item nào để thêm
+        }
+        setSuggestions(combinedSuggestions);
+      } catch (err) {
+        console.error("Error fetching suggestions:", err);
+        setSuggestions([]);
+        setError(err.response?.data?.error || "Failed to fetch suggestions.");
+      }
+    };
+
+    if (isSearchFocused) fetchSuggestions();
+    else setSuggestions([]);
+  }, [searchText, isSearchFocused]);
+
+  const handleKeyDown = (e) => {
+    if (suggestions.length === 0) return;
+    if (e.key === "ArrowDown") {
+      setActiveSuggestion((prev) =>
+        prev < suggestions.length - 1 ? prev + 1 : 0
+      );
+    } else if (e.key === "ArrowUp") {
+      setActiveSuggestion((prev) =>
+        prev > 0 ? prev - 1 : suggestions.length - 1
+      );
+    } else if (e.key === "Enter") {
+      if (activeSuggestion >= 0 && suggestions[activeSuggestion]) {
+        handleSuggestionClick(suggestions[activeSuggestion]);
+      } else {
+        handleSearch();
+      }
+    } else if (e.key === "Escape") {
+      setSuggestions([]);
+    }
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    setSearchText(suggestion.displayName);
+    setSuggestions([]);
+    setIsSearchFocused(false);
+    if (suggestion.type === "city") {
+      navigate(`/tripguide/citydetail/${suggestion.city_id}`);
+    } else if (suggestion.type === "restaurant") {
+      navigate(`/tripguide/restaurant/${suggestion.id}`);
+    } else if (suggestion.type === "attraction") {
+      navigate(`/tripguide/attraction/${suggestion.id}`);
+    }
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        suggestionsRef.current &&
+        !suggestionsRef.current.contains(event.target)
+      ) {
+        setSuggestions([]);
+        setIsSearchFocused(false);
+      }
+    };
+    if (isSearchFocused) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isSearchFocused]);
+
   const renderStars = useCallback((rating) => {
     const numRating = parseFloat(rating);
     if (isNaN(numRating) || numRating < 0 || numRating > 5) {
@@ -208,24 +382,49 @@ const HomePage = () => {
   const handleSearch = async () => {
     if (!searchText.trim()) return;
     try {
-      const response = await axios.get(
-        `${BASE_URL}/cities/search/${encodeURIComponent(searchText)}`
-      );
-      const data = response.data;
-      if (data && data.city_id) {
-        navigate(`/tripguide/citydetail/${data.city_id}`);
-      } else {
-        alert("Không tìm thấy địa điểm!");
+      const encodedQuery = encodeURIComponent(searchText.trim());
+      const [cityRes, restaurantRes, attractionRes] = await axios.all([
+        axios.get(`${BASE_URL}/cities/search/${encodedQuery}`),
+        axios.get(`${BASE_URL}/restaurants/search`, {
+          params: { q: searchText.trim() },
+        }),
+        axios.get(`${BASE_URL}/attractions/search`, {
+          params: { q: searchText.trim() },
+        }),
+      ]);
+
+      const cityData = Array.isArray(cityRes.data)
+        ? cityRes.data[0]
+        : cityRes.data;
+      if (cityData && cityData.city_id) {
+        navigate(`/tripguide/citydetail/${cityData.city_id}`);
+        return;
       }
+
+      const restaurantData = Array.isArray(restaurantRes.data)
+        ? restaurantRes.data[0]
+        : restaurantRes.data;
+      if (restaurantData && restaurantData.restaurant_id) {
+        navigate(`/tripguide/restaurant/${restaurantData.restaurant_id}`);
+        return;
+      }
+
+      const attractionData = Array.isArray(attractionRes.data)
+        ? attractionRes.data[0]
+        : attractionRes.data;
+      if (attractionData && attractionData.attraction_id) {
+        navigate(`/tripguide/attraction/${attractionData.attraction_id}`);
+        return;
+      }
+
+      alert("Không tìm thấy địa điểm!");
     } catch (error) {
       console.error("Lỗi khi gọi API:", error);
-      alert(`Lỗi khi tìm kiếm: ${error.message || "Vui lòng thử lại!"}`);
-    }
-  };
-
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter") {
-      handleSearch();
+      alert(
+        `Lỗi khi tìm kiếm: ${
+          error.response?.data?.error || "Vui lòng thử lại!"
+        }`
+      );
     }
   };
 
@@ -237,16 +436,68 @@ const HomePage = () => {
           <FaSearch className="search-icon" />
           <input
             type="text"
-            placeholder="Places to go, things to do, hotels..."
+            placeholder="Search cities, restaurants, or attractions..."
             value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            onKeyPress={handleKeyPress}
+            onChange={(e) => {
+              setSearchText(e.target.value);
+              setIsSearchFocused(true);
+              setActiveSuggestion(-1);
+            }}
             onFocus={() => setIsSearchFocused(true)}
-            onBlur={() => setIsSearchFocused(false)}
+            onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+            onKeyDown={handleKeyDown}
+            autoComplete="off"
           />
           <button className="search-button" onClick={handleSearch}>
             Search
           </button>
+          {isSearchFocused && searchText.trim() && (
+            <div className="suggestions-dropdown" ref={suggestionsRef}>
+              {suggestions.length === 0 ? (
+                <div className="no-suggestion">Không tìm thấy kết quả.</div>
+              ) : (
+                suggestions.map((s, idx) => {
+                  const typeDisplay = {
+                    city: "City",
+                    restaurant: "Restaurant",
+                    attraction: "Attraction",
+                  };
+                  return (
+                    <div
+                      key={`${s.type}-${s.id || s.city_id}`}
+                      className={`suggestion-item${
+                        idx === activeSuggestion ? " active" : ""
+                      }`}
+                      onMouseDown={() => handleSuggestionClick(s)}
+                    >
+                      <img
+                        src={s.image}
+                        alt={s.displayName}
+                        className="suggestion-image"
+                      />
+                      <div className="suggestion-info">
+                        <span className="suggestion-name">{s.displayName}</span>
+                        <span className="suggestion-type">
+                          {typeDisplay[s.type]}
+                        </span>
+                        {(s.type === "restaurant" ||
+                          s.type === "attraction") && (
+                          <div className="suggestion-rating">
+                            {renderStars(s.rating)}
+                            {s.reviewCount > 0 && (
+                              <span className="review-count">
+                                {s.reviewCount}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          )}
         </div>
         {error && <div className="error-message">{error}</div>}
         {favoritesError && (
