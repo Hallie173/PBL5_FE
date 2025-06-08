@@ -196,7 +196,7 @@ function NewTrip() {
         });
         const newItinerary = response.data;
         const newItineraryId = newItinerary.itinerary_id;
-
+        console.log(itineraryData)
         for (const item of itineraryData) {
           const data = {
             user_id: user?.user_id,
@@ -218,343 +218,359 @@ function NewTrip() {
             day: item.day,
           };
 
-                    const response = await axios.post(`${BASE_URL}/itineraryDetail/`, data);
-                }
-                alert('Lưu đc r');
-
-            } catch (error) {
-                console.error('Err:', error);
-                alert('Lưu thất bại');
-            }
-        } else if (mode == 'edit') {
-            console.log(itinerary_id);
-            try {
-                const deleteRespone = await axios.delete(`${BASE_URL}/itineraryDetail/delete/${itinerary_id}`,);
-                for (const item of itineraryData) {
-                    const data = {
-                        user_id: user?.user_id,
-                        itinerary_id: itinerary_id,
-                        type: item.type,
-                        name: item.name,
-                        id: item.id,
-                        arrival_time: item.arrival_time,
-                        departure_time: item.departure_time,
-                        duration_minutes: item.duration_minutes,
-                        travel_from_prev_minutes: item.travel_from_prev_minutes || 0,
-                        average_rating: item.average_rating,
-                        rating_total: item.rating_total,
-                        tags: item.tags,
-                        image_url: item.image_url,
-                        latitude: item.latitude,
-                        longitude: item.longitude,
-                        warning: item.warning || '',
-                        day: item.day,
-                    };
-                    const response = await axios.post(`${BASE_URL}/itineraryDetail/`, data);
-                }
-            } catch (err) {
-                alert('Edit Failed: ', err);
-            }
+          const response = await axios.post(`${BASE_URL}/itineraryDetail/`, data);
         }
+        alert('Lưu đc r');
+
+      } catch (error) {
+        console.error('Err:', error);
+        alert('Lưu thất bại');
+      }
+    } else if (mode == 'edit') {
+      console.log(itinerary_id);
+      try {
+        const deleteRespone = await axios.delete(`${BASE_URL}/itineraryDetail/delete/${itinerary_id}`,);
+        for (const item of itineraryData) {
+          const data = {
+            user_id: user?.user_id,
+            itinerary_id: itinerary_id,
+            type: item.type,
+            name: item.name,
+            id: item.id,
+            arrival_time: item.arrival_time,
+            departure_time: item.departure_time,
+            duration_minutes: item.duration_minutes,
+            travel_from_prev_minutes: item.travel_from_prev_minutes || 0,
+            average_rating: item.average_rating,
+            rating_total: item.rating_total,
+            tags: item.tags,
+            image_url: item.image_url,
+            latitude: item.latitude,
+            longitude: item.longitude,
+            warning: item.warning || '',
+            day: item.day,
+          };
+          const response = await axios.post(`${BASE_URL}/itineraryDetail/`, data);
+        }
+        alert('Edit success!')
+      } catch (err) {
+        alert('Edit Failed: ', err);
+      }
+    }
+  };
+
+
+
+  const timeToMinutes = (time) => {
+    const [h, m] = time.split(':').map(Number);
+    return h * 60 + m;
+  };
+  const minutesToTime = (minutes) => {
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+  };
+
+  const estimateTravelTime = (from, to) => {
+    const distance = haversineDistance(
+      parseFloat(from.latitude),
+      parseFloat(from.longitude),
+      parseFloat(to.latitude),
+      parseFloat(to.longitude)
+    );
+    const speed = 30;
+    return (distance / speed) * 60;
+  };
+  // lên wiki search haversine là có (tính khoảng cách giữa 2 địa điểm bằng kinh độ và vĩ độ)
+  const haversineDistance = (lat1, lon1, lat2, lon2) => {
+    const toRad = (x) => (x * Math.PI) / 180;
+    const R = 6371;
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
+  const handleEdit = (item, startTime, endTime, selectedDay, location, editingDay, editingIndex) => {
+    console.log("current item", item);
+    console.log("new location: ", location);
+
+    const arrival = timeToMinutes(startTime);
+    const departure = timeToMinutes(endTime);
+    if (arrival >= departure) {
+      alert("Start time must be before end time.");
+      return;
+    }
+    console.log("NEW LOCATION:", location);
+    const newLocation = {
+      type: "attraction",
+      day: selectedDay,
+      id: location.attraction_id ?? location.id,
+      name: location.name,
+      arrival_time: startTime,
+      departure_time: endTime,
+      duration_minutes: location.duration_minutes ?? location.visit_duration,
+      travel_from_prev_minutes: 0,
+      average_rating: location.average_rating,
+      rating_total: location.rating_total,
+      tags: location.tags,
+      image_url: location.image_url,
+      latitude: location.latitude,
+      longitude: location.longitude,
+      warning: ''
     };
 
-    
+    console.log("Attraction id: ", location.id);
 
-    const timeToMinutes = (time) => {
-        const [h, m] = time.split(':').map(Number);
-        return h * 60 + m;
-    };
-    const minutesToTime = (minutes) => {
-        const h = Math.floor(minutes / 60);
-        const m = minutes % 60;
-        return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-    };
+    // let updatedItinerary;
 
-    const estimateTravelTime = (from, to) => {
-        const distance = haversineDistance(
-            parseFloat(from.latitude),
-            parseFloat(from.longitude),
-            parseFloat(to.latitude),
-            parseFloat(to.longitude)
-        );
-        const speed = 30;
-        return (distance / speed) * 60;
-    };
-    // lên wiki search haversine là có (tính khoảng cách giữa 2 địa điểm bằng kinh độ và vĩ độ)
-    const haversineDistance = (lat1, lon1, lat2, lon2) => {
-        const toRad = (x) => (x * Math.PI) / 180;
-        const R = 6371;
-        const dLat = toRad(lat2 - lat1);
-        const dLon = toRad(lon2 - lon1);
-        const a =
-            Math.sin(dLat / 2) ** 2 +
-            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c;
-    };
+    // // Chỉnh sửa item tại editingIndex nếu có
+    // if (editingDay !== null && editingIndex !== null) {
+    //     updatedItinerary = itineraryData.map((it, idx) =>
+    //         it.day === editingDay && idx === editingIndex ? newLocation : it
+    //     );
+    // } else {
+    //     updatedItinerary = [...itineraryData, newLocation];
+    // }
 
-    const handleEdit = (item, startTime, endTime, selectedDay, location, editingDay, editingIndex) => {
-        console.log("current item", item);
-        console.log("new location: ", location);
-    
-        const arrival = timeToMinutes(startTime);
-        const departure = timeToMinutes(endTime);
-        if (arrival >= departure) {
-            alert("Start time must be before end time.");
-            return;
-        }
-    
-        const newLocation = {
-            type: "attraction",
-            day: selectedDay,
-            id: location.attraction_id,
-            name: location.name,
-            arrival_time: startTime,
-            departure_time: endTime,
-            duration_minutes: location.visit_duration,
-            travel_from_prev_minutes: 0,
-            average_rating: location.average_rating,
-            rating_total: location.rating_total,
-            tags: location.tags,
-            image_url: location.image_url,
-            latitude: location.latitude,
-            longitude: location.longitude,
-            warning: ''
-        };
-    
-        let updatedItinerary;
-    
-        // Chỉnh sửa item tại editingIndex nếu có
-        if (editingDay !== null && editingIndex !== null) {
-            updatedItinerary = itineraryData.map((it, idx) =>
-                it.day === editingDay && idx === editingIndex ? newLocation : it
-            );
-        } else {
-            updatedItinerary = [...itineraryData, newLocation];
-        }
-    
-        // Sắp xếp theo ngày và giờ
-        updatedItinerary.sort((a, b) => {
-            if (a.day !== b.day) return a.day - b.day;
-            return timeToMinutes(a.arrival_time) - timeToMinutes(b.arrival_time);
-        });
-    
-        // Tính travel time và warning
-        for (let i = 0; i < updatedItinerary.length; i++) {
-            const curr = updatedItinerary[i];
-            const prev = i === 0 ? null : updatedItinerary[i - 1];
-    
-            if (prev) {
-                const travel = estimateTravelTime(prev, curr);
-                const prevDeparture = timeToMinutes(prev.departure_time);
-                const currArrival = timeToMinutes(curr.arrival_time);
-                curr.travel_from_prev_minutes = Math.round(travel);
-                curr.warning = prevDeparture + travel > currArrival
-                    ? "You may not come to this destination on time!"
-                    : '';
-            } else {
-                curr.travel_from_prev_minutes = 0;
-                curr.warning = '';
-            }
-        }
-    
-        setitinararyData(updatedItinerary);
-    
 
-        setSelectedLocation(null);
-        setStartTime('');
-        setEndTime('');
-        handleCancel();
-    
-        console.log("Updated itinerary:", updatedItinerary);
+    // xoas item cần sửa trong list đi r thêm newLocation vào
+    let updatedItinerary = [
+      ...itineraryData.filter((i) => i !== item),
+      newLocation,
+    ]
+
+    // Sắp xếp theo ngày và giờ
+    updatedItinerary.sort((a, b) => {
+      if (a.day !== b.day) return a.day - b.day;
+      return timeToMinutes(a.arrival_time) - timeToMinutes(b.arrival_time);
+    });
+
+    // Tính travel time và warning
+    for (let i = 0; i < updatedItinerary.length; i++) {
+      const curr = updatedItinerary[i];
+      const prev = i === 0 ? null : updatedItinerary[i - 1];
+      if (!prev || curr.day !== prev.day) {
+        // Điểm đầu tiên của ngày mới
+        curr.travel_from_prev_minutes = 0;
+        curr.warning = '';
+        continue;
+      }
+      if (prev) {
+        const travel = estimateTravelTime(prev, curr);
+        const prevDeparture = timeToMinutes(prev.departure_time);
+        const currArrival = timeToMinutes(curr.arrival_time);
+        curr.travel_from_prev_minutes = Math.round(travel);
+        curr.warning = prevDeparture + travel > currArrival
+          ? "You may not come to this destination on time!"
+          : '';
+      } else {
+        curr.travel_from_prev_minutes = 0;
+        curr.warning = '';
+      }
+    }
+
+    // ✅ Gọi setItineraryData duy nhất một lần sau khi xử lý xong
+    setitinararyData(updatedItinerary);
+
+    // 👇 Reset UI & log
+    setSelectedLocation(null);
+    setStartTime('');
+    setEndTime('');
+    handleCancel();
+
+    console.log("Updated itinerary:", updatedItinerary);
+  };
+
+  const handleSave = (editingDay, editingIndex) => {
+    if (!selectedLocation || !startTime || !endTime) {
+      alert("Please select a location and time!");
+      return;
+    }
+
+    const arrival = timeToMinutes(startTime);
+    const departure = timeToMinutes(endTime);
+
+    if (arrival >= departure) {
+      alert("Start time must be before end time.");
+      return;
+    }
+
+    const newLocation = {
+      type: "attraction",
+      day: selectedDay,
+      id: selectedLocation.attraction_id,
+      name: selectedLocation.name,
+      arrival_time: startTime,
+      departure_time: endTime,
+      duration_minutes: selectedLocation.visit_duration,
+      travel_from_prev_minutes: 0,
+      average_rating: selectedLocation.average_rating,
+      rating_total: selectedLocation.rating_total,
+      tags: selectedLocation.tags,
+      image_url: selectedLocation.image_url,
+      latitude: selectedLocation.latitude,
+      longitude: selectedLocation.longitude,
+      warning: ''
     };
 
-    const handleSave = (editingDay, editingIndex) => {
-        if (!selectedLocation || !startTime || !endTime) {
-            alert("Please select a location and time!");
-            return;
-        }
-    
-        const arrival = timeToMinutes(startTime);
-        const departure = timeToMinutes(endTime);
-    
-        if (arrival >= departure) {
-            alert("Start time must be before end time.");
-            return;
-        }
-    
-        const newLocation = {
-            type: "attraction",
-            day: selectedDay,
-            id: selectedLocation.attraction_id,
-            name: selectedLocation.name,
-            arrival_time: startTime,
-            departure_time: endTime,
-            duration_minutes: selectedLocation.visit_duration,
-            travel_from_prev_minutes: 0,
-            average_rating: selectedLocation.average_rating,
-            rating_total: selectedLocation.rating_total,
-            tags: selectedLocation.tags,
-            image_url: selectedLocation.image_url,
-            latitude: selectedLocation.latitude,
-            longitude: selectedLocation.longitude,
-            warning: ''
-        };
-    
-        let updatedItinerary;
-    
-       
-        if (editingDay !== null && editingIndex !== null) {
-            updatedItinerary = itineraryData.map((item, idx) =>
-                item.day === editingDay && idx === editingIndex ? newLocation : item
-            );
-        } else {
-            updatedItinerary = [...itineraryData, newLocation];
-        }
-    
-        // Sắp xếp theo ngày và thời gian đến
-        updatedItinerary.sort((a, b) => {
-            if (a.day !== b.day) return a.day - b.day;
-            return timeToMinutes(a.arrival_time) - timeToMinutes(b.arrival_time);
-        });
-    
-        // Cập nhật travel_from_prev_minutes và warning
-        for (let i = 0; i < updatedItinerary.length; i++) {
-            const curr = updatedItinerary[i];
-            const prev = i === 0 ? null : updatedItinerary[i - 1];
-    
-            if (prev && curr.day === prev.day) {
-                const travel = estimateTravelTime(prev, curr);
-                const prevDeparture = timeToMinutes(prev.departure_time);
-                const currArrival = timeToMinutes(curr.arrival_time);
-    
-                curr.travel_from_prev_minutes = Math.round(travel);
-                curr.warning = (prevDeparture + travel > currArrival)
-                    ? "You may not come to this destination on time!"
-                    : '';
-            } else {
-                curr.travel_from_prev_minutes = 0;
-                curr.warning = '';
-            }
-        }
-        console.log(updatedItinerary);
-        // Cập nhật state và reset form
-        setitinararyData(updatedItinerary);
-        setSelectedLocation(null);
-        setStartTime('');
-        setEndTime('');
-        handleCancel();
-    };
+    let updatedItinerary;
 
-    return (
-        <div className="new-trip-container">
-            <div className="city-name-container">
-                <img src={newtrippic} alt="City" className="city-img" />
-                <div className="title-overlay">
-                    <h2>{title}</h2>
-                    <div className="date-time">
-                        <FontAwesomeIcon icon={faCalendarDay} className="date-icon" />
-                        <span className="date-text">
-                            {startDate} - {endDate}
-                        </span>
+
+    if (editingDay !== null && editingIndex !== null) {
+      updatedItinerary = itineraryData.map((item, idx) =>
+        item.day === editingDay && idx === editingIndex ? newLocation : item
+      );
+    } else {
+      updatedItinerary = [...itineraryData, newLocation];
+    }
+
+    // Sắp xếp theo ngày và thời gian đến
+    updatedItinerary.sort((a, b) => {
+      if (a.day !== b.day) return a.day - b.day;
+      return timeToMinutes(a.arrival_time) - timeToMinutes(b.arrival_time);
+    });
+
+    // Cập nhật travel_from_prev_minutes và warning
+    for (let i = 0; i < updatedItinerary.length; i++) {
+      const curr = updatedItinerary[i];
+      const prev = i === 0 ? null : updatedItinerary[i - 1];
+
+      if (prev && curr.day === prev.day) {
+        const travel = estimateTravelTime(prev, curr);
+        const prevDeparture = timeToMinutes(prev.departure_time);
+        const currArrival = timeToMinutes(curr.arrival_time);
+
+        curr.travel_from_prev_minutes = Math.round(travel);
+        curr.warning = (prevDeparture + travel > currArrival)
+          ? "You may not come to this destination on time!"
+          : '';
+      } else {
+        curr.travel_from_prev_minutes = 0;
+        curr.warning = '';
+      }
+    }
+    console.log(updatedItinerary);
+    // Cập nhật state và reset form
+    setitinararyData(updatedItinerary);
+    setSelectedLocation(null);
+    setStartTime('');
+    setEndTime('');
+    handleCancel();
+  };
+
+  return (
+    <div className="new-trip-container">
+      <div className="city-name-container">
+        <img src={newtrippic} alt="City" className="city-img" />
+        <div className="title-overlay">
+          <h2>{title}</h2>
+          <div className="date-time">
+            <FontAwesomeIcon icon={faCalendarDay} className="date-icon" />
+            <span className="date-text">
+              {startDate} - {endDate}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="trip-details">
+        <div className="trip-itinerary">
+          <h2 className="trip-itinerary-title">Itinerary</h2>
+          <div className="trip-day">
+            <div className="trip-timeline">
+              {Object.entries(
+                itineraryData.reduce((acc, item) => {
+                  if (!acc[item.day]) acc[item.day] = [];
+                  acc[item.day].push(item);
+                  return acc;
+                }, {})
+              ).map(([day, items]) => (
+                <div key={day}>
+                  <div className="day-divider">
+                    <span className="day-label">Day {day}</span>
+                    <hr className="day-line" />
+                  </div>
+                  {items.map((item, index) => (
+                    <div key={`${day}-${index}`} className="location-details">
+                      <div className="time">{item.arrival_time}</div>
+                      <div className="timeline-line"></div>
+                      <div className="edit-location-card">
+                        <div className="location-card">
+                          <img
+                            src={item.image_url[0] || "fallback.jpg"}
+                            alt={item.name}
+                            className="location-img"
+                          />
+                          <div className="location-info">
+                            <div className="location-title">{item.name}</div>
+                            <div className="item-rating">
+                              <span className="rating-dots">🟢🟢🟢🟢</span>
+                              <span className="rating-number">
+                                {item.rating_total}
+                              </span>
+                            </div>
+                            <span className="rating-number">
+                              {item.warning}
+                            </span>
+                            <div className="location-type-info">
+                              <FontAwesomeIcon
+                                icon={faMountainSun}
+                                className="location-type-icon"
+                              />
+                              {item.type}
+                            </div>
+                          </div>
+                          <div className="delete-location">
+                            <FaXmark
+                              className="delete-icon"
+                              onClick={() => handleDeleteClick(item)}
+                            />
+                          </div>
+                          <div className="edit-location">
+                            <FaPen
+                              className="edit-icon"
+                              onClick={() =>
+                                handleEditLocation(item, Number(day), index)
+                              }
+                            />
+                          </div>
+                        </div>
+                        <AddLocationForm
+                          visible={
+                            formState.visible &&
+                            formState.editingDay === Number(day) &&
+                            formState.editingIndex === index
+                          }
+                          mode="edit"
+                          item={item}
+                          numberday={Number(day)}
+                          index={index}
+                          handleedit={handleEdit}
+                          daylist={daylist}
+                          editData={formState.data}
+                          cityAttraction={cityAttraction}
+                          selectedLocation={selectedLocation}
+                          setSelectedLocation={setSelectedLocation}
+                          startTime={startTime}
+                          setStartTime={setStartTime}
+                          endTime={endTime}
+                          setEndTime={setEndTime}
+                          itineraryData={itineraryData}
+                          setItineraryData={setitinararyData}
+                          handleCancel={handleCancel}
+                          handleSave={() => handleSave(Number(day), index)}
+                          selectedDay={selectedDay}
+                          setSelectedDay={setSelectedDay}
+                        />
+                      </div>
                     </div>
+                  ))}
                 </div>
-            </div>
-
-            <div className="trip-details">
-                <div className="trip-itinerary">
-                    <h2 className="trip-itinerary-title">Itinerary</h2>
-                    <div className="trip-day">
-                        <div className="trip-timeline">
-                            {Object.entries(
-                                itineraryData.reduce((acc, item) => {
-                                    if (!acc[item.day]) acc[item.day] = [];
-                                    acc[item.day].push(item);
-                                    return acc;
-                                }, {})
-                            ).map(([day, items]) => (
-                                <div key={day}>
-                                    <div className="day-divider">
-                                        <span className="day-label">Day {day}</span>
-                                        <hr className="day-line" />
-                                    </div>
-                                    {items.map((item, index) => (
-                                        <div key={`${day}-${index}`} className="location-details">
-                                            <div className="time">{item.arrival_time}</div>
-                                            <div className="timeline-line"></div>
-                                            <div className="edit-location-card">
-                                                <div className="location-card">
-                                                    <img
-                                                        src={item.image_url[0] || "fallback.jpg"}
-                                                        alt={item.name}
-                                                        className="location-img"
-                                                    />
-                                                    <div className="location-info">
-                                                        <div className="location-title">{item.name}</div>
-                                                        <div className="item-rating">
-                                                            <span className="rating-dots">🟢🟢🟢🟢</span>
-                                                            <span className="rating-number">
-                                                                {item.rating_total}
-                                                            </span>
-                                                        </div>
-                                                        <span className="rating-number">
-                                                            {item.warning}
-                                                        </span>
-                                                        <div className="location-type-info">
-                                                            <FontAwesomeIcon
-                                                                icon={faMountainSun}
-                                                                className="location-type-icon"
-                                                            />
-                                                            {item.type}
-                                                        </div>
-                                                    </div>
-                                                    <div className="delete-location">
-                                                        <FaXmark
-                                                            className="delete-icon"
-                                                            onClick={() => handleDeleteClick(item)}
-                                                        />
-                                                    </div>
-                                                    <div className="edit-location">
-                                                        <FaPen
-                                                            className="edit-icon"
-                                                            onClick={() =>
-                                                                handleEditLocation(item, Number(day), index)
-                                                            }
-                                                        />
-                                                    </div>
-                                                </div>
-                                                <AddLocationForm
-                                                    visible={
-                                                        formState.visible &&
-                                                        formState.editingDay === Number(day) &&
-                                                        formState.editingIndex === index
-                                                    }
-                                                    mode="edit"
-                                                    item = {item}
-                                                    numberday = {Number(day)}
-                                                    index = {index}
-                                                    handleedit ={handleEdit}
-                                                    daylist={daylist}
-                                                    editData={formState.data}
-                                                    cityAttraction={cityAttraction}
-                                                    selectedLocation={selectedLocation}
-                                                    setSelectedLocation={setSelectedLocation}
-                                                    startTime={startTime}
-                                                    setStartTime={setStartTime}
-                                                    endTime={endTime}
-                                                    setEndTime={setEndTime}
-                                                    itineraryData={itineraryData}
-                                                    setItineraryData={setitinararyData}
-                                                    handleCancel={handleCancel}
-                                                    handleSave={() => handleSave(Number(day), index)}
-                                                    selectedDay={selectedDay}
-                                                    setSelectedDay={setSelectedDay}
-                                                />
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ))}
+              ))}
 
               <div className="add-location">
                 <button
