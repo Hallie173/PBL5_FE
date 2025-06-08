@@ -478,6 +478,17 @@ function NewTrip() {
       </div>
 
       <div className="trip-details">
+        <div className="trip-description">
+          <h2 className="trip-description-title">Trip Description</h2>
+          <div className="trip-description-content">
+            <textarea id="autoHeightTextArea" rows="1" className="trip-description-input" placeholder="Describe Your Trip..." />
+            <button
+              className="save-description-btn"
+            >
+              Save
+            </button>
+          </div>
+        </div>
         <div className="trip-itinerary">
           <h2 className="trip-itinerary-title">Itinerary</h2>
           <div className="trip-day">
