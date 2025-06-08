@@ -57,8 +57,8 @@ export default function Sidebar({ expanded, setExpanded }) {
     { name: "Cities", icon: FiGlobe, path: "cities" },
     { name: "Attractions", icon: BiLandscape, path: "attractions" },
     { name: "Restaurants", icon: IoRestaurantOutline, path: "restaurants" },
-    { name: "Itineraries", icon: FiCalendar, path: "itineraries" },
-    { name: "Reviews", icon: FiStar, path: "reviews" },
+    // { name: "Itineraries", icon: FiCalendar, path: "itineraries" },
+    // { name: "Reviews", icon: FiStar, path: "reviews" },
   ];
   const userDropdownItems = [
     { name: "Logout", icon: FiLogOut },
@@ -121,8 +121,8 @@ export default function Sidebar({ expanded, setExpanded }) {
                   >
                     <Icon
                       className={`w-6 h-6 transition-colors duration-200 ${isActive
-                          ? "text-blue-600"
-                          : "text-gray-500 group-hover:text-gray-800"
+                        ? "text-blue-600"
+                        : "text-gray-500 group-hover:text-gray-800"
                         }`}
                     />
                     <span
