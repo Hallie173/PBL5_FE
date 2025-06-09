@@ -1002,35 +1002,22 @@ $transition: all 0.3s ease;
             .review-actions {
               display: flex;
               gap: 10px;
-              margin-top: 10px;
+              margin-top: 0; // hoặc xóa dòng này nếu không còn nút nào khác
             }
 
-            .edit-review-button,
-            .delete-review-button {
-              padding: 8px 12px;
-              font-size: 14px;
+            .delete-review-icon-button {
+              background: none;
               border: none;
-              border-radius: 4px;
+              color: #f44336;
+              font-size: 20px;
               cursor: pointer;
-              transition: background-color 0.2s;
-            }
-
-            .edit-review-button {
-              background-color: #4caf50;
-              color: white;
-            }
-
-            .edit-review-button:hover {
-              background-color: #45a049;
-            }
-
-            .delete-review-button {
-              background-color: #f44336;
-              color: white;
-            }
-
-            .delete-review-button:hover {
-              background-color: #da190b;
+              padding: 6px;
+              border-radius: 4px;
+              transition: background 0.2s;
+              &:hover {
+                background: #ffeaea;
+                color: #da190b;
+              }
             }
           }
         }
@@ -1287,5 +1274,18 @@ $transition: all 0.3s ease;
   .restaurant-sidebar {
     position: sticky;
     top: 20px;
+  }
+}
+
+.reviews-section {
+  .review-rating-inline {
+    margin-left: 6px;
+    font-size: 16px;
+    display: inline-flex;
+    align-items: center;
+    .star-icon {
+      font-size: 16px;
+      color: $primary-color !important;
+    }
   }
 }
