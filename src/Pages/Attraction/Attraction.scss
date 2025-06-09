@@ -13,17 +13,17 @@ $transition: all 0.3s ease;
   color: white;
   border: none;
   padding: 12px 24px;
-  border-radius: 8px;
+  border-radius: $border-radius;
   cursor: pointer;
   transition: background 0.3s, transform 0.3s;
-
   &:hover {
-    background: linear-gradient(45deg,
-        darken($primary-color, 10%),
-        darken($secondary-color, 10%));
+    background: linear-gradient(
+      45deg,
+      darken($primary-color, 10%),
+      darken($secondary-color, 10%)
+    );
     transform: translateY(-2px);
   }
-
   &:focus {
     outline: 2px solid $primary-color;
     outline-offset: 2px;
@@ -41,16 +41,13 @@ $transition: all 0.3s ease;
   0% {
     transform: scale(1);
   }
-
   50% {
     transform: scale(1.2);
   }
-
   100% {
     transform: scale(1);
   }
 }
-
 .attraction-container {
   width: 90%;
   max-width: 1200px;
@@ -64,9 +61,11 @@ $transition: all 0.3s ease;
     bottom: 0;
     left: 0;
     right: 0;
-    background: linear-gradient(180deg,
-        rgba(255, 255, 255, 0.95),
-        rgba(240, 240, 240, 0.95));
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.95),
+      rgba(240, 240, 240, 0.95)
+    );
     padding: 10px 20px;
     box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
     z-index: 2000;
@@ -108,7 +107,6 @@ $transition: all 0.3s ease;
 
       &.save-attraction.saved {
         background: $accent-color;
-
         &:hover {
           background: darken($accent-color, 10%);
         }
@@ -159,7 +157,6 @@ $transition: all 0.3s ease;
         &:not(.current):hover {
           text-decoration: underline;
           color: #0056b3;
-          cursor: pointer;
         }
 
         &.current {
@@ -193,6 +190,7 @@ $transition: all 0.3s ease;
   }
 
   .attraction-header {
+    margin-top: 16px;
     margin-bottom: 30px;
     padding: 20px;
     background: linear-gradient(180deg, #f0f8f4, #ffffff);
@@ -234,7 +232,6 @@ $transition: all 0.3s ease;
         display: flex;
         flex-wrap: wrap;
         gap: 12px;
-
         button {
           display: flex;
           align-items: center;
@@ -255,7 +252,6 @@ $transition: all 0.3s ease;
           &.share-attraction {
             background: #f0f8f4;
             color: $primary-color;
-
             &:hover {
               background: #e0efe5;
               transform: translateY(-2px);
@@ -265,7 +261,6 @@ $transition: all 0.3s ease;
           &.review-attraction {
             background: #f0f8f4;
             color: $primary-color;
-
             &:hover {
               background: #e0efe5;
               transform: translateY(-2px);
@@ -275,7 +270,6 @@ $transition: all 0.3s ease;
           &.save-attraction {
             background: #f0f8f4;
             color: $primary-color;
-
             &.saved {
               background: $primary-color;
               color: white;
@@ -284,13 +278,11 @@ $transition: all 0.3s ease;
               .action-icon {
                 color: white;
               }
-
               &:hover {
                 background: darken($primary-color, 10%);
                 transform: translateY(-2px);
               }
             }
-
             &:hover {
               background: #e0efe5;
               transform: translateY(-2px);
@@ -320,12 +312,10 @@ $transition: all 0.3s ease;
           .star-icon {
             font-size: 18px;
             margin-right: 4px;
-
             &.filled,
             &.half {
               color: $primary-color;
             }
-
             &.empty {
               color: #ddd;
             }
@@ -719,7 +709,6 @@ $transition: all 0.3s ease;
           .description {
             font-size: 16px;
             line-height: 1.7;
-            text-align: justify;
             color: #444;
             margin-bottom: 20px;
 
@@ -768,7 +757,6 @@ $transition: all 0.3s ease;
               a {
                 color: $primary-color;
                 text-decoration: none;
-
                 &:hover {
                   text-decoration: underline;
                 }
@@ -848,9 +836,11 @@ $transition: all 0.3s ease;
 
         .book-now-button {
           width: 100%;
-          background: linear-gradient(45deg,
-              $accent-color,
-              lighten($accent-color, 10%));
+          background: linear-gradient(
+            45deg,
+            $accent-color,
+            lighten($accent-color, 10%)
+          );
           color: white;
           border: none;
           padding: 12px;
@@ -861,9 +851,11 @@ $transition: all 0.3s ease;
           transition: all 0.3s ease;
 
           &:hover {
-            background: linear-gradient(45deg,
-                darken($accent-color, 10%),
-                $accent-color );
+            background: linear-gradient(
+              45deg,
+              darken($accent-color, 10%),
+              $accent-color
+            );
             transform: translateY(-2px);
           }
 
@@ -922,12 +914,10 @@ $transition: all 0.3s ease;
               .star-icon {
                 font-size: 18px;
                 margin-right: 4px;
-
                 &.filled,
                 &.half {
                   color: $primary-color;
                 }
-
                 &.empty {
                   color: #ddd;
                 }
@@ -1075,12 +1065,10 @@ $transition: all 0.3s ease;
                   .star-icon {
                     font-size: 14px;
                     margin-right: 4px;
-
                     &.filled,
                     &.half {
                       color: $primary-color;
                     }
-
                     &.empty {
                       color: #ddd;
                     }
@@ -1150,22 +1138,21 @@ $transition: all 0.3s ease;
 
               .review-actions {
                 display: flex;
-                justify-content: flex-end;
                 gap: 10px;
-                margin-top: 15px;
+                margin-top: 0; // hoặc xóa dòng này nếu không còn nút nào khác
 
-                // .edit-review-button,
-                // .report-review-button {
-                //   @include button-gradient;
-                //   padding: 8px 16px;
-                //   font-size: 13px;
-                // }
-
-                .report-review-button {
-                  background: #e74c3c;
-
+                .delete-review-icon-button {
+                  background: none;
+                  border: none;
+                  color: #f44336;
+                  font-size: 20px;
+                  cursor: pointer;
+                  padding: 6px;
+                  border-radius: 4px;
+                  transition: background 0.2s;
                   &:hover {
-                    background: darken(#e74c3c, 10%);
+                    background: #ffeaea;
+                    color: #da190b;
                   }
                 }
               }
@@ -1270,7 +1257,6 @@ $transition: all 0.3s ease;
         opacity: 0;
         transform: scale(0.9);
       }
-
       to {
         opacity: 1;
         transform: scale(1);
@@ -1281,7 +1267,6 @@ $transition: all 0.3s ease;
       from {
         opacity: 0;
       }
-
       to {
         opacity: 1;
       }

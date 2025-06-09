@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "react-query";
 import axios from "axios";
@@ -7,9 +7,9 @@ import { useAuth } from "../../../contexts/AuthContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faStar as solidStar,
-  faStarHalfStroke,
-  faStar as regularStar,
+  faStarHalfAlt,
 } from "@fortawesome/free-solid-svg-icons";
+import { faStar as regularStar } from "@fortawesome/free-regular-svg-icons";
 import useFavorites from "../../../hooks/useFavorites";
 import UserService from "../../../services/userService";
 
@@ -59,14 +59,20 @@ const fetchAttractionDetails = async (attractionId, user) => {
       ...place,
     }));
 
-    clearTimeout(timeoutId);
     const normalizePhotos = (photos) => {
       if (!photos) return [];
-      if (Array.isArray(photos)) return photos;
+      if (Array.isArray(photos))
+        return photos.filter(
+          (photo) => typeof photo === "string" && photo.trim()
+        );
       if (typeof photos === "string") {
         try {
           const parsed = JSON.parse(photos);
-          return Array.isArray(parsed) ? parsed : [];
+          return Array.isArray(parsed)
+            ? parsed.filter(
+                (photo) => typeof photo === "string" && photo.trim()
+              )
+            : [];
         } catch (e) {
           console.error("Failed to parse photos:", e);
           return [];
@@ -74,6 +80,7 @@ const fetchAttractionDetails = async (attractionId, user) => {
       }
       return [];
     };
+
     const reviewsWithUsers = await Promise.all(
       reviewsResponse.data.map(async (review) => {
         let userData = { username: "Anonymous", avatar_url: null };
@@ -101,6 +108,7 @@ const fetchAttractionDetails = async (attractionId, user) => {
             `Review ID ${review.review_id} has unexpected rating of 5 (raw was ${rawRating})`
           );
         }
+
         return {
           ...review,
           rating: finalRating,
@@ -113,13 +121,13 @@ const fetchAttractionDetails = async (attractionId, user) => {
       })
     );
 
-    // Limit the number of images in attractionData.image_url to 30
     const limitedImageUrl =
       Array.isArray(attractionData.image_url) &&
       attractionData.image_url.length > 30
         ? attractionData.image_url.slice(0, 30)
         : attractionData.image_url;
 
+    clearTimeout(timeoutId);
     return {
       attraction: {
         ...attractionData,
@@ -153,6 +161,7 @@ const useAttraction = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [reviewSort, setReviewSort] = useState("newest");
+  const [localReviews, setLocalReviews] = useState([]);
 
   const {
     favorites,
@@ -211,9 +220,9 @@ const useAttraction = () => {
   };
 
   const sortedReviews = useMemo(() => {
-    if (!reviews) return [];
-    return sortReviews(reviews, reviewSort);
-  }, [reviews, reviewSort]);
+    if (!localReviews) return [];
+    return sortReviews(localReviews, reviewSort);
+  }, [localReviews, reviewSort]);
 
   const handleToggleSave = useCallback(() => {
     if (!isLoggedIn || !user?.user_id) {
@@ -249,50 +258,52 @@ const useAttraction = () => {
 
   const renderStars = (rating) => {
     const numRating = typeof rating === "number" ? rating : parseFloat(rating);
+
     if (isNaN(numRating) || numRating < 0 || numRating > 5) {
       return <div className="stars-container">Invalid rating</div>;
     }
 
-    return (
-      <div className="stars-container">
-        {[1, 2, 3, 4, 5].map((star) => {
-          const isFilled = star <= Math.floor(numRating);
-          const isHalf =
-            !isFilled && star === Math.ceil(numRating) && numRating % 1 !== 0;
-          const isEmpty = !isFilled && !isHalf;
-
-          let icon;
-          if (isFilled) {
-            icon = solidStar;
-          } else if (isHalf) {
-            icon = faStarHalfStroke;
-          } else {
-            icon = regularStar;
-          }
-
-          let starClass = "star-icon ";
-          if (isFilled) {
-            starClass += "filled";
-          } else if (isHalf) {
-            starClass += "half";
-          } else {
-            starClass += "empty";
-          }
-
-          return (
-            <FontAwesomeIcon key={star} icon={icon} className={starClass} />
-          );
-        })}
-      </div>
-    );
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+      if (numRating >= i) {
+        stars.push(
+          <FontAwesomeIcon
+            key={i}
+            icon={solidStar}
+            className="star-icon filled"
+          />
+        );
+      } else if (numRating >= i - 0.5) {
+        stars.push(
+          <FontAwesomeIcon
+            key={i}
+            icon={faStarHalfAlt}
+            className="star-icon half"
+          />
+        );
+      } else {
+        stars.push(
+          <FontAwesomeIcon
+            key={i}
+            icon={regularStar}
+            className="star-icon empty"
+          />
+        );
+      }
+    }
+    return <span className="stars-container">{stars}</span>;
   };
 
   const formatDate = useCallback((dateString) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+    try {
+      return new Date(dateString).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    } catch {
+      return "Invalid date";
+    }
   }, []);
 
   const handleShareClick = useCallback(() => {
@@ -303,6 +314,8 @@ const useAttraction = () => {
     if (navigator.share) {
       navigator.share({ title, text, url }).catch((error) => {
         console.error("Error sharing:", error);
+        navigator.clipboard.writeText(url);
+        alert("Link copied to clipboard!");
       });
     } else {
       navigator.clipboard.writeText(url);
@@ -317,6 +330,45 @@ const useAttraction = () => {
     }
     navigate(`/tripguide/review/attraction/${attractionId}`);
   }, [isLoggedIn, navigate, attractionId]);
+
+  useEffect(() => {
+    if (reviews) {
+      setLocalReviews(
+        reviews.map((review) => ({
+          ...review,
+          isCurrentUser: user && review.user_id === user.user_id,
+        }))
+      );
+    }
+  }, [reviews, user]);
+
+  const handleDeleteReview = async (review) => {
+    if (!review?.review_id || !isLoggedIn || !user?.user_id) return;
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Please log in to delete your review.");
+      navigate("/");
+      return;
+    }
+    try {
+      await axios.delete(`${BASE_URL}/reviews/${review.review_id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        data: {
+          user_id: user.user_id,
+        },
+      });
+      setLocalReviews((prev) =>
+        prev.filter((r) => r.review_id !== review.review_id)
+      );
+      queryClient.invalidateQueries(["attraction", attractionId]);
+      alert("Review deleted successfully!");
+    } catch (err) {
+      alert("Failed to delete review. Please try again.");
+      console.error("Delete review error:", err);
+    }
+  };
 
   return {
     attraction,
@@ -336,6 +388,8 @@ const useAttraction = () => {
       queryClient.invalidateQueries(["attraction", attractionId]),
     renderStars,
     formatDate,
+    handleDeleteReview,
+    user,
   };
 };
 

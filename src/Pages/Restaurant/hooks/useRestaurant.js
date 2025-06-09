@@ -5,9 +5,9 @@ import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faStar as solidStar,
-  faStarHalfStroke,
-  faStar as regularStar,
+  faStarHalfAlt,
 } from "@fortawesome/free-solid-svg-icons";
+import { faStar as regularStar } from "@fortawesome/free-regular-svg-icons";
 import BASE_URL from "../../../constants/BASE_URL";
 import { useAuth } from "../../../contexts/AuthContext";
 import useFavorites from "../../../hooks/useFavorites";
@@ -134,6 +134,7 @@ const fetchRestaurantDetails = async (restaurantId, user) => {
             `Review ID ${review.review_id} has unexpected rating of 5 (raw was ${rawRating})`
           );
         }
+
         return {
           ...review,
           rating: finalRating,
@@ -169,6 +170,7 @@ const useRestaurant = () => {
   const [reviewSort, setReviewSort] = useState("newest");
   const [mapCenter, setMapCenter] = useState(null);
   const [mapError, setMapError] = useState(null);
+  const [localReviews, setLocalReviews] = useState([]);
 
   const { favorites, createFavorite, deleteFavorite } = useFavorites(
     user?.user_id,
@@ -220,6 +222,40 @@ const useRestaurant = () => {
     }
   };
 
+  // Khi data thay đổi, cập nhật localReviews và gán isCurrentUser
+  useEffect(() => {
+    if (data?.reviews) {
+      setLocalReviews(
+        data.reviews.map((review) => ({
+          ...review,
+          isCurrentUser: user && review.user_id === user.user_id,
+        }))
+      );
+    }
+  }, [data?.reviews, user]);
+
+  // Hàm xử lý xóa review
+  const handleDeleteReview = async (review) => {
+    if (!review?.review_id) return;
+    try {
+      await axios.delete(`${BASE_URL}/reviews/${review.review_id}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        data: {
+          user_id: user?.user_id,
+        },
+      });
+      // Xóa review khỏi local state để cập nhật UI ngay lập tức
+      setLocalReviews((prev) =>
+        prev.filter((r) => r.review_id !== review.review_id)
+      );
+    } catch (err) {
+      alert("Failed to delete review. Please try again.");
+      console.error("Delete review error:", err);
+    }
+  };
+
   useEffect(() => {
     if (isFullScreen) {
       document.querySelector(".fullscreen-image")?.focus();
@@ -255,48 +291,41 @@ const useRestaurant = () => {
   };
 
   const renderStars = (rating) => {
-    // Chuyển đổi rating thành số và xử lý giá trị không hợp lệ
     const numRating = typeof rating === "number" ? rating : parseFloat(rating);
 
-    // Kiểm tra giá trị hợp lệ
     if (isNaN(numRating) || numRating < 0 || numRating > 5) {
       return <div className="stars-container">Invalid rating</div>;
     }
 
-    return (
-      <div className="stars-container">
-        {[1, 2, 3, 4, 5].map((star) => {
-          // Tính toán loại sao cho vị trí hiện tại
-          const isFilled = star <= Math.floor(numRating);
-          const isHalf =
-            !isFilled && star === Math.ceil(numRating) && numRating % 1 !== 0;
-
-          // Xác định icon phù hợp
-          let icon;
-          if (isFilled) {
-            icon = solidStar;
-          } else if (isHalf) {
-            icon = faStarHalfStroke;
-          } else {
-            icon = regularStar;
-          }
-
-          // Xác định className phù hợp
-          let starClass = "star-icon ";
-          if (isFilled) {
-            starClass += "filled";
-          } else if (isHalf) {
-            starClass += "half";
-          } else {
-            starClass += "empty";
-          }
-
-          return (
-            <FontAwesomeIcon key={star} icon={icon} className={starClass} />
-          );
-        })}
-      </div>
-    );
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+      if (numRating >= i) {
+        stars.push(
+          <FontAwesomeIcon
+            key={i}
+            icon={solidStar}
+            className="star-icon filled"
+          />
+        );
+      } else if (numRating >= i - 0.5) {
+        stars.push(
+          <FontAwesomeIcon
+            key={i}
+            icon={faStarHalfAlt}
+            className="star-icon half"
+          />
+        );
+      } else {
+        stars.push(
+          <FontAwesomeIcon
+            key={i}
+            icon={regularStar}
+            className="star-icon empty"
+          />
+        );
+      }
+    }
+    return <span className="stars-container">{stars}</span>;
   };
   const handleShareClick = () => {
     const shareData = {
@@ -386,8 +415,8 @@ const useRestaurant = () => {
   }, [restaurant]);
 
   const sortedReviews = useMemo(
-    () => (reviews ? sortReviews(reviews, reviewSort) : []),
-    [reviews, reviewSort]
+    () => (localReviews ? sortReviews(localReviews, reviewSort) : []),
+    [localReviews, reviewSort]
   );
 
   return {
@@ -417,6 +446,7 @@ const useRestaurant = () => {
     hoursInfo,
     savedRestaurants: favorites,
     handleToggleSave,
+    handleDeleteReview, // <-- export hàm này
   };
 };
 

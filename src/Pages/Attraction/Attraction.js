@@ -16,7 +16,7 @@ import {
   faChevronRight,
   faHeart,
   faImages,
-  faExpand,
+  faTrash,
 } from "@fortawesome/free-solid-svg-icons";
 import OpenStreetMap from "../../components/OpenStreetMap/OpenStreetMap";
 import useAttraction from "./hooks/useAttraction";
@@ -25,6 +25,7 @@ import Loading from "../../components/Loading/Loading";
 import { useAuth } from "../../contexts/AuthContext";
 import axios from "axios";
 import BASE_URL from "../../constants/BASE_URL";
+import { memo } from "react";
 
 const ErrorMessage = ({ error }) => {
   const navigate = useNavigate();
@@ -37,106 +38,74 @@ const ErrorMessage = ({ error }) => {
   );
 };
 
-const AttractionHeader = ({
-  attraction,
-  city,
-  isFavorite,
-  handleToggleSave,
-  handleShareClick,
-  handleReviewClick,
-  renderStars,
-  ratingBreakdown,
-}) => {
-  const navigate = useNavigate();
-  return (
-    <header className="attraction-header">
-      <nav className="breadcrumb" aria-label="Breadcrumb">
-        <ol className="breadcrumb-list">
-          <li className="breadcrumb-item">
-            <button onClick={() => navigate("/tripguide")}>Vietnam</button>
-          </li>
-          <li className="breadcrumb-separator" aria-hidden="true">
-            <FontAwesomeIcon icon={faChevronRight} />
-          </li>
-          <li className="breadcrumb-item">
+const AttractionHeader = memo(
+  ({
+    attraction,
+    city,
+    isFavorite,
+    handleToggleSave,
+    handleShareClick,
+    handleReviewClick,
+    renderStars,
+    ratingBreakdown,
+  }) => {
+    const navigate = useNavigate();
+    return (
+      <header className="attraction-header">
+        <div className="name-and-action">
+          <div className="name-container">
+            <h1>{attraction.name}</h1>
+          </div>
+          <div className="attraction-action">
             <button
-              onClick={() => navigate(`/tripguide/citydetail/${city?.city_id}`)}
+              className="action-button share-attraction"
+              onClick={handleShareClick}
+              aria-label="Share this attraction"
             >
-              {city?.name || "City"}
+              <FontAwesomeIcon
+                icon={faSquareShareNodes}
+                className="action-icon"
+              />
+              <span>Share</span>
             </button>
-          </li>
-          <li className="breadcrumb-separator" aria-hidden="true">
-            <FontAwesomeIcon icon={faChevronRight} />
-          </li>
-          <li className="breadcrumb-item">
             <button
-              onClick={() =>
-                navigate(`/tripguide/citydetail/${city?.city_id}/attractions`)
-              }
+              className="action-button review-attraction"
+              onClick={handleReviewClick}
+              aria-label="Write a review for this attraction"
             >
-              {city?.name ? `${city.name} Attractions` : "Attractions"}
+              <FontAwesomeIcon icon={faPen} className="action-icon" />
+              <span>Review</span>
             </button>
-          </li>
-          <li className="breadcrumb-separator" aria-hidden="true">
-            <FontAwesomeIcon icon={faChevronRight} />
-          </li>
-          <li className="breadcrumb-item current" aria-current="page">
-            {attraction.name}
-          </li>
-        </ol>
-      </nav>
-      <div className="name-and-action">
-        <div className="name-container">
-          <h1>{attraction.name}</h1>
-        </div>
-        <div className="attraction-action">
-          <button
-            className="action-button share-attraction"
-            onClick={handleShareClick}
-            aria-label="Share this attraction"
-          >
-            <FontAwesomeIcon
-              icon={faSquareShareNodes}
-              className="action-icon"
-            />
-            <span>Share</span>
-          </button>
-          <button
-            className="action-button review-attraction"
-            aria-label="Write a review for this attraction"
-            onClick={handleReviewClick}
-          >
-            <FontAwesomeIcon icon={faPen} className="action-icon" />
-            <span>Review</span>
-          </button>
-          <button
-            className={`action-button save-attraction ${isFavorite ? "saved" : ""
+            <button
+              className={`action-button save-attraction ${
+                isFavorite ? "saved" : ""
               }`}
-            onClick={handleToggleSave}
-            aria-label={isFavorite ? "Remove from saved" : "Save attraction"}
-          >
-            <FontAwesomeIcon icon={faHeart} className="action-icon" />
-            <span>{isFavorite ? "Saved" : "Save"}</span>
-          </button>
+              onClick={handleToggleSave}
+              aria-label={isFavorite ? "Remove from saved" : "Save attraction"}
+            >
+              <FontAwesomeIcon icon={faHeart} className="action-icon" />
+              <span>{isFavorite ? "Saved" : "Save"}</span>
+            </button>
+          </div>
         </div>
-      </div>
-      <div className="attraction-rating">
-        <div className="rating-stars">
-          {renderStars(ratingBreakdown.average)}
-          <span className="rating-value">
-            {Number(ratingBreakdown.average).toFixed(1)}
+        <div className="attraction-rating">
+          <div className="rating-stars">
+            {renderStars(ratingBreakdown.average)}
+            <span className="rating-value">
+              {Number(ratingBreakdown.average).toFixed(1)}
+            </span>
+          </div>
+          <span className="rating-count">
+            ({ratingBreakdown.totalReviews}{" "}
+            {ratingBreakdown.totalReviews === 1 ? "review" : "reviews"})
           </span>
         </div>
-        <span className="rating-count">
-          ({ratingBreakdown.totalReviews}{" "}
-          {ratingBreakdown.totalReviews === 1 ? "review" : "reviews"})
-        </span>
-      </div>
-    </header>
-  );
-};
+      </header>
+    );
+  }
+);
 
-const AttractionGallery = React.memo(
+const AttractionGallery = memo(
   ({ images, activeImageIndex, setActiveImageIndex, attractionName }) => {
     const [isImageLoaded, setIsImageLoaded] = useState(false);
 
@@ -180,11 +149,16 @@ const AttractionGallery = React.memo(
         >
           <img
             src={images[activeImageIndex]}
-            alt={`${attractionName || "Attraction"} - Image ${activeImageIndex + 1
-              }`}
+            alt={`${attractionName || "Attraction"} - Image ${
+              activeImageIndex + 1
+            }`}
             className="main-image"
             loading="lazy"
             onLoad={() => setIsImageLoaded(true)}
+            onError={(e) => {
+              e.target.src =
+                "https://via.placeholder.com/500?text=Image+Not+Found";
+            }}
             style={{
               opacity: isImageLoaded ? 1 : 0,
               transition: "opacity 0.5s ease-in-out",
@@ -222,7 +196,7 @@ const AttractionGallery = React.memo(
     prevProps.activeImageIndex === nextProps.activeImageIndex
 );
 
-const AttractionInfo = React.memo(
+const AttractionInfo = memo(
   ({ attraction, city, mapCenter, mapError, fetchAttraction }) => {
     return (
       <div className="attraction-content">
@@ -339,20 +313,23 @@ const AttractionInfo = React.memo(
     prevProps.mapError === nextProps.mapError
 );
 
-const AttractionReviews = React.memo(
+const ReviewsSection = memo(
   ({
     reviews,
+    attraction,
+    renderStars,
+    formatDate,
     reviewSort,
     handleSortChange,
     isLoggedIn,
-    ratingBreakdown,
-    renderStars,
-    formatDate,
     navigate,
+    onDeleteReview,
+    user,
   }) => {
     const [displayCount, setDisplayCount] = useState(5);
     const [selectedImage, setSelectedImage] = useState(null);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
     const modalRef = useRef(null);
 
     const openModal = (photo) => {
@@ -387,15 +364,17 @@ const AttractionReviews = React.memo(
           if (e.key === "Tab") {
             if (e.shiftKey && document.activeElement === firstElement) {
               e.preventDefault();
-              lastElement.focus();
+              lastElement?.focus();
             } else if (!e.shiftKey && document.activeElement === lastElement) {
               e.preventDefault();
-              firstElement.focus();
+              firstElement?.focus();
             }
           }
         };
 
-        modalRef.current.focus();
+        if (firstElement) {
+          firstElement.focus();
+        }
         modalRef.current.addEventListener("keydown", handleTab);
         return () =>
           modalRef.current?.removeEventListener("keydown", handleTab);
@@ -403,11 +382,14 @@ const AttractionReviews = React.memo(
     }, [selectedImage]);
 
     const handleLoadMore = () => {
-      setIsLoadingMore(true);
-      setTimeout(() => {
-        setDisplayCount(displayCount + 5);
-        setIsLoadingMore(false);
-      }, 500);
+      setDisplayCount((prev) => prev + 5);
+    };
+
+    const handleDelete = (review) => {
+      if (window.confirm("Are you sure you want to delete this review?")) {
+        setIsDeleting(true);
+        onDeleteReview(review).finally(() => setIsDeleting(false));
+      }
     };
 
     return (
@@ -416,11 +398,11 @@ const AttractionReviews = React.memo(
           <div className="review-stats">
             <div className="average-rating">
               <span className="big-rating">
-                {Number(ratingBreakdown.average).toFixed(1)}
+                {attraction.average_rating?.toFixed(1) || "0.0"}
               </span>
               <div className="rating-label">
-                {renderStars(ratingBreakdown.average)}
-                <span>({ratingBreakdown.totalReviews} reviews)</span>
+                {renderStars(attraction.average_rating)}
+                <span>({attraction.rating_total || 0} reviews)</span>
               </div>
             </div>
             <div className="rating-breakdown">
@@ -434,20 +416,21 @@ const AttractionReviews = React.memo(
                     {score === 5
                       ? "Excellent"
                       : score === 4
-                        ? "Very Good"
-                        : score === 3
-                          ? "Average"
-                          : score === 2
-                            ? "Poor"
-                            : "Terrible"}
+                      ? "Very Good"
+                      : score === 3
+                      ? "Average"
+                      : score === 2
+                      ? "Poor"
+                      : "Terrible"}
                   </span>
                   <div className="bar-container">
                     <div
                       className="bar"
                       style={{
-                        width: `${reviews.filter((r) => Math.floor(r.rating) === score)
-                          .length * 10
-                          }%`,
+                        width: `${
+                          reviews.filter((r) => Math.floor(r.rating) === score)
+                            .length * 10
+                        }%`,
                       }}
                     />
                   </div>
@@ -474,76 +457,160 @@ const AttractionReviews = React.memo(
                   <option value="newest">Newest First</option>
                   <option value="highest">Highest Rated</option>
                   <option value="lowest">Lowest Rated</option>
+                  <option value="mine">Mine</option>
                 </select>
               </div>
               {reviews.length > 0 ? (
                 <>
-                  {reviews.slice(0, displayCount).map((review, index) => (
-                    <div
-                      className={`review-card ${review.isCurrentUser ? "current-user" : ""
-                        } fade-in`}
-                      key={review.review_id || index}
-                      aria-labelledby={`review-title-${index}`}
-                    >
-                      <div className="review-header">
-                        <div className="reviewer-info">
-                          <img
-                            src={review.profilePic}
-                            alt={`Avatar of ${review.userName || "Anonymous"}`}
-                            className="reviewer-avatar"
-                            onError={(e) =>
-                              (e.target.src = "https://via.placeholder.com/50")
-                            }
-                          />
-                          <div className="reviewer-details">
-                            <h4>{review.userName}</h4>
-                            <span className="review-date">
-                              {formatDate(review.created_at || new Date())}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="review-rating">
-                          {renderStars(review.rating || 0)}
-                        </div>
-                      </div>
-                      <div className="review-body">
-                        <h5
-                          id={`review-title-${index}`}
-                          className="review-title"
+                  {(reviewSort === "mine"
+                    ? reviews.filter((review) => review.isCurrentUser)
+                    : reviews
+                  ).length > 0 ? (
+                    (reviewSort === "mine"
+                      ? reviews.filter((review) => review.isCurrentUser)
+                      : reviews
+                    )
+                      .slice(0, displayCount)
+                      .map((review, index) => (
+                        <div
+                          className={`review-card ${
+                            review.isCurrentUser ? "current-user" : ""
+                          } fade-in`}
+                          key={review.review_id || index}
+                          aria-labelledby={`review-title-${index}`}
+                          style={{ position: "relative" }}
                         >
-                          {review.title || "Untitled Review"}
-                        </h5>
-                        <p>{review.comment || "No comment provided."}</p>
-                        {review.photos && review.photos.length > 0 && (
-                          <div className="review-photos">
-                            {review.photos.map((photo, idx) => (
-                              <div
-                                key={idx}
-                                className="review-photo"
-                                role="button"
-                                tabIndex={0}
-                                onClick={() => openModal(photo)}
-                                onKeyPress={(e) => {
-                                  if (e.key === "Enter" || e.key === " ") {
-                                    openModal(photo);
-                                  }
+                          {review.isCurrentUser &&
+                            isLoggedIn &&
+                            user?.user_id && (
+                              <button
+                                className="delete-review-icon-button"
+                                onClick={() => handleDelete(review)}
+                                aria-label="Delete your review"
+                                title="Delete"
+                                disabled={isDeleting}
+                                style={{
+                                  position: "absolute",
+                                  top: "18px",
+                                  right: "18px",
+                                  zIndex: 2,
                                 }}
-                                aria-label={`View review photo ${idx + 1
-                                  } in full size`}
                               >
-                                <img
-                                  src={photo}
-                                  alt={`Review photo ${idx + 1}`}
-                                  loading="lazy"
-                                />
+                                <FontAwesomeIcon icon={faTrash} />
+                              </button>
+                            )}
+                          <div className="review-header">
+                            <div className="reviewer-info">
+                              <img
+                                src={
+                                  review.profilePic ||
+                                  "https://via.placeholder.com/50?text=Avatar"
+                                }
+                                alt={`Avatar of ${
+                                  review.userName || "Anonymous"
+                                }`}
+                                className="reviewer-avatar"
+                                onError={(e) => {
+                                  e.target.src =
+                                    "https://via.placeholder.com/50?text=Avatar";
+                                }}
+                              />
+                              <div className="reviewer-details">
+                                <h4
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "10px",
+                                  }}
+                                >
+                                  {review.userName || "Anonymous"}
+                                  <span className="review-rating-inline">
+                                    {typeof review.rating === "number" &&
+                                    review.rating >= 0 &&
+                                    review.rating <= 5 ? (
+                                      renderStars(review.rating)
+                                    ) : (
+                                      <span>Invalid rating</span>
+                                    )}
+                                  </span>
+                                </h4>
+                                <span className="review-date">
+                                  {formatDate(review.created_at || new Date())}
+                                </span>
                               </div>
-                            ))}
+                            </div>
                           </div>
-                        )}
-                      </div>
+                          <div className="review-body">
+                            <h5
+                              id={`review-title-${index}`}
+                              className="review-title"
+                            >
+                              {review.title || "Untitled Review"}
+                            </h5>
+                            <p>{review.comment || "No comment provided."}</p>
+                            {review.photos &&
+                              Array.isArray(review.photos) &&
+                              review.photos.length > 0 && (
+                                <div className="review-photos">
+                                  {review.photos.map((photo, idx) => (
+                                    <div
+                                      key={idx}
+                                      className="review-photo"
+                                      role="button"
+                                      tabIndex={0}
+                                      onClick={() => openModal(photo)}
+                                      onKeyPress={(e) => {
+                                        if (
+                                          e.key === "Enter" ||
+                                          e.key === " "
+                                        ) {
+                                          openModal(photo);
+                                        }
+                                      }}
+                                      aria-label={`View review photo ${
+                                        idx + 1
+                                      } in full size`}
+                                    >
+                                      <img
+                                        src={photo}
+                                        alt={`Review photo ${idx + 1}`}
+                                        loading="lazy"
+                                        onError={(e) => {
+                                          e.target.src =
+                                            "https://via.placeholder.com/100?text=Image+Not+Found";
+                                        }}
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                          </div>
+                        </div>
+                      ))
+                  ) : (
+                    <div className="no-reviews">
+                      <p>
+                        {reviewSort === "mine"
+                          ? isLoggedIn
+                            ? "You have not posted any reviews yet."
+                            : "Please log in to view your reviews."
+                          : "No reviews yet. Be the first to share your experience!"}
+                      </p>
+                      {!isLoggedIn && (
+                        <button
+                          className="login-to-review"
+                          onClick={() => navigate("/")}
+                          aria-label="Log in to write a review"
+                        >
+                          Log In to Write a Review
+                        </button>
+                      )}
                     </div>
-                  ))}
-                  {reviews.length > displayCount && (
+                  )}
+                  {(reviewSort === "mine"
+                    ? reviews.filter((review) => review.isCurrentUser)
+                    : reviews
+                  ).length > displayCount && (
                     <button
                       className="load-more-button"
                       onClick={handleLoadMore}
@@ -583,6 +650,7 @@ const AttractionReviews = React.memo(
                   className="image-modal"
                   onClick={(e) => e.stopPropagation()}
                   role="document"
+                  tabIndex={0}
                 >
                   <button
                     className="modal-close-button"
@@ -596,6 +664,10 @@ const AttractionReviews = React.memo(
                     src={selectedImage}
                     alt="Full-size review photo"
                     className="modal-image"
+                    onError={(e) => {
+                      e.target.src =
+                        "https://via.placeholder.com/500?text=Image+Not+Found";
+                    }}
                   />
                 </div>
               </div>
@@ -604,14 +676,10 @@ const AttractionReviews = React.memo(
         </div>
       </section>
     );
-  },
-  (prevProps, nextProps) =>
-    prevProps.reviews === nextProps.reviews &&
-    prevProps.reviewSort === nextProps.reviewSort &&
-    prevProps.isLoggedIn === nextProps.isLoggedIn
+  }
 );
 
-const NearbyAttractions = React.memo(
+const NearbyAttractions = memo(
   ({ nearbyAttractions, city, renderStars, handleToggleSave, favorites }) => {
     const navigate = useNavigate();
     const getValidImageUrl = (imageUrl) => {
@@ -693,14 +761,15 @@ const Attraction = () => {
     fetchAttraction,
     renderStars,
     formatDate,
+    handleDeleteReview,
+    handleSortChange,
+    user,
   } = useAttraction();
 
   const navigate = useNavigate();
-  const [activeImageIndex, setActiveImageIndex] = React.useState(0);
-  const [isFullScreen, setIsFullScreen] = React.useState(false);
-  const [reviewSort, setReviewSort] = React.useState("newest");
-  const [isLoadingVisible, setIsLoadingVisible] = React.useState(false);
-  const { user } = useAuth();
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [isLoadingVisible, setIsLoadingVisible] = useState(false);
+  const [reviewSort, setReviewSort] = useState("newest");
 
   const saveRecentlyViewed = useCallback(async () => {
     if (!attraction || !attraction.attraction_id || !attraction.name) {
@@ -805,22 +874,6 @@ const Attraction = () => {
     preloadNextImage(activeImageIndex);
   }, [activeImageIndex, preloadNextImage]);
 
-  const handleKeyDown = useCallback(
-    (e) => {
-      if (e.key === "ArrowLeft") handlePrevImage();
-      else if (e.key === "ArrowRight") handleNextImage();
-      else if (e.key === "Escape") setIsFullScreen(false);
-    },
-    [handlePrevImage, handleNextImage]
-  );
-
-  useEffect(() => {
-    if (isFullScreen) {
-      window.addEventListener("keydown", handleKeyDown);
-      return () => window.removeEventListener("keydown", handleKeyDown);
-    }
-  }, [isFullScreen, handleKeyDown]);
-
   useEffect(() => {
     let timeout;
     if (loading) {
@@ -861,8 +914,9 @@ const Attraction = () => {
           <span>Review</span>
         </button>
         <button
-          className={`action-button save-attraction ${isFavorite ? "saved" : ""
-            }`}
+          className={`action-button save-attraction ${
+            isFavorite ? "saved" : ""
+          }`}
           onClick={handleToggleSave}
           aria-label={isFavorite ? "Remove from saved" : "Save attraction"}
         >
@@ -893,15 +947,20 @@ const Attraction = () => {
         mapError={error}
         fetchAttraction={fetchAttraction}
       />
-      <AttractionReviews
+      <ReviewsSection
         reviews={reviews}
-        reviewSort={reviewSort}
-        setReviewSort={setReviewSort}
-        isLoggedIn={isLoggedIn}
-        ratingBreakdown={ratingBreakdown}
+        attraction={attraction}
         renderStars={renderStars}
         formatDate={formatDate}
+        reviewSort={reviewSort}
+        handleSortChange={(e) => {
+          setReviewSort(e.target.value);
+          handleSortChange(e);
+        }}
+        isLoggedIn={isLoggedIn}
         navigate={navigate}
+        onDeleteReview={handleDeleteReview}
+        user={user}
       />
       <NearbyAttractions
         nearbyAttractions={nearbyAttractions}
