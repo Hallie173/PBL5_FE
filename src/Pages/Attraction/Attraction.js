@@ -60,7 +60,7 @@ const AttractionHeader = ({
           </li>
           <li className="breadcrumb-item">
             <button
-              onClick={() => navigate(`/tripguide/city/${city?.city_id}`)}
+              onClick={() => navigate(`/tripguide/citydetail/${city?.city_id}`)}
             >
               {city?.name || "City"}
             </button>
@@ -71,7 +71,7 @@ const AttractionHeader = ({
           <li className="breadcrumb-item">
             <button
               onClick={() =>
-                navigate(`/tripguide/city/${city?.city_id}/attractions`)
+                navigate(`/tripguide/citydetail/${city?.city_id}/attractions`)
               }
             >
               {city?.name ? `${city.name} Attractions` : "Attractions"}
@@ -110,9 +110,8 @@ const AttractionHeader = ({
             <span>Review</span>
           </button>
           <button
-            className={`action-button save-attraction ${
-              isFavorite ? "saved" : ""
-            }`}
+            className={`action-button save-attraction ${isFavorite ? "saved" : ""
+              }`}
             onClick={handleToggleSave}
             aria-label={isFavorite ? "Remove from saved" : "Save attraction"}
           >
@@ -181,9 +180,8 @@ const AttractionGallery = React.memo(
         >
           <img
             src={images[activeImageIndex]}
-            alt={`${attractionName || "Attraction"} - Image ${
-              activeImageIndex + 1
-            }`}
+            alt={`${attractionName || "Attraction"} - Image ${activeImageIndex + 1
+              }`}
             className="main-image"
             loading="lazy"
             onLoad={() => setIsImageLoaded(true)}
@@ -436,21 +434,20 @@ const AttractionReviews = React.memo(
                     {score === 5
                       ? "Excellent"
                       : score === 4
-                      ? "Very Good"
-                      : score === 3
-                      ? "Average"
-                      : score === 2
-                      ? "Poor"
-                      : "Terrible"}
+                        ? "Very Good"
+                        : score === 3
+                          ? "Average"
+                          : score === 2
+                            ? "Poor"
+                            : "Terrible"}
                   </span>
                   <div className="bar-container">
                     <div
                       className="bar"
                       style={{
-                        width: `${
-                          reviews.filter((r) => Math.floor(r.rating) === score)
-                            .length * 10
-                        }%`,
+                        width: `${reviews.filter((r) => Math.floor(r.rating) === score)
+                          .length * 10
+                          }%`,
                       }}
                     />
                   </div>
@@ -483,9 +480,8 @@ const AttractionReviews = React.memo(
                 <>
                   {reviews.slice(0, displayCount).map((review, index) => (
                     <div
-                      className={`review-card ${
-                        review.isCurrentUser ? "current-user" : ""
-                      } fade-in`}
+                      className={`review-card ${review.isCurrentUser ? "current-user" : ""
+                        } fade-in`}
                       key={review.review_id || index}
                       aria-labelledby={`review-title-${index}`}
                     >
@@ -532,9 +528,8 @@ const AttractionReviews = React.memo(
                                     openModal(photo);
                                   }
                                 }}
-                                aria-label={`View review photo ${
-                                  idx + 1
-                                } in full size`}
+                                aria-label={`View review photo ${idx + 1
+                                  } in full size`}
                               >
                                 <img
                                   src={photo}
@@ -866,9 +861,8 @@ const Attraction = () => {
           <span>Review</span>
         </button>
         <button
-          className={`action-button save-attraction ${
-            isFavorite ? "saved" : ""
-          }`}
+          className={`action-button save-attraction ${isFavorite ? "saved" : ""
+            }`}
           onClick={handleToggleSave}
           aria-label={isFavorite ? "Remove from saved" : "Save attraction"}
         >

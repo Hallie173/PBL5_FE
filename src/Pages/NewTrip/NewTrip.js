@@ -32,6 +32,8 @@ function NewTrip() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [city, setCity] = useState(null);
+  const [setStartDate] = useState("");
+  const [setEndDate] = useState("");
   const [itineraryData, setitinararyData] = useState([]);
   const [formState, setFormState] = useState({
     visible: false,
@@ -530,9 +532,27 @@ function NewTrip() {
             <button className="save-description-btn" onClick={handleDescription}>Save</button>
           </div>
         </div>
-
-       
-
+        <div className="trip-date">
+          <h2 className="trip-date-title">Trip Date</h2>
+          <div className="trip-date-content">
+            <div className="date-input">
+              <label>Start Date</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </div>
+            <div className="date-input">
+              <label>End Date</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
         <div className="trip-itinerary">
           <h2 className="trip-itinerary-title">Itinerary</h2>
           <div className="trip-day">

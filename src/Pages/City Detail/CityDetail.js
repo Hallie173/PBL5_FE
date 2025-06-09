@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from "react";
+import "./CityDetail.scss";
 import { useNavigate, useParams } from "react-router-dom";
 import useCityDetail from "./hooks/useCityDetail";
 import LocationCard from "../../components/LocationCard/LocationCard";
@@ -10,6 +11,8 @@ import {
   Calendar,
   Heart,
 } from "lucide-react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChevronRight } from "@fortawesome/free-solid-svg-icons";
 import {
   Box,
   Button,
@@ -269,11 +272,12 @@ const CityDetail = () => {
 
   return (
     <ThemeProvider theme={theme}>
-      <Container maxWidth="lg" sx={{ py: 8 }}>
+      <Container maxWidth="lg" sx={{ py: 8, pt: 4 }}>
         <Typography
           variant="body2"
           sx={{
             mb: 4,
+            mt: 0,
             color: "text.secondary",
             "& span": {
               cursor: "pointer",
@@ -282,8 +286,9 @@ const CityDetail = () => {
             },
           }}
         >
-          <span>Viet Nam</span> {" > "} <span>{city?.name}</span>
-        </Typography>
+          <span className="breadcrumb-item">Viet Nam</span>
+          <FontAwesomeIcon icon={faChevronRight} className="chevron-right" />
+          <span className="breadcrumb-item">{city?.name}</span>        </Typography>
 
         <ImageCarousel
           images={images}
@@ -293,7 +298,20 @@ const CityDetail = () => {
 
         <Typography
           variant="body1"
-          sx={{ mt: 4, color: "text.secondary", maxWidth: "48rem" }}
+          sx={{
+            color: "#000",
+            fontSize: "30px",
+            fontWeight: "bold",
+            mt: 5,
+            maxWidth: "48rem"
+          }}
+        >
+          {city?.name}
+        </Typography>
+
+        <Typography
+          variant="body1"
+          sx={{ mt: 3, color: "text.secondary", maxWidth: "48rem", textAlign: "justify" }}
         >
           {city?.description}
         </Typography>
