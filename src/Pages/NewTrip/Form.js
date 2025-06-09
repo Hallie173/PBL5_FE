@@ -33,6 +33,58 @@ const Form = () => {
   const [tagSearch, setTagSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [hasLoadedFromStorage, setHasLoadedFromStorage] = useState(false);
+  // bắt đầu lưu vào local storage (tên chỗ item ưng viết j cx đc)
+  useEffect(() => {
+    const saved = localStorage.getItem("newTripFormState");
+    if (saved) {
+      const {
+        selectedTags,
+        selectedResTags,
+        startDate,
+        endDate,
+        selectedCity,
+        title,
+        description,
+      } = JSON.parse(saved);
+
+      setSelectedTags(selectedTags || []);
+      setSelectedResTags(selectedResTags || []);
+      setStartDate(startDate || "");
+      setEndDate(endDate || "");
+      setSelectedCity(selectedCity || "");
+      setTitle(title || "");
+      setDescription(description || "");
+
+      console.log("Bat dau ghi")
+    }
+    setHasLoadedFromStorage(true);
+  }, []);
+
+  // Ghi lại vào localStorage khi dữ liệu thay đổi
+  useEffect(() => {
+    if (!hasLoadedFromStorage) return;
+    const state = {
+      selectedTags,
+      selectedResTags,
+      startDate,
+      endDate,
+      selectedCity,
+      title,
+      description,
+    };
+    localStorage.setItem("newTripFormState", JSON.stringify(state));
+    console.log("Ghi lai")
+  }, [
+    selectedTags,
+    selectedResTags,
+    startDate,
+    endDate,
+    selectedCity,
+    title,
+    description,
+  ]
+  );
 
   useEffect(() => {
     const fetchData = async () => {

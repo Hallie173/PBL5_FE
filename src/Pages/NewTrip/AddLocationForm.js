@@ -23,10 +23,10 @@ const AddLocationForm = ({
     item,
     numberday,
     index,
+    day
 }) => {
     useEffect(() => {
-        console.log("AddLocationForm visible:", visible, "mode:", mode); // Debug
-        console.log("Addlocaiton", daylist);
+        
         if (visible) {
             if (mode === "edit" && editData) {
                 setSelectedLocation(editData);
@@ -52,7 +52,7 @@ const AddLocationForm = ({
                         <Autocomplete
                             options={daylist}
                             getOptionLabel={(option) => `Ngày ${option}`}
-                            value={selectedDay}
+                            value={day}
                             onChange={(event, newValue) => setSelectedDay(newValue)}
                             renderInput={(params) => (
                                 <TextField {...params} />

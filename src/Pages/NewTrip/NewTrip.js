@@ -51,6 +51,8 @@ function NewTrip() {
   const [endTime, setEndTime] = useState("");
   const { user } = useAuth();
   const [selectedDay, setSelectedDay] = useState([]);
+  const [tripDescription, setTripDescription] = useState(description || "");
+  const [tripitineraryId, settripitinerary] = useState(itinerary_id || 0);
   const handleDeleteClick = (item) => {
     setDeleteConfirm({
       isOpen: true,
@@ -91,9 +93,10 @@ function NewTrip() {
         if (itinerary_id == -1) {
           const startTime = "09:00";
           const endTime = "15:00";
-          const tagParams = selectedTags.map((tag) => `tags=${tag}`).join("&");
+          const tagParams = selectedTags.map((tag) => `${tag}`).join("&");
           const restagParams = selectedResTags.map((tag) => `${tag}`).join("&");
-          const url = `${BASE_URL}/attractions/tags?city=${selectedCity}&${tagParams}&startTime=${startTime}&endTime=${endTime}&res_tag=${restagParams}&startDate=${startDate}&endDate=${endDate}`;
+          const url = `${BASE_URL}/attractions/tags?city=${selectedCity}&tags=${tagParams}&startTime=${startTime}&endTime=${endTime}&res_tag=${restagParams}&startDate=${startDate}&endDate=${endDate}`
+          console.log("USED Url:", url);
           const Itiresponse = await axios.get(url);
           const cityResponse = await axios.get(
             `${BASE_URL}/cities/${selectedCity}`
@@ -119,9 +122,11 @@ function NewTrip() {
           );
           setCityAttraction(cityAttraction.data);
           setDay(generateDayList(startDate, endDate));
-          console.log("start", startDate);
-          console.log("end", endDate);
-          console.log("dayling: ", daylist);
+          // console.log("start", startDate);
+          // console.log("end", endDate);
+          // console.log("dayling: ", daylist);
+
+          console.log(itineraryData);
         }
       } catch (err) {
         setError(err);
@@ -170,6 +175,25 @@ function NewTrip() {
   // const handleCancel = () => {
   //     setAddLocation(false);
   // };
+  const handleDescription = async () => {
+    try {
+      if (itinerary_id != -1) {
+        const respone = await axios.put(`${BASE_URL}/itinerary/update/${itinerary_id}`, {
+          description: description
+        })
+        alert("Da edit thanh cong description");
+      } else if (tripitineraryId != -1) {
+        const respone = await axios.put(`${BASE_URL}/itinerary/update/${tripitineraryId}`, {
+          description: description
+        })
+      } else {
+        alert("tu tu da bro");
+      }
+    } catch (err) {
+      alert("Da co loi");
+    }
+
+  }
 
   const handleSaveItinerary = async () => {
     if (!user?.user_id) {
@@ -196,6 +220,7 @@ function NewTrip() {
         });
         const newItinerary = response.data;
         const newItineraryId = newItinerary.itinerary_id;
+        settripitinerary(newItineraryId);
         console.log(itineraryData);
         for (const item of itineraryData) {
           const data = {
@@ -499,10 +524,15 @@ function NewTrip() {
               rows="1"
               className="trip-description-input"
               placeholder="Describe Your Trip..."
+              value={tripDescription}
+              onChange={(e) => setTripDescription(e.target.value)}
             />
-            <button className="save-description-btn">Save</button>
+            <button className="save-description-btn" onClick={handleDescription}>Save</button>
           </div>
         </div>
+
+       
+
         <div className="trip-itinerary">
           <h2 className="trip-itinerary-title">Itinerary</h2>
           <div className="trip-day">
@@ -571,6 +601,7 @@ function NewTrip() {
                             formState.editingIndex === index
                           }
                           mode="edit"
+                          day = {day}
                           item={item}
                           numberday={Number(day)}
                           index={index}

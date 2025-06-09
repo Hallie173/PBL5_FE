@@ -54,6 +54,7 @@ const MyTrips = () => {
                                     endDate: trip.end_date,
                                     title: trip.title,
                                     selectedCity: trip.city_id,
+                                    description: trip.description
                                 }}
                                 className="trip-content"
                             >
@@ -94,6 +95,7 @@ const MyTrips = () => {
                                     endDate: trip.end_date,
                                     title: trip.title,
                                     selectedCity: trip.city_id,
+                                    description: trip.description
                                 }}
                                 className="trip-content"
                             >
