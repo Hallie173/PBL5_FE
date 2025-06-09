@@ -497,6 +497,7 @@ function NewTrip() {
           <h2 className="trip-description-title">Trip Description</h2>
           <div className="trip-description-content">
             <textarea
+              value={description}
               id="autoHeightTextArea"
               rows="1"
               className="trip-description-input"
