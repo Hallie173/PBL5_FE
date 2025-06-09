@@ -6,6 +6,7 @@ import {
   faMountainSun,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faClock } from "@fortawesome/free-solid-svg-icons";
 import { useLocation } from "react-router-dom";
 import BASE_URL from "../../constants/BASE_URL";
 import axios from "axios";
@@ -14,7 +15,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { FaPen, FaXmark } from "react-icons/fa6";
 import AddLocationForm from "./AddLocationForm";
 import DeleteConfirm from "./DeleteConfirm";
-
+import { useNavigate } from "react-router-dom";
 function NewTrip() {
   const location = useLocation();
   const {
@@ -35,6 +36,7 @@ function NewTrip() {
   const [setStartDate] = useState("");
   const [setEndDate] = useState("");
   const [itineraryData, setitinararyData] = useState([]);
+
   const [formState, setFormState] = useState({
     visible: false,
     mode: "add",
@@ -55,6 +57,11 @@ function NewTrip() {
   const [selectedDay, setSelectedDay] = useState([]);
   const [tripDescription, setTripDescription] = useState(description || "");
   const [tripitineraryId, settripitinerary] = useState(itinerary_id || 0);
+  const [tripstartDate, settripstartDate] = useState(startDate || "");
+  const [tripendDate, settripendDate] = useState(endDate || "");
+  const [hasLoadedFromStorage, setHasLoadedFromStorage] = useState(false);
+  const [createmode, setcreatmode] = useState(true);
+  const navigate = useNavigate();
   const handleDeleteClick = (item) => {
     setDeleteConfirm({
       isOpen: true,
@@ -69,7 +76,7 @@ function NewTrip() {
       // (item, idx) => !(item.day === day && idx === index)
       (i) => i !== item
     );
-    console.log("UPDATED: ", updatedItinerary);
+
     setitinararyData(updatedItinerary);
     setDeleteConfirm({ isOpen: false, day: null, index: null });
   };
@@ -83,10 +90,55 @@ function NewTrip() {
     const end = new Date(endDate);
 
     const dayCount = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
-    console.log("TEST");
-    console.log(Array.from({ length: dayCount }, (_, i) => i + 1));
+
+
     return Array.from({ length: dayCount }, (_, i) => i + 1);
   }
+
+  useEffect(() => {
+    const saved = localStorage.getItem("newTripState");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setTripDescription(parsed.tripDescription || "");
+        settripstartDate(parsed.tripstartDate || "");
+        settripendDate(parsed.tripendDate || "");
+        setitinararyData(parsed.itineraryData || []);
+        setDay(parsed.daylist || []);
+        settripitinerary(parsed.tripitineraryId || 0);
+        setSelectedDay(parsed.selectedDay || []);
+
+
+      } catch (e) {
+
+      }
+    }
+    setHasLoadedFromStorage(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hasLoadedFromStorage) return;
+    const state = {
+      tripDescription,
+      tripstartDate,
+      tripendDate,
+      itineraryData,
+      daylist,
+      tripitineraryId,
+      selectedDay,
+      // thêm các biến khác nếu cần
+    };
+    localStorage.setItem("newTripState", JSON.stringify(state));
+
+  }, [
+    tripDescription,
+    tripstartDate,
+    tripendDate,
+    itineraryData,
+    daylist,
+    tripitineraryId,
+    selectedDay,
+  ]);
 
   useEffect(() => {
     setLoading(true);
@@ -98,7 +150,7 @@ function NewTrip() {
           const tagParams = selectedTags.map((tag) => `${tag}`).join("&");
           const restagParams = selectedResTags.map((tag) => `${tag}`).join("&");
           const url = `${BASE_URL}/attractions/tags?city=${selectedCity}&tags=${tagParams}&startTime=${startTime}&endTime=${endTime}&res_tag=${restagParams}&startDate=${startDate}&endDate=${endDate}`
-          console.log("USED Url:", url);
+
           const Itiresponse = await axios.get(url);
           const cityResponse = await axios.get(
             `${BASE_URL}/cities/${selectedCity}`
@@ -124,11 +176,9 @@ function NewTrip() {
           );
           setCityAttraction(cityAttraction.data);
           setDay(generateDayList(startDate, endDate));
-          // console.log("start", startDate);
-          // console.log("end", endDate);
-          // console.log("dayling: ", daylist);
 
-          console.log(itineraryData);
+
+
         }
       } catch (err) {
         setError(err);
@@ -138,6 +188,44 @@ function NewTrip() {
     };
     fetchData();
   }, [itinerary_id]);
+
+
+  const updateItinerarybyNewDate = (newDaylist) => {
+    const updatedItinerary = itineraryData.filter(item => newDaylist.includes(item.day));
+
+    setitinararyData(updatedItinerary);
+
+  }
+
+  const handleStartDateChange = (e) => {
+    const newStartDate = e.target.value;
+    settripstartDate(newStartDate);
+
+    if (tripendDate && newStartDate > tripendDate) {
+      alert("Start date must be before or equal to end date.");
+    } else {
+      const newdaylist = generateDayList(newStartDate, tripendDate);
+      setDay(newdaylist);
+      updateItinerarybyNewDate(newdaylist);
+
+    }
+  };
+
+  const handleEndDateChange = (e) => {
+    const newEndDate = e.target.value;
+    settripendDate(newEndDate);
+
+    if (tripstartDate && tripstartDate > newEndDate) {
+      alert("Start date must be before or equal to end date.");
+    } else {
+      const newdaylist = generateDayList(tripstartDate, newEndDate);
+      setDay(newdaylist);
+      updateItinerarybyNewDate(newdaylist);
+
+    }
+  };
+
+
 
   const handleAddLocation = () => {
     setFormState({
@@ -180,19 +268,22 @@ function NewTrip() {
   const handleDescription = async () => {
     try {
       if (itinerary_id != -1) {
+        console.log("url: ", `${BASE_URL}/itinerary/update/${itinerary_id}`)
         const respone = await axios.put(`${BASE_URL}/itinerary/update/${itinerary_id}`, {
-          description: description
+          description: tripDescription,
         })
-        alert("Da edit thanh cong description");
+        alert("Edit description success");
       } else if (tripitineraryId != -1) {
+        console.log("url: ", `${BASE_URL}/itinerary/update/${tripitineraryId}`)
         const respone = await axios.put(`${BASE_URL}/itinerary/update/${tripitineraryId}`, {
-          description: description
+          description: tripDescription,
         })
+        alert("Edit description success");
       } else {
-        alert("tu tu da bro");
+        alert("Save your new itinerary first");
       }
     } catch (err) {
-      alert("Da co loi");
+      alert("Edit failed");
     }
 
   }
@@ -203,7 +294,8 @@ function NewTrip() {
       return;
     }
 
-    if (mode === "create") {
+    if (mode === "create" && createmode === true) {
+      console.log("create");
       try {
         if (!user?.user_id) {
           alert("Need login to create itinerary.");
@@ -212,9 +304,9 @@ function NewTrip() {
         const response = await axios.post(`${BASE_URL}/itinerary/`, {
           title: title,
           city_id: selectedCity,
-          description: description,
-          start_date: startDate,
-          end_date: endDate,
+          description: tripDescription,
+          start_date: tripstartDate,
+          end_date: tripendDate,
           status: "private",
           user_id: user?.user_id,
           city_name: city?.name,
@@ -223,7 +315,7 @@ function NewTrip() {
         const newItinerary = response.data;
         const newItineraryId = newItinerary.itinerary_id;
         settripitinerary(newItineraryId);
-        console.log(itineraryData);
+
         for (const item of itineraryData) {
           const data = {
             user_id: user?.user_id,
@@ -250,21 +342,27 @@ function NewTrip() {
             data
           );
         }
+        setcreatmode(false);
         alert("Lưu đc r");
       } catch (error) {
         console.error("Err:", error);
         alert("Lưu thất bại");
       }
-    } else if (mode == "edit") {
-      console.log(itinerary_id);
+    } else if (mode == "edit" || createmode === false) {
+      console.log("edit");
+      console.log(tripitineraryId);
       try {
+        const updaterespone = await axios.put(`${BASE_URL}/itinerary/update/${tripitineraryId}`, {
+          start_date: tripstartDate,
+          end_date: tripendDate,
+        })
         const deleteRespone = await axios.delete(
-          `${BASE_URL}/itineraryDetail/delete/${itinerary_id}`
+          `${BASE_URL}/itineraryDetail/delete/${tripitineraryId}`
         );
         for (const item of itineraryData) {
           const data = {
             user_id: user?.user_id,
-            itinerary_id: itinerary_id,
+            itinerary_id: tripitineraryId,
             type: item.type,
             name: item.name,
             id: item.id,
@@ -335,8 +433,7 @@ function NewTrip() {
     editingDay,
     editingIndex
   ) => {
-    console.log("current item", item);
-    console.log("new location: ", location);
+
 
     const arrival = timeToMinutes(startTime);
     const departure = timeToMinutes(endTime);
@@ -344,7 +441,7 @@ function NewTrip() {
       alert("Start time must be before end time.");
       return;
     }
-    console.log("NEW LOCATION:", location);
+
     const newLocation = {
       type: "attraction",
       day: selectedDay,
@@ -363,7 +460,7 @@ function NewTrip() {
       warning: "",
     };
 
-    console.log("Attraction id: ", location.id);
+
 
     // let updatedItinerary;
 
@@ -422,7 +519,7 @@ function NewTrip() {
     setEndTime("");
     handleCancel();
 
-    console.log("Updated itinerary:", updatedItinerary);
+
   };
 
   const handleSave = (editingDay, editingIndex) => {
@@ -493,7 +590,7 @@ function NewTrip() {
         curr.warning = "";
       }
     }
-    console.log(updatedItinerary);
+
     // Cập nhật state và reset form
     setitinararyData(updatedItinerary);
     setSelectedLocation(null);
@@ -511,7 +608,7 @@ function NewTrip() {
           <div className="date-time">
             <FontAwesomeIcon icon={faCalendarDay} className="date-icon" />
             <span className="date-text">
-              {startDate} - {endDate}
+              {tripstartDate} - {tripendDate}
             </span>
           </div>
         </div>
@@ -539,16 +636,16 @@ function NewTrip() {
               <label>Start Date</label>
               <input
                 type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                value={tripstartDate}
+                onChange={handleStartDateChange}
               />
             </div>
             <div className="date-input">
               <label>End Date</label>
               <input
                 type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
+                value={tripendDate}
+                onChange={handleEndDateChange}
               />
             </div>
           </div>
@@ -570,18 +667,26 @@ function NewTrip() {
                     <hr className="day-line" />
                   </div>
                   {items.map((item, index) => (
-                    <div key={`${day}-${index}`} className="location-details">
+                    <div key={`${day}-${index}`} className="location-details" >
                       <div className="time">{item.arrival_time}</div>
                       <div className="timeline-line"></div>
                       <div className="edit-location-card">
-                        <div className="location-card">
+                        <div className="location-card" >
                           <img
                             src={item.image_url[0] || "fallback.jpg"}
                             alt={item.name}
                             className="location-img"
+                            onClick={() =>
+                              navigate(`/tripguide/${item.type}/${item.id}`)
+                            }
                           />
                           <div className="location-info">
                             <div className="location-title">{item.name}</div>
+                            <div className="departure-time">
+                              <FontAwesomeIcon icon={faClock} className="departure-icon" />
+                              <span>Departure time:</span>
+                              <strong>{item.departure_time}</strong>
+                            </div>
                             <div className="item-rating">
                               <span className="rating-dots">🟢🟢🟢🟢</span>
                               <span className="rating-number">
@@ -621,7 +726,7 @@ function NewTrip() {
                             formState.editingIndex === index
                           }
                           mode="edit"
-                          day = {day}
+                          day={day}
                           item={item}
                           numberday={Number(day)}
                           index={index}
@@ -693,153 +798,6 @@ function NewTrip() {
       />
     </div>
   );
-  // return (
-  //     <div className="new-trip-container">
-  //         <div className="city-name-container">
-  //             <img src={newtrippic} alt="City" className="city-image" />
-  //             <div className="title-overlay">
-  //                 <h2>
-  //                     {title}<span className="destination-name"></span>
-  //                 </h2>
-  //                 <div className="date-time">
-  //                     <FontAwesomeIcon icon={faCalendarDay} className="date-icon" />
-  //                     <span className="date-text">
-  //                         {startDate} - {endDate}
-  //                     </span>
-  //                 </div>
-  //             </div>
-  //         </div>
-  //         <div className="trip-details">
-  //             <div className="trip-info">
-  //                 <div className="trip-itinerary">
-  //                     <h2 className="trip-itinerary-title">Itinerary</h2>
-  //                     <div className="trip-day">
-  //                         <div className="trip-day-header">
-  //                             <h4>{startDate}</h4>
-  //                         </div>
-  //                         <div className="trip-day-content">
-  //                             <div className="trip-timeline">
-  //                                 {Object.entries(
-  //                                     itineraryData.reduce((acc, item) => {
-  //                                         if (!acc[item.day]) acc[item.day] = [];
-  //                                         acc[item.day].push(item);
-  //                                         return acc;
-  //                                     }, {})
-  //                                 ).map(([day, items]) => (
-
-  //                                     <div key={day}>
-
-  //                                         <div className="day-divider">
-  //                                             <span className="day-label">Ngày {day}</span>
-  //                                             <hr className="day-line" />
-  //                                         </div>
-  //                                         {items.map((item, index) => (
-  //                                             <div key={index} className="location-details">
-  //                                                 <div className="time">{item.arrival_time}</div>
-  //                                                 <div className="timeline-line"></div>
-  //                                                 <div className="location-card">
-  //                                                     <img
-  //                                                         src={item.image_url[0] || "fallback.jpg"}
-  //                                                         alt={item.name}
-  //                                                         className="location-img"
-  //                                                     />
-  //                                                     <div className="location-info">
-  //                                                         <div className="location-title">{item.name}</div>
-  //                                                         <div className="item-rating">
-  //                                                             <span className="rating-dots">🟢🟢🟢🟢</span>
-  //                                                             <span className="rating-number">{item.rating_total}</span>
-  //                                                         </div>
-  //                                                         <span className="rating-number">{item.warning}</span>
-  //                                                         <div className="location-type">
-  //                                                             <FontAwesomeIcon icon={faMountainSun} className="location-type-icon" />
-  //                                                             {item.type}
-  //                                                         </div>
-  //                                                     </div>
-  //                                                     <div className="delete-location"><FaXmark className="delete-icon" /></div>
-  //                                                     <div className="edit-location"><FaPen className="edit-icon" /></div>
-  //                                                 </div>
-  //                                             </div>
-  //                                         ))}
-  //                                     </div>
-  //                                 ))}
-  //                                 <div className="add-location">
-  //                                     <button
-  //                                         className="add-location-btn"
-  //                                         onClick={handleAddLocation}
-  //                                     >
-  //                                         + Add
-  //                                     </button>
-  //                                     <button
-  //                                         className="save-location-btn"
-  //                                         onClick={handleSaveItinerary}
-  //                                     >
-  //                                         Save
-  //                                     </button>
-  //                                     <div className="add-location-form">
-  //                                         <div
-  //                                             className={`form-container ${addLocation ? "show" : ""
-  //                                                 }`}
-  //                                         >
-  //                                             <div className="form-header">
-  //                                                 <h4>Add location</h4>
-  //                                             </div>
-  //                                             <div className="form-body">
-  //                                                 <div className="form-date-group">
-  //                                                     <div className="form-date">
-
-  //                                                         <Autocomplete
-  //                                                             options={daylist}
-  //                                                             getOptionLabel={(option) => `Ngày ${option}`}
-  //                                                             value={selectedDay}
-  //                                                             onChange={(event, newValue) => setSelectedDay(newValue)}
-  //                                                             renderInput={(params) => (
-  //                                                                 <TextField {...params} label="Select Date..." />
-  //                                                             )}
-  //                                                             sx={{ width: '100%' }}
-  //                                                         />
-  //                                                     </div>
-  //                                                 </div>
-  //                                                 <div className="form-search-group">
-  //                                                     <div className="search-box">
-  //                                                         <Autocomplete
-  //                                                             options={cityAttraction}
-  //                                                             getOptionLabel={(option) => option.name}
-  //                                                             value={selectedLocation}
-  //                                                             onChange={(event, newValue) => setSelectedLocation(newValue)}
-  //                                                             renderInput={(params) => <TextField {...params} label="Search for location..." />}
-  //                                                             sx={{ width: '100%' }}
-  //                                                         />
-  //                                                     </div>
-  //                                                     <button className="search-btn">Search</button>
-  //                                                 </div>
-  //                                                 <div className="form-time-group">
-  //                                                     <div className="start-time">
-  //                                                         <label>Start Time</label>
-  //                                                         <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
-  //                                                     </div>
-  //                                                     <div className="end-time">
-  //                                                         <label>End Time</label>
-  //                                                         <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
-  //                                                     </div>
-  //                                                 </div>
-  //                                             </div>
-  //                                             <div className="form-footer">
-  //                                                 <button className="cancel-btn" onClick={handleCancel}>
-  //                                                     Cancel
-  //                                                 </button>
-  //                                                 <button className="save-btn" onClick={handleSave}>Save</button>
-  //                                             </div>
-  //                                         </div>
-  //                                     </div>
-  //                                 </div>
-  //                             </div>
-  //                         </div>
-  //                     </div>
-  //                 </div>
-  //             </div>
-  //         </div>
-  //     </div>
-  // );
 }
 
 export default NewTrip;

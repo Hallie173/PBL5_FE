@@ -256,6 +256,7 @@ const Form = () => {
         <Link
           to="/tripguide/newtrip"
           className="continue-button"
+          onClick={() => localStorage.removeItem('newTripState')}
           state={{
             mode: 'create',
             selectedTags,

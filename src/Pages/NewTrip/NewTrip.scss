@@ -285,6 +285,20 @@ $hover-color: #81c784;
                 display: flex;
                 flex-direction: column;
                 justify-content: space-around;
+                
+                .departure-time {
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+                  font-size: 14px;
+                  color: #333;
+                  margin-top: 4px;
+                }
+                
+                .departure-time .departure-icon {
+                  color: #28a745; 
+                  font-size: 14px;
+                }
 
                 .location-title {
                   font-size: 16px;
