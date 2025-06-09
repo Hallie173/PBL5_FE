@@ -52,41 +52,6 @@ const AttractionHeader = memo(
     const navigate = useNavigate();
     return (
       <header className="attraction-header">
-        <nav className="breadcrumb" aria-label="Breadcrumb">
-          <ol className="breadcrumb-list">
-            <li className="breadcrumb-item">
-              <button onClick={() => navigate("/tripguide")}>Vietnam</button>
-            </li>
-            <li className="breadcrumb-separator" aria-hidden="true">
-              <FontAwesomeIcon icon={faChevronRight} />
-            </li>
-            <li className="breadcrumb-item">
-              <button
-                onClick={() => navigate(`/tripguide/city/${city?.city_id}`)}
-              >
-                {city?.name || "City"}
-              </button>
-            </li>
-            <li className="breadcrumb-separator" aria-hidden="true">
-              <FontAwesomeIcon icon={faChevronRight} />
-            </li>
-            <li className="breadcrumb-item">
-              <button
-                onClick={() =>
-                  navigate(`/tripguide/city/${city?.city_id}/attractions`)
-                }
-              >
-                {city?.name ? `${city.name} Attractions` : "Attractions"}
-              </button>
-            </li>
-            <li className="breadcrumb-separator" aria-hidden="true">
-              <FontAwesomeIcon icon={faChevronRight} />
-            </li>
-            <li className="breadcrumb-item current" aria-current="page">
-              {attraction.name}
-            </li>
-          </ol>
-        </nav>
         <div className="name-and-action">
           <div className="name-container">
             <h1>{attraction.name}</h1>

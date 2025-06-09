@@ -13,7 +13,7 @@ $transition: all 0.3s ease;
   color: white;
   border: none;
   padding: 12px 24px;
-  border-radius: 8px;
+  border-radius: $border-radius;
   cursor: pointer;
   transition: background 0.3s, transform 0.3s;
   &:hover {
@@ -190,6 +190,7 @@ $transition: all 0.3s ease;
   }
 
   .attraction-header {
+    margin-top: 16px;
     margin-bottom: 30px;
     padding: 20px;
     background: linear-gradient(180deg, #f0f8f4, #ffffff);

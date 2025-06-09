@@ -35,52 +35,6 @@ const ErrorMessage = ({ error }) => {
   );
 };
 
-// Memoized Breadcrumb Component
-const Breadcrumb = memo(({ city, restaurant, navigate }) => (
-  <nav className="breadcrumb" aria-label="Breadcrumb">
-    <ol className="breadcrumb-list">
-      <li className="breadcrumb-item">
-        <button
-          onClick={() => navigate("/tripguide")}
-          aria-label="Go to Vietnam"
-        >
-          Vietnam
-        </button>
-      </li>
-      <li className="breadcrumb-separator" aria-hidden="true">
-        <FontAwesomeIcon icon={faChevronRight} />
-      </li>
-      <li className="breadcrumb-item">
-        <button
-          onClick={() => navigate(`/tripguide/city/${city?.city_id}`)}
-          aria-label={`Go to ${city?.name}`}
-        >
-          {city?.name || "City"}
-        </button>
-      </li>
-      <li className="breadcrumb-separator" aria-hidden="true">
-        <FontAwesomeIcon icon={faChevronRight} />
-      </li>
-      <li className="breadcrumb-item">
-        <button
-          onClick={() =>
-            navigate(`/tripguide/city/${city?.city_id}/restaurants`)
-          }
-          aria-label={`Go to restaurants in ${city?.name}`}
-        >
-          Restaurants in {city?.name || "City"}
-        </button>
-      </li>
-      <li className="breadcrumb-separator" aria-hidden="true">
-        <FontAwesomeIcon icon={faChevronRight} />
-      </li>
-      <li className="breadcrumb-item current" aria-current="page">
-        {restaurant.name}
-      </li>
-    </ol>
-  </nav>
-));
-
 // Memoized RestaurantHeader Component
 const RestaurantHeader = memo(
   ({
@@ -999,7 +953,6 @@ const Restaurant = () => {
         </button>
       </div>
 
-      <Breadcrumb city={city} restaurant={restaurant} navigate={navigate} />
       <RestaurantHeader
         restaurant={restaurant}
         renderStars={renderStars}
