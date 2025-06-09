@@ -21,6 +21,7 @@ import axios from "axios";
 import BASE_URL from "../../constants/BASE_URL";
 import { useAuth } from "../../contexts/AuthContext";
 import debounce from "lodash/debounce";
+import { faTrash } from "@fortawesome/free-solid-svg-icons"; // Thêm dòng này vào đầu file
 
 // Error Message Component
 const ErrorMessage = ({ error }) => {
@@ -33,52 +34,6 @@ const ErrorMessage = ({ error }) => {
     </div>
   );
 };
-
-// Memoized Breadcrumb Component
-const Breadcrumb = memo(({ city, restaurant, navigate }) => (
-  <nav className="breadcrumb" aria-label="Breadcrumb">
-    <ol className="breadcrumb-list">
-      <li className="breadcrumb-item">
-        <button
-          onClick={() => navigate("/tripguide")}
-          aria-label="Go to Vietnam"
-        >
-          Vietnam
-        </button>
-      </li>
-      <li className="breadcrumb-separator" aria-hidden="true">
-        <FontAwesomeIcon icon={faChevronRight} />
-      </li>
-      <li className="breadcrumb-item">
-        <button
-          onClick={() => navigate(`/tripguide/citydetail/${city?.city_id}`)}
-          aria-label={`Go to ${city?.name}`}
-        >
-          {city?.name || "City"}
-        </button>
-      </li>
-      <li className="breadcrumb-separator" aria-hidden="true">
-        <FontAwesomeIcon icon={faChevronRight} />
-      </li>
-      <li className="breadcrumb-item">
-        <button
-          onClick={() =>
-            navigate(`/tripguide/citydetail/${city?.city_id}/restaurants`)
-          }
-          aria-label={`Go to restaurants in ${city?.name}`}
-        >
-          Restaurants in {city?.name || "City"}
-        </button>
-      </li>
-      <li className="breadcrumb-separator" aria-hidden="true">
-        <FontAwesomeIcon icon={faChevronRight} />
-      </li>
-      <li className="breadcrumb-item current" aria-current="page">
-        {restaurant.name}
-      </li>
-    </ol>
-  </nav>
-));
 
 // Memoized RestaurantHeader Component
 const RestaurantHeader = memo(
@@ -117,8 +72,9 @@ const RestaurantHeader = memo(
             <span>Review</span>
           </button>
           <button
-            className={`action-button save-restaurant ${isFavorite ? "saved" : ""
-              }`}
+            className={`action-button save-restaurant ${
+              isFavorite ? "saved" : ""
+            }`}
             onClick={() => handleToggleSave(restaurant.restaurant_id)}
             aria-label={isFavorite ? "Remove from saved" : "Save to favorites"}
           >
@@ -195,8 +151,9 @@ const RestaurantGallery = React.memo(
         >
           <img
             src={images[activeImageIndex]}
-            alt={`${restaurantName || "Restaurant"} - Image ${activeImageIndex + 1
-              }`}
+            alt={`${restaurantName || "Restaurant"} - Image ${
+              activeImageIndex + 1
+            }`}
             className="main-image"
             loading="lazy"
             onLoad={() => setIsImageLoaded(true)}
@@ -466,6 +423,7 @@ const ReviewsSection = memo(
     isLoggedIn,
     navigate,
     onEditReview,
+    onDeleteReview, // Thêm prop này
   }) => {
     const [displayCount, setDisplayCount] = useState(5);
     const [selectedImage, setSelectedImage] = useState(null);
@@ -537,6 +495,16 @@ const ReviewsSection = memo(
         onEditReview(review);
       }
     };
+
+    // Handle delete review
+    const handleDelete = (review) => {
+      if (window.confirm("Are you sure you want to delete this review?")) {
+        if (onDeleteReview) {
+          onDeleteReview(review);
+        }
+      }
+    };
+
     return (
       <section id="review-section" className="reviews-section">
         <div className="reviews-container">
@@ -561,20 +529,21 @@ const ReviewsSection = memo(
                     {score === 5
                       ? "Excellent"
                       : score === 4
-                        ? "Very Good"
-                        : score === 3
-                          ? "Average"
-                          : score === 2
-                            ? "Poor"
-                            : "Terrible"}
+                      ? "Very Good"
+                      : score === 3
+                      ? "Average"
+                      : score === 2
+                      ? "Poor"
+                      : "Terrible"}
                   </span>
                   <div className="bar-container">
                     <div
                       className="bar"
                       style={{
-                        width: `${reviews.filter((r) => Math.floor(r.rating) === score)
-                          .length * 10
-                          }%`,
+                        width: `${
+                          reviews.filter((r) => Math.floor(r.rating) === score)
+                            .length * 10
+                        }%`,
                       }}
                     />
                   </div>
@@ -601,89 +570,114 @@ const ReviewsSection = memo(
                   <option value="newest">Newest First</option>
                   <option value="highest">Highest Rated</option>
                   <option value="lowest">Lowest Rated</option>
+                  <option value="mine">Mine</option> {/* Thêm dòng này */}
                 </select>
               </div>
               {reviews.length > 0 ? (
                 <>
-                  {reviews.slice(0, displayCount).map((review, index) => (
-                    <div
-                      className={`review-card ${review.isCurrentUser ? "current-user" : ""
+                  {(reviewSort === "mine"
+                    ? reviews.filter((review) => review.isCurrentUser)
+                    : reviews
+                  )
+                    .slice(0, displayCount)
+                    .map((review, index) => (
+                      <div
+                        className={`review-card ${
+                          review.isCurrentUser ? "current-user" : ""
                         } fade-in`}
-                      key={review.review_id || index}
-                      aria-labelledby={`review-title-${index}`}
-                    >
-                      <div className="review-header">
-                        <div className="reviewer-info">
-                          <img
-                            src={review.profilePic}
-                            alt={`Avatar of ${review.userName || "Anonymous"}`}
-                            className="reviewer-avatar"
-                          />
-                          <div className="reviewer-details">
-                            <h4>{review.userName}</h4>
-                            <span className="review-date">
-                              {formatDate(review.created_at || new Date())}
-                            </span>
+                        key={review.review_id || index}
+                        aria-labelledby={`review-title-${index}`}
+                        style={{ position: "relative" }} // Thêm style này nếu chưa có
+                      >
+                        {review.isCurrentUser && (
+                          <button
+                            className="delete-review-icon-button"
+                            onClick={() => handleDelete(review)}
+                            aria-label="Delete your review"
+                            title="Delete"
+                            style={{
+                              position: "absolute",
+                              top: "18px",
+                              right: "18px",
+                              zIndex: 2,
+                            }}
+                          >
+                            <FontAwesomeIcon icon={faTrash} />
+                          </button>
+                        )}
+                        <div className="review-header">
+                          <div className="reviewer-info">
+                            <img
+                              src={review.profilePic}
+                              alt={`Avatar of ${
+                                review.userName || "Anonymous"
+                              }`}
+                              className="reviewer-avatar"
+                            />
+                            <div className="reviewer-details">
+                              <h4
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "10px",
+                                }}
+                              >
+                                {review.userName}
+                                <span className="review-rating-inline">
+                                  {typeof review.rating === "number" &&
+                                  review.rating >= 0 &&
+                                  review.rating <= 5 ? (
+                                    renderStars(review.rating)
+                                  ) : (
+                                    <span>Invalid rating</span>
+                                  )}
+                                </span>
+                              </h4>
+                              <span className="review-date">
+                                {formatDate(review.created_at || new Date())}
+                              </span>
+                            </div>
                           </div>
+                          {/* Xóa phần review-rating ở đây */}
                         </div>
-                        <div className="review-rating">
-                          {typeof review.rating === "number" &&
-                            review.rating >= 0 &&
-                            review.rating <= 5 ? (
-                            renderStars(review.rating)
-                          ) : (
-                            <span>Invalid rating</span>
+                        <div className="review-body">
+                          <h5
+                            id={`review-title-${index}`}
+                            className="review-title"
+                          >
+                            {review.title || "Untitled Review"}
+                          </h5>
+                          <p>{review.comment || "No comment provided."}</p>
+                          {review.photos && review.photos.length > 0 && (
+                            <div className="review-photos">
+                              {review.photos.map((photo, idx) => (
+                                <div
+                                  key={idx}
+                                  className="review-photo"
+                                  role="button"
+                                  tabIndex={0}
+                                  onClick={() => openModal(photo)}
+                                  onKeyPress={(e) => {
+                                    if (e.key === "Enter" || e.key === " ") {
+                                      openModal(photo);
+                                    }
+                                  }}
+                                  aria-label={`View review photo ${
+                                    idx + 1
+                                  } in full size`}
+                                >
+                                  <img
+                                    src={photo}
+                                    alt={`Review photo ${idx + 1}`}
+                                    loading="lazy"
+                                  />
+                                </div>
+                              ))}
+                            </div>
                           )}
                         </div>
                       </div>
-                      <div className="review-body">
-                        <h5
-                          id={`review-title-${index}`}
-                          className="review-title"
-                        >
-                          {review.title || "Untitled Review"}
-                        </h5>
-                        <p>{review.comment || "No comment provided."}</p>
-                        {review.photos && review.photos.length > 0 && (
-                          <div className="review-photos">
-                            {review.photos.map((photo, idx) => (
-                              <div
-                                key={idx}
-                                className="review-photo"
-                                role="button"
-                                tabIndex={0}
-                                onClick={() => openModal(photo)}
-                                onKeyPress={(e) => {
-                                  if (e.key === "Enter" || e.key === " ") {
-                                    openModal(photo);
-                                  }
-                                }}
-                                aria-label={`View review photo ${idx + 1
-                                  } in full size`}
-                              >
-                                <img
-                                  src={photo}
-                                  alt={`Review photo ${idx + 1}`}
-                                  loading="lazy"
-                                />
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        {/* <div className="review-actions">
-                        {review.isCurrentUser && (
-                          <button
-                            className="edit-review-button"
-                            onClick={() => handleEdit(review)}
-                            aria-label={`Edit your review`}
-                          >
-                            Edit
-                          </button>
-                        )}
-                      </div> */}
-                      </div>
-                    </div>
-                  ))}
+                    ))}
                   {reviews.length > displayCount && (
                     <button
                       className="load-more-button"
@@ -839,6 +833,7 @@ const Restaurant = () => {
     hoursInfo,
     savedRestaurants,
     handleToggleSave,
+    handleDeleteReview, // <-- destructure từ hook
   } = useRestaurant();
   const { user } = useAuth();
   const [isLoadingVisible, setIsLoadingVisible] = useState(false);
@@ -944,8 +939,9 @@ const Restaurant = () => {
           <span>Review</span>
         </button>
         <button
-          className={`action-button save-restaurant ${isFavorite ? "saved" : ""
-            }`}
+          className={`action-button save-restaurant ${
+            isFavorite ? "saved" : ""
+          }`}
           onClick={() => handleToggleSave(restaurant.restaurant_id)}
           aria-label={isFavorite ? "Remove from saved" : "Save to favorites"}
         >
@@ -957,7 +953,6 @@ const Restaurant = () => {
         </button>
       </div>
 
-      <Breadcrumb city={city} restaurant={restaurant} navigate={navigate} />
       <RestaurantHeader
         restaurant={restaurant}
         renderStars={renderStars}
@@ -995,6 +990,7 @@ const Restaurant = () => {
         handleSortChange={handleSortChange}
         isLoggedIn={isLoggedIn}
         navigate={navigate}
+        onDeleteReview={handleDeleteReview} // <-- truyền vào đây
       />
       <NearbySection
         nearbyRestaurants={nearbyRestaurants}

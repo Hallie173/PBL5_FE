@@ -18,9 +18,9 @@ const MyTrips = () => {
                 const notfinishItineraryRespone = await axios.get(`${BASE_URL}/itinerary/notfinished/${user?.user_id}`)
 
                 setfItinerary(finishItineraryRespone.data);
-                setnotfItinerary(notfinishItineraryRespone.data);   
-                
-                console.log("notfinish: ",notfinishItinerary);
+                setnotfItinerary(notfinishItineraryRespone.data);
+
+                console.log("notfinish: ", notfinishItinerary);
                 console.log("finish: ", finishItinerary);
             } catch (err) {
 
@@ -29,12 +29,17 @@ const MyTrips = () => {
         fetchData();
 
     }, [])
-
+    const formatDate = (dateStr) =>
+        new Date(dateStr).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+        });
     return (
         <div className="my-trips-container">
             <div className="my-trips"><h1>Make your trip unforgettable!</h1></div>
             <div className="trip-actions">
-                <Link to="/tripguide/new-trip-form" className="create-trip"><FontAwesomeIcon icon={faMapLocation} />Create a new trip</Link>
+                <Link to="/tripguide/new-trip-form" className="create-trip" onClick={() => localStorage.removeItem("newTripFormState")}><FontAwesomeIcon icon={faMapLocation} />Create a new trip</Link>
             </div>
 
             <div className="trip-list">
@@ -54,8 +59,10 @@ const MyTrips = () => {
                                     endDate: trip.end_date,
                                     title: trip.title,
                                     selectedCity: trip.city_id,
+                                    description: trip.description
                                 }}
                                 className="trip-content"
+                                onClick={() => localStorage.removeItem("newTripState")}
                             >
                                 <img
                                     src={trip.image_url || "fallback.jpg"} // fallback nếu không có ảnh
@@ -63,15 +70,15 @@ const MyTrips = () => {
                                     className="trip-image"
                                 />
                                 <div className="trip-details">
-                                    <h4>{trip.title}</h4>
-                                    <p>
-                                        📅 {new Date(trip.start_date).toLocaleDateString("en-US", {
-                                            month: "short",
-                                            day: "numeric",
-                                            year: "numeric",
-                                        })}{" "}
-                                        📍 {trip.city_name || "Unknown location"}
-                                    </p>
+                                    <h4 className="trip-title">{trip.title}</h4>
+                                    <div className="trip-info">
+                                        <span className="trip-date">
+                                            📅 {formatDate(trip.start_date)} - {formatDate(trip.end_date)}
+                                        </span>
+                                        <span className="trip-location">
+                                            📍 {trip.city_name || "Unknown location"}
+                                        </span>
+                                    </div>
                                 </div>
                             </Link>
                         ))
@@ -94,8 +101,10 @@ const MyTrips = () => {
                                     endDate: trip.end_date,
                                     title: trip.title,
                                     selectedCity: trip.city_id,
+                                    description: trip.description
                                 }}
                                 className="trip-content"
+                                onClick={() => localStorage.removeItem("newTripState")}
                             >
                                 <img
                                     src={trip.image_url || "fallback.jpg"} // fallback nếu không có ảnh
@@ -103,15 +112,15 @@ const MyTrips = () => {
                                     className="trip-image"
                                 />
                                 <div className="trip-details">
-                                    <h4>{trip.title}</h4>
-                                    <p>
-                                        📅 {new Date(trip.start_date).toLocaleDateString("en-US", {
-                                            month: "short",
-                                            day: "numeric",
-                                            year: "numeric",
-                                        })}{" "}
-                                        📍 {trip.city_name || "Unknown location"}
-                                    </p>
+                                    <h4 className="trip-title">{trip.title}</h4>
+                                    <div className="trip-info">
+                                        <span className="trip-date">
+                                            📅 {formatDate(trip.start_date)} - {formatDate(trip.end_date)}
+                                        </span>
+                                        <span className="trip-location">
+                                            📍 {trip.city_name || "Unknown location"}
+                                        </span>
+                                    </div>
                                 </div>
                             </Link>
                         ))
