@@ -96,11 +96,6 @@ function Navbar() {
       icon: <FaCompass className="mr-2" />,
     },
     {
-      name: "Articles",
-      path: "/tripguide/articles",
-      icon: <FaNewspaper className="mr-2" />,
-    },
-    {
       name: "Trips",
       path: "/tripguide/mytrip",
       icon: <FaMapMarkedAlt className="mr-2" />,
@@ -144,11 +139,10 @@ function Navbar() {
                   <Link
                     key={item.name}
                     to={item.path}
-                    className={`flex items-center px-3 py-2 text-sm font-medium ${
-                      isActive(item.path)
+                    className={`flex items-center px-3 py-2 text-sm font-medium ${isActive(item.path)
                         ? "text-green-600 border-b-2 border-green-600"
                         : "text-gray-700 hover:text-green-600"
-                    }`}
+                      }`}
                   >
                     {item.icon}
                     {item.name}

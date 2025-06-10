@@ -26,7 +26,7 @@ const AddLocationForm = ({
     day
 }) => {
     useEffect(() => {
-        
+
         if (visible) {
             if (mode === "edit" && editData) {
                 setSelectedLocation(editData);
