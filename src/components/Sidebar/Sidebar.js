@@ -5,6 +5,7 @@ import {
   FiUsers,
   FiChevronLeft,
   FiChevronRight,
+  FiStar,
   FiGlobe,
   FiLogOut,
 } from "react-icons/fi";
@@ -56,7 +57,7 @@ export default function Sidebar({ expanded, setExpanded }) {
     { name: "Attractions", icon: BiLandscape, path: "attractions" },
     { name: "Restaurants", icon: IoRestaurantOutline, path: "restaurants" },
     // { name: "Itineraries", icon: FiCalendar, path: "itineraries" },
-    // { name: "Reviews", icon: FiStar, path: "reviews" },
+    { name: "Reviews", icon: FiStar, path: "reviews" },
   ];
   const userDropdownItems = [
     { name: "Logout", icon: FiLogOut },

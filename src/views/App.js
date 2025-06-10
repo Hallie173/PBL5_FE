@@ -26,6 +26,7 @@ import { AuthProvider } from "../contexts/AuthContext";
 import Review from "../Pages/Review/Review";
 import AttractionReview from "../Pages/ReviewDetail/AttractionReview";
 import RestaurantReview from "../Pages/ReviewDetail/RestaurantReview";
+import AdminReviews from "../Pages/Admin/Reviews/AdminReviews";
 import Form from "../Pages/NewTrip/Form";
 import OpenStreetMap from "../components/OpenStreetMap/OpenStreetMap";
 import SavedPlaces from "../Pages/SavedPlaces/SavedPlaces";
@@ -224,6 +225,7 @@ function App() {
               <Route path="cities" element={<Cities />} />
               <Route path="attractions" element={<Attractions />} />
               <Route path="restaurants" element={<Restaurants />} />
+              <Route path="reviews" element={<AdminReviews />} />
             </Route>
             <Route path="/unauthorized" element={<Unauthorized />} />
           </Routes>
