@@ -92,47 +92,51 @@ function NewTrip() {
   };
 
   const handleOptimizeConfirm = () => {
-    const groupedByDay = itineraryData.reduce((acc, item) => {
-      if (!acc[item.day]) acc[item.day] = [];
-      acc[item.day].push(item);
-      return acc;
-    }, {});
     const optimized = [];
+  let currentDay = null;
+  let prevDepartureTimeInMin = 0;
 
-    Object.keys(groupedByDay).forEach((day) => {
-      const groupedByDay = itineraryData.reduce((acc, item) => {
-        if (!acc[item.day]) acc[item.day] = [];
-        acc[item.day].push(item);
-        return acc;
-      }, {});
-      const items = groupedByDay[day];
+  for (let i = 0; i < itineraryData.length; i++) {
+    const item = { ...itineraryData[i] };
 
-      // Sắp xếp theo thời gian đến
-      items.sort((a, b) => timeToMinutes(a.arrival_time) - timeToMinutes(b.arrival_time));
+    // Khi bắt đầu ngày mới
+    if (item.day !== currentDay) {
+      currentDay = item.day;
+      prevDepartureTimeInMin = timeToMinutes(item.arrival_time); // giữ nguyên arrival_time
+    } else {
+      // Arrival time = previous departure + travel
+      const arrivalMin = prevDepartureTimeInMin + (item.travel_from_prev_minutes || 0);
 
-      // Xử lý từng phần tử trong ngày
-      for (let i = 0; i < items.length; i++) {
-        const item = { ...items[i] }; // clone để không làm thay đổi bản gốc
-
-        if (i === 0) {
-          // Giữ nguyên arrival_time cho phần tử đầu
-          const arrival = timeToMinutes(item.arrival_time);
-          const departure = arrival + item.duration_minutes;
-          item.departure_time = minutesToTime(departure);
-          item.warning = '';
-        } else {
-          const prev = optimized[optimized.length - 1];
-          const arrival = timeToMinutes(prev.departure_time) + item.travel_from_prev_minutes;
-          const departure = arrival + item.duration_minutes;
-          item.arrival_time = minutesToTime(arrival);
-          item.departure_time = minutesToTime(departure);
-          item.warning = '';
-        }
-
-        optimized.push(item);
+      // Nếu vượt quá 24h => chuyển sang ngày mới
+      if (arrivalMin >= 1440) {
+        item.day += 1;
+        item.arrival_time = "08:00";
+        prevDepartureTimeInMin = timeToMinutes("08:00");
+      } else {
+        item.arrival_time = minutesToTime(arrivalMin);
+        prevDepartureTimeInMin = arrivalMin;
       }
-    });
-    console.log("optimized: ", optimized);
+    }
+
+    // Departure time = arrival + duration
+    const arrivalMin = timeToMinutes(item.arrival_time);
+    const departureMin = arrivalMin + (item.duration_minutes || 0);
+
+    // Nếu departure vượt quá 24h => chuyển sang ngày mới
+    if (departureMin >= 1440) {
+      item.day += 1;
+      item.arrival_time = "08:00";
+      prevDepartureTimeInMin = timeToMinutes("08:00");
+      const newDepartureMin = prevDepartureTimeInMin + (item.duration_minutes || 0);
+      item.departure_time = minutesToTime(newDepartureMin);
+      prevDepartureTimeInMin = newDepartureMin;
+    } else {
+      item.departure_time = minutesToTime(departureMin);
+      prevDepartureTimeInMin = departureMin;
+    }
+
+    optimized.push(item);
+  }
     setitinararyData(optimized);
     setOptimizeConfirm({ isOpen: false });
   };
@@ -451,11 +455,11 @@ function NewTrip() {
     const [h, m] = time.split(":").map(Number);
     return h * 60 + m;
   };
-  const minutesToTime = (minutes) => {
-    const h = Math.floor(minutes / 60);
+  function minutesToTime(minutes) {
+    const h = Math.floor((minutes % 1440) / 60);
     const m = minutes % 60;
-    return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
-  };
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+  }
 
   const estimateTravelTime = (from, to) => {
     const distance = haversineDistance(
