@@ -38,7 +38,6 @@ export const useCityManagement = () => {
           ? `${API_URL}/search/${encodeURIComponent(searchQuery)}`
           : API_URL;
         const { data } = await axios.get(url);
-        console.log("Fetched cities:", data);
 
         const cities = Array.isArray(data) ? data : data?.data || [];
         setCities(cities);

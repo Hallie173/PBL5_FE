@@ -297,10 +297,6 @@ const AttractionModal = ({
                               height: "100%",
                               objectFit: "cover",
                             }}
-                            onError={(e) =>
-                              (e.target.src =
-                                "https://via.placeholder.com/150?text=No+Image")
-                            }
                           />
                           <IconButton
                             onClick={() => {

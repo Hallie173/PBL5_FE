@@ -97,14 +97,7 @@ const LocationCard = ({ item, onClick, renderStars }) => {
       }}
     >
       <div className="item-image-container">
-        <img
-          src={image}
-          alt={name}
-          loading="lazy"
-          width={280}
-          height={210}
-          onError={(e) => (e.target.src = "https://via.placeholder.com/150")}
-        />
+        <img src={image} alt={name} loading="lazy" width={280} height={210} />
         <div className="save-overlay">
           <button
             className={`save-button-overlay ${isSaved ? "saved" : ""}`}

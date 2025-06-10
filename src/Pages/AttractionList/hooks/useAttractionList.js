@@ -6,8 +6,16 @@ import BASE_URL from "../../../constants/BASE_URL";
 const ITEMS_PER_PAGE = 12;
 
 // Fetch functions
-const fetchAttractions = async () => {
-  const response = await axios.get(`${BASE_URL}/attractions`);
+const fetchAttractions = async (searchQuery) => {
+  if (!searchQuery || searchQuery.trim().length === 0) {
+    // Fetch all attractions if no search query
+    const response = await axios.get(`${BASE_URL}/attractions`);
+    return response.data;
+  }
+  // Fetch search results
+  const response = await axios.get(`${BASE_URL}/attractions/search`, {
+    params: { q: searchQuery.trim() },
+  });
   return response.data;
 };
 
@@ -30,14 +38,22 @@ export const useAttractionList = () => {
   const [sortOption, setSortOption] = useState("");
 
   // Fetch data using react-query
-  const { data: attractionsData = [], isLoading: isAttractionsLoading } =
-    useQuery("attractions", fetchAttractions, {
+  const {
+    data: attractionsData = [],
+    isLoading: isAttractionsLoading,
+    error: attractionsError,
+  } = useQuery(
+    ["attractions", searchQuery],
+    () => fetchAttractions(searchQuery),
+    {
       staleTime: 5 * 60 * 1000,
       retry: 1,
-    });
+      enabled: true, // Always fetch, as we handle empty queries in fetchAttractions
+    }
+  );
 
   const { data: citiesData = [], isLoading: isCitiesLoading } = useQuery(
-    "cities",
+    ["city"],
     fetchCities,
     {
       staleTime: 5 * 60 * 1000,
@@ -46,7 +62,7 @@ export const useAttractionList = () => {
   );
 
   const { data: tags = [], isLoading: isTagsLoading } = useQuery(
-    "attractionTags",
+    ["attractionTags"],
     fetchTags,
     {
       staleTime: 5 * 60 * 1000,
@@ -60,17 +76,9 @@ export const useAttractionList = () => {
     [citiesData]
   );
 
-  // Filtered data
+  // Filtered data (apply city and tag filters client-side)
   const filteredAttractions = useMemo(() => {
     let filtered = attractionsData.filter((attraction) => {
-      const matchesSearch =
-        !searchQuery ||
-        attraction.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (attraction.description &&
-          attraction.description
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()));
-
       const matchesCity =
         !selectedCity ||
         (attraction.address && attraction.address.includes(selectedCity));
@@ -80,12 +88,12 @@ export const useAttractionList = () => {
         (attraction.tags &&
           selectedTags.some((tag) => attraction.tags.includes(tag)));
 
-      return matchesSearch && matchesCity && matchesTags;
+      return matchesCity && matchesTags;
     });
 
     // Sorting logic
     if (sortOption) {
-      filtered = filtered.slice(); // create a shallow copy before sorting
+      filtered = filtered.slice(); // Create a shallow copy before sorting
       switch (sortOption) {
         case "rating_asc":
           filtered.sort(
@@ -113,7 +121,7 @@ export const useAttractionList = () => {
     }
 
     return filtered;
-  }, [attractionsData, searchQuery, selectedCity, selectedTags, sortOption]);
+  }, [attractionsData, selectedCity, selectedTags, sortOption]);
 
   // Computed values
   const totalItems = filteredAttractions.length;
@@ -189,6 +197,7 @@ export const useAttractionList = () => {
     isLoading: isAttractionsLoading || isCitiesLoading || isTagsLoading,
     cities,
     tags,
+    attractionsError, // Expose error for handling in UI
     handleSearchChange,
     handleTagChange,
     handleCityChange,
