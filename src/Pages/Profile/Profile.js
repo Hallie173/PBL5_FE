@@ -17,12 +17,12 @@ import formatDate from "../../utils/formatDate";
 import { toast } from "react-toastify";
 import TagsShowcase from "../../components/TagsShowcase/TagsShowcase";
 
-const DEFAULT_AVATAR = "https://i.imgur.com/MO4pS2K.jpeg";
 const DEFAULT_USER = {
   full_name: "User",
   username: "user",
   bio: {},
-  avatar_url: DEFAULT_AVATAR,
+  avatar_url: "",
+  cover_url: "",
   created_at: new Date(),
 };
 
@@ -42,12 +42,13 @@ function Profile() {
         toast.warn("Please log in to view your profile");
         return;
       }
-      const userId = user.user_id || user.id; // Sử dụng id nếu user_id không có
+      const userId = user.user_id || user.id;
       const freshUserData = await UserService.getUserById(userId);
       if (freshUserData) {
         const formattedUserData = {
           ...freshUserData,
           bio: freshUserData.bio || {},
+          cover_url: freshUserData.cover_url || "",
         };
         setUserData(formattedUserData);
       } else {
@@ -58,7 +59,12 @@ function Profile() {
       toast.error("Failed to load profile data");
       setUserData(
         user
-          ? { ...user, bio: user.bio || {}, user_id: user.id || user.user_id }
+          ? {
+              ...user,
+              bio: user.bio || {},
+              cover_url: user.cover_url || "",
+              user_id: user.id || user.user_id,
+            }
           : DEFAULT_USER
       );
     } finally {
@@ -84,6 +90,7 @@ function Profile() {
         full_name: updatedData.full_name,
         username: updatedData.username,
         avatar_url: updatedData.avatar_url || prevData.avatar_url,
+        cover_url: updatedData.cover_url || prevData.cover_url,
         bio: updatedData.bio || prevData.bio,
       }));
       // Update via API
@@ -117,7 +124,17 @@ function Profile() {
     }
     try {
       const response = await UserService.uploadAvatar(file);
-      return response; // Trả về { avatarUrl: "url" }
+      if (response?.avatarUrl) {
+        // Update profile with new avatar URL
+        await UserService.updateProfile(user.user_id, {
+          ...userData,
+          avatar_url: response.avatarUrl,
+        });
+        // Refresh data
+        await fetchUserData();
+        toast.success("Avatar uploaded successfully!");
+      }
+      return response;
     } catch (error) {
       console.error("Error uploading avatar:", error.message);
       toast.error(error.message || "Failed to upload avatar");
@@ -125,23 +142,39 @@ function Profile() {
     }
   };
 
-  // Cover photo upload handler (placeholder)
+  // Cover photo upload handler
   const handleCoverPhotoUpload = async (file) => {
     if (!file || !user?.user_id) {
       toast.error("You need to be logged in to upload a cover photo");
-      return;
+      return null;
     }
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("Cover photo must be less than 10MB");
-      return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Cover photo must be less than 2MB");
+      return null;
     }
     const validTypes = ["image/jpeg", "image/png", "image/gif"];
     if (!validTypes.includes(file.type)) {
       toast.error("Only JPG, PNG, or GIF images are allowed");
-      return;
+      return null;
     }
-    toast.success("Cover photo functionality coming soon!");
-    setShowUploadBox(false);
+    try {
+      const response = await UserService.uploadCover(file);
+      if (response?.coverUrl) {
+        // Update profile with new cover URL
+        await UserService.updateProfile(user.user_id, {
+          ...userData,
+          cover_url: response.coverUrl,
+        });
+        // Refresh data
+        await fetchUserData();
+        toast.success("Cover photo uploaded successfully!");
+      }
+      return response;
+    } catch (error) {
+      console.error("Error uploading cover photo:", error.message);
+      toast.error(error.message || "Failed to upload cover photo");
+      return null;
+    }
   };
 
   // Toggle upload box
@@ -161,19 +194,30 @@ function Profile() {
 
   return (
     <div className="profile-page">
-      <div className="cover-photo">
-        <button className="add-cover" onClick={toggleUploadBox}>
-          Add cover photo
+      <div
+        className="cover-photo"
+        style={{
+          backgroundImage: `url(${userData.cover_url || ""})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
+        <div className="cover-overlay" />
+        <button className="add-cover modern" onClick={toggleUploadBox}>
+          <FontAwesomeIcon icon={faPenToSquare} />
+          <span className="cover-btn-text">
+            {userData.cover_url ? "Change cover" : "Add cover"}
+          </span>
         </button>
       </div>
       <div className="section-container">
         <div className="profile-section">
           <div className="profile-info">
-            <div className="avatar-div">
+            <div className="avatar-div modern">
               <img
-                src={userData.avatar_url || DEFAULT_AVATAR}
+                src={userData.avatar_url || ""}
                 alt={`${userData.full_name || "User"}'s avatar`}
-                className="avatar"
+                className="avatar modern"
               />
             </div>
             <div className="user-details">
@@ -282,7 +326,7 @@ function Profile() {
                   </label>
                   <p className="instruction">or drag and drop</p>
                 </div>
-                <p className="upload-note">PNG, JPG, GIF up to 10MB</p>
+                <p className="upload-note">PNG, JPG, GIF up to 2MB</p>
               </div>
             </div>
           </div>

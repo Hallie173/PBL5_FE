@@ -2,11 +2,9 @@ import React, { useState, useEffect, useCallback } from "react";
 import {
   Users,
   Calendar,
-  TrendingUp,
   MapPin,
   Utensils,
   FileText,
-  MessageSquare,
   Activity,
   RefreshCw,
 } from "lucide-react";
@@ -19,39 +17,47 @@ const apiService = {
       axios.defaults.headers.common[
         "Authorization"
       ] = `Bearer ${localStorage.getItem("token")}`;
-      const [usersRes, attractionsRes, restaurantsRes] = await Promise.all([
+      const [
+        usersRes,
+        attractionsRes,
+        restaurantsRes,
+        reviewsRes,
+        itinerariesRes,
+      ] = await Promise.all([
         axios.get(`${BASE_URL}/users`),
         axios.get(`${BASE_URL}/attractions`),
         axios.get(`${BASE_URL}/restaurants`),
+        axios.get(`${BASE_URL}/reviews`),
+        axios.get(`${BASE_URL}/itinerary`),
       ]);
 
       const users = usersRes.data;
       const attractions = attractionsRes.data;
       const restaurants = restaurantsRes.data;
-
+      const reviews = reviewsRes.data;
+      const itineraries = itinerariesRes.data;
       return {
         users: {
           total: Array.isArray(users) ? users.length : users.total || 0,
-          trend: 15.3,
-          change: "up",
         },
         attractions: {
           total: Array.isArray(attractions)
             ? attractions.length
             : attractions.total || 0,
-          trend: 8.7,
-          change: "up",
         },
         restaurants: {
           total: Array.isArray(restaurants)
             ? restaurants.length
             : restaurants.total || 0,
-          trend: -2.1,
-          change: "down",
         },
-        itineraries: { total: 563, trend: 12.4, change: "up" },
-        articles: { total: 2847, trend: 5.8, change: "up" },
-        reviews: { total: 8934, trend: 18.2, change: "up" },
+        itineraries: {
+          total: Array.isArray(itineraries)
+            ? itineraries.length
+            : itineraries.total || 0,
+        },
+        reviews: {
+          total: Array.isArray(reviews) ? reviews.length : reviews.total || 0,
+        },
       };
     } catch (error) {
       console.error("API Error:", error);
@@ -144,16 +150,8 @@ const STAT_CONFIG = [
     iconColor: "text-purple-600",
   },
   {
-    key: "articles",
-    icon: FileText,
-    label: "Bài viết",
-    color: "from-teal-500 to-teal-600",
-    bgColor: "bg-teal-50",
-    iconColor: "text-teal-600",
-  },
-  {
     key: "reviews",
-    icon: MessageSquare,
+    icon: FileText,
     label: "Đánh giá",
     color: "from-pink-500 to-pink-600",
     bgColor: "bg-pink-50",
@@ -178,21 +176,6 @@ const StatCard = ({
         <p className="text-2xl font-bold text-gray-900 mb-3">
           {typeof value === "number" ? value.toLocaleString() : value}
         </p>
-        <div className="flex items-center">
-          <TrendingUp
-            className={`h-4 w-4 mr-1 ${
-              change === "up" ? "text-green-500" : "text-red-500"
-            } ${change === "down" ? "rotate-180" : ""}`}
-          />
-          <span
-            className={`text-sm font-medium ${
-              change === "up" ? "text-green-600" : "text-red-600"
-            }`}
-          >
-            {Math.abs(trend)}%
-          </span>
-          <span className="text-xs text-gray-500 ml-1">so với tháng trước</span>
-        </div>
       </div>
       <div className={`${bgColor} p-3 rounded-lg`}>
         <Icon className={`h-6 w-6 ${iconColor}`} />

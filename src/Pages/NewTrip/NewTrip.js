@@ -631,6 +631,7 @@ function NewTrip() {
               rows="1"
               className="trip-description-input"
               placeholder="Describe Your Trip..."
+              value={tripDescription}
               onChange={(e) => setTripDescription(e.target.value)}
             />
             <button
