@@ -92,7 +92,49 @@ function NewTrip() {
   };
 
   const handleOptimizeConfirm = () => {
+    const groupedByDay = itineraryData.reduce((acc, item) => {
+      if (!acc[item.day]) acc[item.day] = [];
+      acc[item.day].push(item);
+      return acc;
+    }, {});
+    const optimized = [];
 
+    Object.keys(groupedByDay).forEach((day) => {
+      const groupedByDay = itineraryData.reduce((acc, item) => {
+        if (!acc[item.day]) acc[item.day] = [];
+        acc[item.day].push(item);
+        return acc;
+      }, {});
+      const items = groupedByDay[day];
+
+      // Sắp xếp theo thời gian đến
+      items.sort((a, b) => timeToMinutes(a.arrival_time) - timeToMinutes(b.arrival_time));
+
+      // Xử lý từng phần tử trong ngày
+      for (let i = 0; i < items.length; i++) {
+        const item = { ...items[i] }; // clone để không làm thay đổi bản gốc
+
+        if (i === 0) {
+          // Giữ nguyên arrival_time cho phần tử đầu
+          const arrival = timeToMinutes(item.arrival_time);
+          const departure = arrival + item.duration_minutes;
+          item.departure_time = minutesToTime(departure);
+          item.warning = '';
+        } else {
+          const prev = optimized[optimized.length - 1];
+          const arrival = timeToMinutes(prev.departure_time) + item.travel_from_prev_minutes;
+          const departure = arrival + item.duration_minutes;
+          item.arrival_time = minutesToTime(arrival);
+          item.departure_time = minutesToTime(departure);
+          item.warning = '';
+        }
+
+        optimized.push(item);
+      }
+    });
+    console.log("optimized: ", optimized);
+    setitinararyData(optimized);
+    setOptimizeConfirm({ isOpen: false });
   };
 
   // Hàm hủy bỏ xóa
@@ -163,7 +205,7 @@ function NewTrip() {
           const tagParams = selectedTags.map((tag) => `${tag}`).join("&");
           const restagParams = selectedResTags.map((tag) => `${tag}`).join("&");
           const url = `${BASE_URL}/attractions/tags?city=${selectedCity}&tags=${tagParams}&startTime=${startTime}&endTime=${endTime}&res_tag=${restagParams}&startDate=${startDate}&endDate=${endDate}`;
-
+          console.log("url", url)
           const Itiresponse = await axios.get(url);
           const cityResponse = await axios.get(
             `${BASE_URL}/cities/${selectedCity}`
@@ -354,10 +396,10 @@ function NewTrip() {
           );
         }
         setcreatmode(false);
-        alert("Lưu đc r");
+        alert("Save new itinerary");
       } catch (error) {
         console.error("Err:", error);
-        alert("Lưu thất bại");
+        alert("Save failed");
       }
     } else if (mode == "edit" || createmode === false) {
       console.log("edit");
@@ -630,7 +672,7 @@ function NewTrip() {
               id="autoHeightTextArea"
               rows="1"
               className="trip-description-input"
-              placeholder="Describe Your Trip..."
+              value={tripDescription}
               onChange={(e) => setTripDescription(e.target.value)}
             />
             <button
