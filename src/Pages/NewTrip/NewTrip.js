@@ -94,53 +94,55 @@ function NewTrip() {
   const handleOptimizeConfirm = () => {
     console.log("OPTIMIZE");
     const optimized = [];
-  let currentDay = null;
-  let prevDepartureTimeInMin = 0;
+    let currentDay = null;
+    let prevDepartureTimeInMin = 0;
 
-  for (let i = 0; i < itineraryData.length; i++) {
-    const item = { ...itineraryData[i] };
+    for (let i = 0; i < itineraryData.length; i++) {
+      const item = { ...itineraryData[i] };
 
-    // Khi bắt đầu ngày mới
-    if (item.day !== currentDay) {
-      currentDay = item.day;
-      prevDepartureTimeInMin = timeToMinutes(item.arrival_time); // giữ nguyên arrival_time
-    } else {
-      // Arrival time = previous departure + travel
-      const arrivalMin = prevDepartureTimeInMin + (item.travel_from_prev_minutes || 0);
+      // Khi bắt đầu ngày mới
+      if (item.day !== currentDay) {
+        currentDay = item.day;
+        prevDepartureTimeInMin = timeToMinutes(item.arrival_time); // giữ nguyên arrival_time
+      } else {
+        // Arrival time = previous departure + travel
+        const arrivalMin =
+          prevDepartureTimeInMin + (item.travel_from_prev_minutes || 0);
 
-      // Nếu vượt quá 24h => chuyển sang ngày mới
-      if (arrivalMin >= 1440) {
+        // Nếu vượt quá 24h => chuyển sang ngày mới
+        if (arrivalMin >= 1440) {
+          item.day += 1;
+          item.arrival_time = "08:00";
+          prevDepartureTimeInMin = timeToMinutes("08:00");
+        } else {
+          item.arrival_time = minutesToTime(arrivalMin);
+          prevDepartureTimeInMin = arrivalMin;
+        }
+      }
+
+      // Departure time = arrival + duration
+      const arrivalMin = timeToMinutes(item.arrival_time);
+      const departureMin = arrivalMin + (item.duration_minutes || 0);
+
+      // Nếu departure vượt quá 24h => chuyển sang ngày mới
+      if (departureMin >= 1440) {
         item.day += 1;
         item.arrival_time = "08:00";
         prevDepartureTimeInMin = timeToMinutes("08:00");
+        const newDepartureMin =
+          prevDepartureTimeInMin + (item.duration_minutes || 0);
+        item.departure_time = minutesToTime(newDepartureMin);
+        prevDepartureTimeInMin = newDepartureMin;
+        item.warning = "";
       } else {
-        item.arrival_time = minutesToTime(arrivalMin);
-        prevDepartureTimeInMin = arrivalMin;
+        item.departure_time = minutesToTime(departureMin);
+        prevDepartureTimeInMin = departureMin;
+        item.warning = "";
       }
+
+      optimized.push(item);
     }
-
-    // Departure time = arrival + duration
-    const arrivalMin = timeToMinutes(item.arrival_time);
-    const departureMin = arrivalMin + (item.duration_minutes || 0);
-
-    // Nếu departure vượt quá 24h => chuyển sang ngày mới
-    if (departureMin >= 1440) {
-      item.day += 1;
-      item.arrival_time = "08:00";
-      prevDepartureTimeInMin = timeToMinutes("08:00");
-      const newDepartureMin = prevDepartureTimeInMin + (item.duration_minutes || 0);
-      item.departure_time = minutesToTime(newDepartureMin);
-      prevDepartureTimeInMin = newDepartureMin;
-      item.warning = "";
-    } else {
-      item.departure_time = minutesToTime(departureMin);
-      prevDepartureTimeInMin = departureMin;
-      item.warning = "";
-    }
-
-    optimized.push(item);
-  } 
-  console.log(optimized);
+    console.log(optimized);
     setitinararyData(optimized);
     setOptimizeConfirm({ isOpen: false });
   };
@@ -152,7 +154,7 @@ function NewTrip() {
 
   const handleOptimizeCancel = () => {
     setOptimizeConfirm({ isOpen: false });
-  }
+  };
 
   function generateDayList(startDate, endDate) {
     const start = new Date(startDate);
@@ -175,7 +177,7 @@ function NewTrip() {
         setDay(parsed.daylist || []);
         settripitinerary(parsed.tripitineraryId || 0);
         setSelectedDay(parsed.selectedDay || []);
-      } catch (e) { }
+      } catch (e) {}
     }
     setHasLoadedFromStorage(true);
   }, []);
@@ -213,7 +215,7 @@ function NewTrip() {
           const tagParams = selectedTags.map((tag) => `${tag}`).join("&");
           const restagParams = selectedResTags.map((tag) => `${tag}`).join("&");
           const url = `${BASE_URL}/attractions/tags?city=${selectedCity}&tags=${tagParams}&startTime=${startTime}&endTime=${endTime}&res_tag=${restagParams}&startDate=${startDate}&endDate=${endDate}`;
-          console.log("url", url)
+          console.log("url", url);
           const Itiresponse = await axios.get(url);
           const cityResponse = await axios.get(
             `${BASE_URL}/cities/${selectedCity}`
@@ -505,7 +507,7 @@ function NewTrip() {
     }
 
     const newLocation = {
-      type: location.type ?? 'restaurant',
+      type: location.type ?? "restaurant",
       day: selectedDay,
       id: location.attraction_id ?? location.id,
       name: location.name,
@@ -569,7 +571,7 @@ function NewTrip() {
         curr.warning = "";
       }
     }
-    console.log("update: ",updatedItinerary);
+    console.log("update: ", updatedItinerary);
     // ✅ Gọi setItineraryData duy nhất một lần sau khi xử lý xong
     setitinararyData(updatedItinerary);
 
@@ -831,10 +833,7 @@ function NewTrip() {
                 >
                   Save
                 </button>
-                <button
-                  className="optimize-btn"
-                  onClick={handleOptimizeClick}
-                >
+                <button className="optimize-btn" onClick={handleOptimizeClick}>
                   Optimize
                 </button>
                 <AddLocationForm
