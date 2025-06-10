@@ -92,6 +92,7 @@ function NewTrip() {
   };
 
   const handleOptimizeConfirm = () => {
+    console.log("OPTIMIZE");
     const optimized = [];
   let currentDay = null;
   let prevDepartureTimeInMin = 0;
@@ -130,13 +131,16 @@ function NewTrip() {
       const newDepartureMin = prevDepartureTimeInMin + (item.duration_minutes || 0);
       item.departure_time = minutesToTime(newDepartureMin);
       prevDepartureTimeInMin = newDepartureMin;
+      item.warning = "";
     } else {
       item.departure_time = minutesToTime(departureMin);
       prevDepartureTimeInMin = departureMin;
+      item.warning = "";
     }
 
     optimized.push(item);
-  }
+  } 
+  console.log(optimized);
     setitinararyData(optimized);
     setOptimizeConfirm({ isOpen: false });
   };
@@ -501,7 +505,7 @@ function NewTrip() {
     }
 
     const newLocation = {
-      type: "attraction",
+      type: location.type ?? 'restaurant',
       day: selectedDay,
       id: location.attraction_id ?? location.id,
       name: location.name,
@@ -565,7 +569,7 @@ function NewTrip() {
         curr.warning = "";
       }
     }
-
+    console.log("update: ",updatedItinerary);
     // ✅ Gọi setItineraryData duy nhất một lần sau khi xử lý xong
     setitinararyData(updatedItinerary);
 
