@@ -37,7 +37,6 @@ function Profile() {
   const fetchUserData = useCallback(async () => {
     try {
       setLoading(true);
-      // console.log("Auth user:", user);
       if (!isLoggedIn || (!user?.user_id && !user?.id)) {
         setUserData(DEFAULT_USER);
         toast.warn("Please log in to view your profile");
@@ -79,7 +78,6 @@ function Profile() {
         toast.error("You need to be logged in to update your profile");
         return Promise.reject(new Error("Authentication required"));
       }
-      // console.log("Updating profile with:", updatedData); // Debug
       // Optimistic UI update
       setUserData((prevData) => ({
         ...prevData,

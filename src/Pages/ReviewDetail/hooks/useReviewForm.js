@@ -78,7 +78,7 @@ export const useReviewForm = ({
         setFetchError(errorMessage);
         setLocationData({
           name: isRestaurant ? "Sample Restaurant" : "Sample Attraction",
-          photo_url: "https://via.placeholder.com/150",
+          photo_url: "",
           address: isRestaurant ? "123 Food Street, City" : "Unknown Location",
         });
       } finally {

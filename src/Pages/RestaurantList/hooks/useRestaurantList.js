@@ -6,8 +6,16 @@ import BASE_URL from "../../../constants/BASE_URL";
 const ITEMS_PER_PAGE = 12;
 
 // Fetch functions
-const fetchRestaurants = async () => {
-  const response = await axios.get(`${BASE_URL}/restaurants`);
+const fetchRestaurants = async (searchQuery) => {
+  if (!searchQuery || searchQuery.trim().length === 0) {
+    // Fetch all restaurants if no search query
+    const response = await axios.get(`${BASE_URL}/restaurants`);
+    return response.data;
+  }
+  // Fetch search results
+  const response = await axios.get(`${BASE_URL}/restaurants/search`, {
+    params: { q: searchQuery.trim() },
+  });
   return response.data;
 };
 
@@ -30,14 +38,22 @@ export const useRestaurantList = () => {
   const [sortOption, setSortOption] = useState("");
 
   // Fetch data using react-query
-  const { data: restaurantsData = [], isLoading: isRestaurantsLoading } =
-    useQuery("restaurants", fetchRestaurants, {
+  const {
+    data: restaurantsData = [],
+    isLoading: isRestaurantsLoading,
+    error: restaurantsError,
+  } = useQuery(
+    ["restaurants", searchQuery],
+    () => fetchRestaurants(searchQuery),
+    {
       staleTime: 5 * 60 * 1000,
       retry: 1,
-    });
+      enabled: true, // Always fetch, as we handle empty queries in fetchRestaurants
+    }
+  );
 
   const { data: citiesData = [], isLoading: isCitiesLoading } = useQuery(
-    "cities",
+    ["cities"],
     fetchCities,
     {
       staleTime: 5 * 60 * 1000,
@@ -46,7 +62,7 @@ export const useRestaurantList = () => {
   );
 
   const { data: tags = [], isLoading: isTagsLoading } = useQuery(
-    "restaurantTags",
+    ["restaurantTags"],
     fetchTags,
     {
       staleTime: 5 * 60 * 1000,
@@ -60,17 +76,9 @@ export const useRestaurantList = () => {
     [citiesData]
   );
 
-  // Filtered data
+  // Filtered data (apply city and tag filters client-side)
   const filteredRestaurants = useMemo(() => {
     let filtered = restaurantsData.filter((restaurant) => {
-      const matchesSearch =
-        !searchQuery ||
-        restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (restaurant.description &&
-          restaurant.description
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()));
-
       const matchesCity =
         !selectedCity ||
         (restaurant.address && restaurant.address.includes(selectedCity));
@@ -80,12 +88,12 @@ export const useRestaurantList = () => {
         (restaurant.tags &&
           selectedTags.some((tag) => restaurant.tags.includes(tag)));
 
-      return matchesSearch && matchesCity && matchesTags;
+      return matchesCity && matchesTags;
     });
 
     // Sorting logic
     if (sortOption) {
-      filtered = filtered.slice(); // create a shallow copy before sorting
+      filtered = filtered.slice(); // Create a shallow copy before sorting
       switch (sortOption) {
         case "rating_asc":
           filtered.sort(
@@ -113,7 +121,7 @@ export const useRestaurantList = () => {
     }
 
     return filtered;
-  }, [restaurantsData, searchQuery, selectedCity, selectedTags, sortOption]);
+  }, [restaurantsData, selectedCity, selectedTags, sortOption]);
 
   // Computed values
   const totalItems = filteredRestaurants.length;
@@ -189,6 +197,7 @@ export const useRestaurantList = () => {
     isLoading: isRestaurantsLoading || isCitiesLoading || isTagsLoading,
     cities,
     tags,
+    restaurantsError, // Expose error for handling in UI
     handleSearchChange,
     handleTagChange,
     handleCityChange,

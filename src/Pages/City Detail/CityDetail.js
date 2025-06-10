@@ -1,31 +1,21 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import "./CityDetail.scss";
 import { useNavigate, useParams } from "react-router-dom";
 import useCityDetail from "./hooks/useCityDetail";
 import LocationCard from "../../components/LocationCard/LocationCard";
-import {
-  ChevronLeft,
-  ChevronRight,
-  MapPin,
-  Utensils,
-  Calendar,
-  Heart,
-} from "lucide-react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronRight } from "@fortawesome/free-solid-svg-icons";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   Box,
   Button,
   Typography,
   IconButton,
-  Collapse,
   Container,
-  Tooltip,
   Skeleton,
 } from "@mui/material";
+import { Link } from "react-router-dom";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
-// Theme configuration
+// Cấu hình theme cho Material-UI
 const theme = createTheme({
   palette: {
     primary: { main: "#2d7a61" },
@@ -60,144 +50,168 @@ const theme = createTheme({
   },
 });
 
-// Component con cho Carousel
+// Component ImageCarousel được tối ưu hóa
 const ImageCarousel = React.memo(
-  ({ images, currentIndex, setCurrentIndex }) => (
-    <Box
-      sx={{
-        position: "relative",
-        width: "100%",
-        aspectRatio: "5/2",
-        borderRadius: "12px",
-        overflow: "hidden",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-      }}
-    >
-      {images.map((src, index) => (
+  ({ images, currentIndex, setCurrentIndex }) => {
+    const [loadedImages, setLoadedImages] = useState([]);
+
+    // Tải trước tất cả hình ảnh và theo dõi trạng thái tải
+    useEffect(() => {
+      if (!images || images.length === 0) return;
+
+      const preload = (src) => {
+        return new Promise((resolve) => {
+          const img = new window.Image();
+          img.src = src;
+          img.onload = () => resolve(src);
+          img.onerror = () => resolve(null); // Xử lý lỗi
+        });
+      };
+
+      Promise.all(images.map(preload)).then((results) => {
+        setLoadedImages(results.filter((src) => src !== null));
+      });
+    }, [images]);
+
+    // Xử lý auto-slide chỉ chuyển đến hình đã tải
+    const handleAutoSlide = useCallback(() => {
+      const nextIndex = (currentIndex + 1) % images.length;
+      if (loadedImages.includes(images[nextIndex])) {
+        setCurrentIndex(nextIndex);
+      } else {
+        // Tìm hình đã tải tiếp theo
+        let nextLoadedIndex = -1;
+        for (let i = 1; i < images.length; i++) {
+          const idx = (currentIndex + i) % images.length;
+          if (loadedImages.includes(images[idx])) {
+            nextLoadedIndex = idx;
+            break;
+          }
+        }
+        if (nextLoadedIndex !== -1) {
+          setCurrentIndex(nextLoadedIndex);
+        }
+        // Nếu không tìm thấy hình đã tải, giữ nguyên hình hiện tại
+      }
+    }, [currentIndex, images, loadedImages, setCurrentIndex]);
+
+    // Thiết lập interval cho auto-slide
+    useEffect(() => {
+      const interval = setInterval(handleAutoSlide, 4000);
+      return () => clearInterval(interval);
+    }, [handleAutoSlide]);
+
+    return (
+      <Box
+        sx={{
+          position: "relative",
+          width: "100%",
+          aspectRatio: "5/2",
+          borderRadius: "12px",
+          overflow: "hidden",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+        }}
+      >
+        {images.map((src, index) => (
+          <Box
+            component="img"
+            key={index}
+            src={src}
+            alt={`City view ${index + 1}`}
+            sx={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              transition: "opacity 700ms ease-in-out",
+              opacity: index === currentIndex ? 1 : 0,
+              background:
+                "#f0f0f0 url('/images/placeholder.png') center/cover no-repeat",
+            }}
+            loading={index === currentIndex ? "eager" : "lazy"}
+            onError={(e) => {
+              e.target.src = "/images/placeholder.png";
+            }}
+          />
+        ))}
         <Box
-          component="img"
-          key={index}
-          src={src}
-          alt={`City view ${index + 1}`}
           sx={{
             position: "absolute",
             inset: 0,
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            transition: "opacity 700ms ease-in-out",
-            opacity: index === currentIndex ? 1 : 0,
+            background: "linear-gradient(to top, rgba(0,0,0,0.2), transparent)",
+            pointerEvents: "none",
           }}
-          loading="lazy"
         />
-      ))}
-      <Box
-        sx={{
-          position: "absolute",
-          inset: 0,
-          background: "linear-gradient(to top, rgba(0,0,0,0.2), transparent)",
-          pointerEvents: "none",
-        }}
-      />
-      <IconButton
-        sx={{
-          position: "absolute",
-          left: "16px",
-          top: "50%",
-          transform: "translateY(-50%)",
-          bgcolor: "rgba(255,255,255,0.9)",
-          "&:hover": { bgcolor: "white" },
-          transition: "all 0.3s ease",
-        }}
-        onClick={() =>
-          setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1))
-        }
-      >
-        <ChevronLeft sx={{ width: 24, height: 24, color: "primary.main" }} />
-      </IconButton>
-      <IconButton
-        sx={{
-          position: "absolute",
-          right: "16px",
-          top: "50%",
-          transform: "translateY(-50%)",
-          bgcolor: "rgba(255,255,255,0.9)",
-          "&:hover": { bgcolor: "white" },
-          transition: "all 0.3s ease",
-        }}
-        onClick={() => setCurrentIndex((prev) => (prev + 1) % images.length)}
-      >
-        <ChevronRight sx={{ width: 24, height: 24, color: "primary.main" }} />
-      </IconButton>
-      <Box
-        sx={{
-          position: "absolute",
-          bottom: "16px",
-          left: "50%",
-          transform: "translateX(-50%)",
-          display: "flex",
-          gap: "8px",
-        }}
-      >
-        {images.map((_, index) => (
-          <Box
-            key={index}
-            component="button"
-            sx={{
-              width: "10px",
-              height: "10px",
-              borderRadius: "50%",
-              bgcolor:
-                index === currentIndex
-                  ? "primary.main"
-                  : "rgba(255,255,255,0.7)",
-              transform: index === currentIndex ? "scale(1.25)" : "scale(1)",
-              transition: "all 0.3s ease",
-              border: "none",
-              cursor: "pointer",
-            }}
-            onClick={() => setCurrentIndex(index)}
-          />
-        ))}
+        <IconButton
+          sx={{
+            position: "absolute",
+            left: "16px",
+            top: "50%",
+            transform: "translateY(-50%)",
+            bgcolor: "rgba(255,255,255,0.9)",
+            "&:hover": { bgcolor: "white" },
+            transition: "all 0.3s ease",
+          }}
+          onClick={() =>
+            setCurrentIndex((prev) =>
+              prev === 0 ? images.length - 1 : prev - 1
+            )
+          }
+        >
+          <ChevronLeft sx={{ width: 24, height: 24, color: "primary.main" }} />
+        </IconButton>
+        <IconButton
+          sx={{
+            position: "absolute",
+            right: "16px",
+            top: "50%",
+            transform: "translateY(-50%)",
+            bgcolor: "rgba(255,255,255,0.9)",
+            "&:hover": { bgcolor: "white" },
+            transition: "all 0.3s ease",
+          }}
+          onClick={() => setCurrentIndex((prev) => (prev + 1) % images.length)}
+        >
+          <ChevronRight sx={{ width: 24, height: 24, color: "primary.main" }} />
+        </IconButton>
+        <Box
+          sx={{
+            position: "absolute",
+            bottom: "16px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            display: "flex",
+            gap: "8px",
+          }}
+        >
+          {images.map((_, index) => (
+            <Box
+              key={index}
+              component="button"
+              sx={{
+                width: "10px",
+                height: "10px",
+                borderRadius: "50%",
+                bgcolor:
+                  index === currentIndex
+                    ? "primary.main"
+                    : "rgba(255,255,255,0.7)",
+                transform: index === currentIndex ? "scale(1.25)" : "scale(1)",
+                transition: "all 0.3s ease",
+                border: "none",
+                cursor: "pointer",
+              }}
+              onClick={() => setCurrentIndex(index)}
+            />
+          ))}
+        </Box>
       </Box>
-    </Box>
-  )
+    );
+  }
 );
 
-// Component con cho FAQ Item
-// const FAQItem = React.memo(
-//   ({ question, answer, index, activeIndex, toggleFaq }) => (
-//     <Box sx={{ borderBottom: "1px solid", borderColor: "grey.200" }}>
-//       <Button
-//         fullWidth
-//         sx={{
-//           justifyContent: "space-between",
-//           py: 2,
-//           color: "text.primary",
-//           "&:hover": { color: "primary.main" },
-//           transition: "color 0.3s ease",
-//         }}
-//         onClick={() => toggleFaq(index)}
-//       >
-//         <Typography
-//           variant="body1"
-//           sx={{ textAlign: "left", fontWeight: "medium", flex: 1 }}
-//         >
-//           {question}
-//         </Typography>
-//         <Typography sx={{ color: "primary.main", fontSize: "1rem" }}>
-//           {activeIndex === index ? "▴" : "▾"}
-//         </Typography>
-//       </Button>
-//       <Collapse in={activeIndex === index}>
-//         <Typography variant="body2" sx={{ pb: 2, color: "text.secondary" }}>
-//           {answer}
-//         </Typography>
-//       </Collapse>
-//     </Box>
-//   )
-// );
-
+// Component chính CityDetail
 const CityDetail = () => {
   const { id: cityId } = useParams();
   const navigate = useNavigate();
@@ -222,6 +236,12 @@ const CityDetail = () => {
     navigate(`/tripguide/attraction/${attractionId}`);
   const handleNavigateRestaurant = (restaurantId) =>
     navigate(`/tripguide/restaurant/${restaurantId}`);
+
+  // Định dạng mô tả thành các đoạn văn
+  const formatDescription = (description) => {
+    if (!description) return [];
+    return description.split(/(?<=[.!?])\s+/).filter((para) => para.trim());
+  };
 
   if (loading) {
     return (
@@ -273,23 +293,6 @@ const CityDetail = () => {
   return (
     <ThemeProvider theme={theme}>
       <Container maxWidth="lg" sx={{ py: 8, pt: 4 }}>
-        <Typography
-          variant="body2"
-          sx={{
-            mb: 4,
-            mt: 0,
-            color: "text.secondary",
-            "& span": {
-              cursor: "pointer",
-              "&:hover": { color: "primary.main" },
-              transition: "color 0.3s ease",
-            },
-          }}
-        >
-          <span className="breadcrumb-item">Viet Nam</span>
-          <FontAwesomeIcon icon={faChevronRight} className="chevron-right" />
-          <span className="breadcrumb-item">{city?.name}</span>        </Typography>
-
         <ImageCarousel
           images={images}
           currentIndex={currentIndex}
@@ -303,228 +306,166 @@ const CityDetail = () => {
             fontSize: "30px",
             fontWeight: "bold",
             mt: 5,
-            maxWidth: "48rem"
+            maxWidth: "48rem",
           }}
         >
           {city?.name}
         </Typography>
 
-        <Typography
-          variant="body1"
-          sx={{ mt: 3, color: "text.secondary", maxWidth: "48rem", textAlign: "justify" }}
-        >
-          {city?.description}
-        </Typography>
-
-        <Box sx={{ mt: 8 }}>
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              mb: 4,
-            }}
-          >
-            <Typography variant="h5" sx={{ color: "text.primary" }}>
-              Where to go?
-            </Typography>
-            <Button
-              sx={{
-                color: "primary.main",
-                "&:hover": { textDecoration: "underline" },
-              }}
-            >
-              See all
-            </Button>
-          </Box>
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: {
-                xs: "1fr",
-                sm: "1fr 1fr",
-                md: "1fr 1fr 1fr 1fr",
-              },
-              gap: 2,
-            }}
-          >
-            {placesToVisit.map((place) => (
-              <LocationCard
-                key={place.attraction_id}
-                item={{
-                  id: place.attraction_id,
-                  name: place.name,
-                  image: place.image_url,
-                  rating: parseFloat(place.average_rating),
-                  reviewCount: place.rating_total,
-                  tags: place.tags,
-                  type: "attraction",
-                }}
-                onClick={() => handleNavigateAttraction(place.attraction_id)}
-                renderStars={renderStars}
-              />
-            ))}
-          </Box>
-        </Box>
-
-        <Box sx={{ mt: 8 }}>
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              mb: 4,
-            }}
-          >
-            <Typography variant="h5" sx={{ color: "text.primary" }}>
-              Food & Drink
-            </Typography>
-            <Button
-              sx={{
-                color: "primary.main",
-                "&:hover": { textDecoration: "underline" },
-              }}
-            >
-              See all
-            </Button>
-          </Box>
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: {
-                xs: "1fr",
-                sm: "1fr 1fr",
-                md: "1fr 1fr 1fr 1fr",
-              },
-              gap: 2,
-            }}
-          >
-            {placesToEat.map((place) => (
-              <LocationCard
-                key={place.restaurant_id}
-                item={{
-                  id: place.restaurant_id,
-                  name: place.name,
-                  image: place.image_url,
-                  rating: parseFloat(place.average_rating),
-                  reviewCount: place.rating_total,
-                  tags: place.tags,
-                  type: "restaurant",
-                }}
-                onClick={() => handleNavigateRestaurant(place.restaurant_id)}
-                renderStars={renderStars}
-              />
-            ))}
-          </Box>
-        </Box>
-
-        {/* <Box sx={{ mt: 8 }}>
-          <Typography variant="h5" sx={{ color: "text.primary", mb: 4 }}>
-            Our Recommended Plan for Your Trip
-          </Typography>
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: {
-                xs: "1fr",
-                sm: "1fr 1fr",
-                md: "1fr 1fr 1fr",
-              },
-              gap: 2,
-            }}
-          >
-            {[
-              {
-                title: "4 days in Da Nang for friend groups",
-                tags: ["Friends", "Natural Wonders", "Night Markets"],
-                icon: MapPin,
-              },
-              {
-                title: "5 days in Da Nang for couples",
-                tags: ["Couples", "Wine & Beer", "History"],
-                icon: Utensils,
-              },
-              {
-                title: "7 days in Da Nang for families",
-                tags: ["Family", "Natural Wonders", "Outdoors"],
-                icon: Calendar,
-              },
-            ].map((plan, index) => (
-              <Box
+        <Box sx={{ mt: 3, maxWidth: "48rem" }}>
+          {formatDescription(city?.description).length > 0 ? (
+            formatDescription(city?.description).map((paragraph, index) => (
+              <Typography
                 key={index}
+                variant="body1"
                 sx={{
-                  bgcolor: "white",
-                  borderRadius: "8px",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                  p: 3,
-                  "&:hover": {
-                    boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
-                    transform: "translateY(-2px)",
-                  },
-                  transition: "all 0.3s ease",
+                  color: "text.secondary",
+                  mb: 2,
+                  textAlign: "justify",
+                  lineHeight: 1.8,
                 }}
               >
-                <Box
-                  sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}
-                >
-                  <plan.icon
-                    sx={{ width: 24, height: 24, color: "primary.main" }}
-                  />
-                  <Typography variant="h6" sx={{ color: "text.primary" }}>
-                    {plan.title}
-                  </Typography>
-                </Box>
-                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
-                  {plan.tags.map((tag) => (
-                    <Typography
-                      key={tag}
-                      sx={{
-                        bgcolor: "primary.main/0.1",
-                        color: "primary.main",
-                        fontSize: "0.75rem",
-                        px: 1.5,
-                        py: 0.5,
-                        borderRadius: "12px",
-                      }}
-                    >
-                      {tag}
-                    </Typography>
-                  ))}
-                </Box>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                    🤖 Powered by AI
-                  </Typography>
-                </Box>
-              </Box>
-            ))}
-          </Box>
+                {paragraph}
+              </Typography>
+            ))
+          ) : (
+            <Typography
+              variant="body1"
+              sx={{
+                color: "text.secondary",
+                mb: 2,
+                textAlign: "justify",
+                lineHeight: 1.8,
+              }}
+            >
+              Không có mô tả nào cho {city?.name}. Hãy khám phá các điểm tham
+              quan và lựa chọn ăn uống dưới đây để tìm hiểu điều gì làm nên sự
+              đặc biệt của thành phố này!
+            </Typography>
+          )}
         </Box>
 
         <Box sx={{ mt: 8 }}>
-          <Typography variant="h5" sx={{ color: "text.primary", mb: 2 }}>
-            <Typography component="span" sx={{ color: "primary.main" }}>
-              {city?.name}
-            </Typography>{" "}
-            Travel Advice
-          </Typography>
-          <Typography variant="body2" sx={{ color: "text.secondary", mb: 4 }}>
-            These questions and answers were created by AI, using the most
-            common questions travelers ask in the forums.
-          </Typography>
-          <Box>
-            {faqData.map((faq, index) => (
-              <FAQItem
-                key={index}
-                question={faq.question}
-                answer={faq.answer}
-                index={index}
-                activeIndex={activeFaqIndex}
-                toggleFaq={toggleFaq}
-              />
-            ))}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 4,
+            }}
+          >
+            <Typography variant="h5" sx={{ color: "text.primary" }}>
+              Đi đâu chơi?
+            </Typography>
+            <Button
+              sx={{
+                color: "primary.main",
+                "&:hover": { textDecoration: "underline" },
+              }}
+            >
+              <Link to={`/tripguide/attractions`}>Xem tất cả</Link>
+            </Button>
           </Box>
-        </Box> */}
+          {placesToVisit && placesToVisit.length > 0 ? (
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: {
+                  xs: "1fr",
+                  sm: "1fr 1fr",
+                  md: "1fr 1fr 1fr 1fr",
+                },
+                gap: 2,
+              }}
+            >
+              {placesToVisit.map((place) => (
+                <LocationCard
+                  key={place.attraction_id}
+                  item={{
+                    id: place.attraction_id,
+                    name: place.name,
+                    image: place.image_url,
+                    rating: parseFloat(place.average_rating),
+                    reviewCount: place.rating_total,
+                    tags: place.tags,
+                    type: "attraction",
+                  }}
+                  onClick={() => handleNavigateAttraction(place.attraction_id)}
+                  renderStars={renderStars}
+                />
+              ))}
+            </Box>
+          ) : (
+            <Typography
+              variant="body1"
+              sx={{ color: "text.secondary", textAlign: "center", py: 4 }}
+            >
+              Không tìm thấy điểm tham quan nào cho {city?.name}. Hãy quay lại
+              sau hoặc khám phá các thành phố khác!
+            </Typography>
+          )}
+        </Box>
+
+        <Box sx={{ mt: 8 }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 4,
+            }}
+          >
+            <Typography variant="h5" sx={{ color: "text.primary" }}>
+              Ăn uống
+            </Typography>
+            <Button
+              sx={{
+                color: "primary.main",
+                "&:hover": { textDecoration: "underline" },
+              }}
+            >
+              <Link to={`/tripguide/restaurants`}>Xem tất cả</Link>
+            </Button>
+          </Box>
+          {placesToEat && placesToEat.length > 0 ? (
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: {
+                  xs: "1fr",
+                  sm: "1fr 1fr",
+                  md: "1fr 1fr 1fr 1fr",
+                },
+                gap: 2,
+              }}
+            >
+              {placesToEat.map((place) => (
+                <LocationCard
+                  key={place.restaurant_id}
+                  item={{
+                    id: place.restaurant_id,
+                    name: place.name,
+                    image: place.image_url,
+                    rating: parseFloat(place.average_rating),
+                    reviewCount: place.rating_total,
+                    tags: place.tags,
+                    type: "restaurant",
+                  }}
+                  onClick={() => handleNavigateRestaurant(place.restaurant_id)}
+                  renderStars={renderStars}
+                />
+              ))}
+            </Box>
+          ) : (
+            <Typography
+              variant="body1"
+              sx={{ color: "text.secondary", textAlign: "center", py: 4 }}
+            >
+              Không tìm thấy nhà hàng nào cho {city?.name}. Hãy thử khám phá các
+              thành phố lân cận hoặc quay lại sớm!
+            </Typography>
+          )}
+        </Box>
       </Container>
     </ThemeProvider>
   );

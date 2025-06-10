@@ -2,22 +2,22 @@ $primary-color: #2d7a61;
 $text-color: #333;
 
 .breadcrumb-item {
-    display: inline-flex;
-    align-items: center;
-    color: #007bff;
-    text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  color: #007bff;
+  text-decoration: none;
 
-    &:not(.current):hover {
-        text-decoration: underline;
-        color: #0056b3;
-    }
+  &:not(.current):hover {
+    text-decoration: underline;
+    color: #0056b3;
+  }
 
-    &.current {
-        color: $text-color;
-        font-weight: bold;
-    }
+  &.current {
+    color: $text-color;
+    font-weight: bold;
+  }
 }
 
 .chevron-right {
-    margin: 0 10px;
+  margin: 0 10px;
 }

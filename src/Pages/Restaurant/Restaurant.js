@@ -855,7 +855,7 @@ const Restaurant = () => {
       image:
         Array.isArray(restaurant.image_url) && restaurant.image_url.length > 0
           ? restaurant.image_url[0]
-          : restaurant.image_url || "https://via.placeholder.com/150",
+          : restaurant.image_url || "",
       rating: parseFloat(restaurant.average_rating) || 0,
       reviewCount: restaurant.rating_total || 0,
       tags: Array.isArray(restaurant.tags) ? restaurant.tags : [],
