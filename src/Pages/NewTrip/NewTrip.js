@@ -91,7 +91,6 @@ function NewTrip() {
 
     const dayCount = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
 
-
     return Array.from({ length: dayCount }, (_, i) => i + 1);
   }
 
@@ -107,11 +106,7 @@ function NewTrip() {
         setDay(parsed.daylist || []);
         settripitinerary(parsed.tripitineraryId || 0);
         setSelectedDay(parsed.selectedDay || []);
-
-
-      } catch (e) {
-
-      }
+      } catch (e) {}
     }
     setHasLoadedFromStorage(true);
   }, []);
@@ -129,7 +124,6 @@ function NewTrip() {
       // thêm các biến khác nếu cần
     };
     localStorage.setItem("newTripState", JSON.stringify(state));
-
   }, [
     tripDescription,
     tripstartDate,
@@ -149,7 +143,7 @@ function NewTrip() {
           const endTime = "15:00";
           const tagParams = selectedTags.map((tag) => `${tag}`).join("&");
           const restagParams = selectedResTags.map((tag) => `${tag}`).join("&");
-          const url = `${BASE_URL}/attractions/tags?city=${selectedCity}&tags=${tagParams}&startTime=${startTime}&endTime=${endTime}&res_tag=${restagParams}&startDate=${startDate}&endDate=${endDate}`
+          const url = `${BASE_URL}/attractions/tags?city=${selectedCity}&tags=${tagParams}&startTime=${startTime}&endTime=${endTime}&res_tag=${restagParams}&startDate=${startDate}&endDate=${endDate}`;
 
           const Itiresponse = await axios.get(url);
           const cityResponse = await axios.get(
@@ -176,9 +170,6 @@ function NewTrip() {
           );
           setCityAttraction(cityAttraction.data);
           setDay(generateDayList(startDate, endDate));
-
-
-
         }
       } catch (err) {
         setError(err);
@@ -189,13 +180,13 @@ function NewTrip() {
     fetchData();
   }, [itinerary_id]);
 
-
   const updateItinerarybyNewDate = (newDaylist) => {
-    const updatedItinerary = itineraryData.filter(item => newDaylist.includes(item.day));
+    const updatedItinerary = itineraryData.filter((item) =>
+      newDaylist.includes(item.day)
+    );
 
     setitinararyData(updatedItinerary);
-
-  }
+  };
 
   const handleStartDateChange = (e) => {
     const newStartDate = e.target.value;
@@ -207,7 +198,6 @@ function NewTrip() {
       const newdaylist = generateDayList(newStartDate, tripendDate);
       setDay(newdaylist);
       updateItinerarybyNewDate(newdaylist);
-
     }
   };
 
@@ -221,11 +211,8 @@ function NewTrip() {
       const newdaylist = generateDayList(tripstartDate, newEndDate);
       setDay(newdaylist);
       updateItinerarybyNewDate(newdaylist);
-
     }
   };
-
-
 
   const handleAddLocation = () => {
     setFormState({
@@ -268,16 +255,22 @@ function NewTrip() {
   const handleDescription = async () => {
     try {
       if (itinerary_id != -1) {
-        console.log("url: ", `${BASE_URL}/itinerary/update/${itinerary_id}`)
-        const respone = await axios.put(`${BASE_URL}/itinerary/update/${itinerary_id}`, {
-          description: tripDescription,
-        })
+        console.log("url: ", `${BASE_URL}/itinerary/update/${itinerary_id}`);
+        const respone = await axios.put(
+          `${BASE_URL}/itinerary/update/${itinerary_id}`,
+          {
+            description: tripDescription,
+          }
+        );
         alert("Edit description success");
       } else if (tripitineraryId != -1) {
-        console.log("url: ", `${BASE_URL}/itinerary/update/${tripitineraryId}`)
-        const respone = await axios.put(`${BASE_URL}/itinerary/update/${tripitineraryId}`, {
-          description: tripDescription,
-        })
+        console.log("url: ", `${BASE_URL}/itinerary/update/${tripitineraryId}`);
+        const respone = await axios.put(
+          `${BASE_URL}/itinerary/update/${tripitineraryId}`,
+          {
+            description: tripDescription,
+          }
+        );
         alert("Edit description success");
       } else {
         alert("Save your new itinerary first");
@@ -285,8 +278,7 @@ function NewTrip() {
     } catch (err) {
       alert("Edit failed");
     }
-
-  }
+  };
 
   const handleSaveItinerary = async () => {
     if (!user?.user_id) {
@@ -352,10 +344,13 @@ function NewTrip() {
       console.log("edit");
       console.log(tripitineraryId);
       try {
-        const updaterespone = await axios.put(`${BASE_URL}/itinerary/update/${tripitineraryId}`, {
-          start_date: tripstartDate,
-          end_date: tripendDate,
-        })
+        const updaterespone = await axios.put(
+          `${BASE_URL}/itinerary/update/${tripitineraryId}`,
+          {
+            start_date: tripstartDate,
+            end_date: tripendDate,
+          }
+        );
         const deleteRespone = await axios.delete(
           `${BASE_URL}/itineraryDetail/delete/${tripitineraryId}`
         );
@@ -433,8 +428,6 @@ function NewTrip() {
     editingDay,
     editingIndex
   ) => {
-
-
     const arrival = timeToMinutes(startTime);
     const departure = timeToMinutes(endTime);
     if (arrival >= departure) {
@@ -459,8 +452,6 @@ function NewTrip() {
       longitude: location.longitude,
       warning: "",
     };
-
-
 
     // let updatedItinerary;
 
@@ -518,8 +509,6 @@ function NewTrip() {
     setStartTime("");
     setEndTime("");
     handleCancel();
-
-
   };
 
   const handleSave = (editingDay, editingIndex) => {
@@ -624,10 +613,14 @@ function NewTrip() {
               rows="1"
               className="trip-description-input"
               placeholder="Describe Your Trip..."
-              value={tripDescription}
               onChange={(e) => setTripDescription(e.target.value)}
             />
-            <button className="save-description-btn" onClick={handleDescription}>Save</button>
+            <button
+              className="save-description-btn"
+              onClick={handleDescription}
+            >
+              Save
+            </button>
           </div>
         </div>
         <div className="trip-date">
@@ -668,11 +661,11 @@ function NewTrip() {
                     <hr className="day-line" />
                   </div>
                   {items.map((item, index) => (
-                    <div key={`${day}-${index}`} className="location-details" >
+                    <div key={`${day}-${index}`} className="location-details">
                       <div className="time">{item.arrival_time}</div>
                       <div className="timeline-line"></div>
                       <div className="edit-location-card">
-                        <div className="location-card" >
+                        <div className="location-card">
                           <img
                             src={item.image_url[0] || "fallback.jpg"}
                             alt={item.name}
@@ -684,7 +677,10 @@ function NewTrip() {
                           <div className="location-info">
                             <div className="location-title">{item.name}</div>
                             <div className="departure-time">
-                              <FontAwesomeIcon icon={faClock} className="departure-icon" />
+                              <FontAwesomeIcon
+                                icon={faClock}
+                                className="departure-icon"
+                              />
                               <span>Departure time:</span>
                               <strong>{item.departure_time}</strong>
                             </div>
