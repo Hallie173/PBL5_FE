@@ -15,6 +15,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { FaPen, FaXmark } from "react-icons/fa6";
 import AddLocationForm from "./AddLocationForm";
 import DeleteConfirm from "./DeleteConfirm";
+import OptimizeConfirm from "./OptimizeConfirm";
 import { useNavigate } from "react-router-dom";
 function NewTrip() {
   const location = useLocation();
@@ -48,6 +49,9 @@ function NewTrip() {
     isOpen: false,
     item: null,
   });
+  const [optimizeConfirm, setOptimizeConfirm] = useState({
+    isOpen: false,
+  });
   const [cityAttraction, setCityAttraction] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [startTime, setStartTime] = useState("");
@@ -69,6 +73,12 @@ function NewTrip() {
     });
   };
 
+  const handleOptimizeClick = () => {
+    setOptimizeConfirm({
+      isOpen: true,
+    });
+  };
+
   // Hàm xác nhận xóa
   const handleDeleteConfirm = () => {
     const { item } = deleteConfirm;
@@ -81,10 +91,19 @@ function NewTrip() {
     setDeleteConfirm({ isOpen: false, day: null, index: null });
   };
 
+  const handleOptimizeConfirm = () => {
+
+  };
+
   // Hàm hủy bỏ xóa
   const handleDeleteCancel = () => {
     setDeleteConfirm({ isOpen: false, day: null, index: null });
   };
+
+  const handleOptimizeCancel = () => {
+    setOptimizeConfirm({ isOpen: false });
+  }
+
   function generateDayList(startDate, endDate) {
     const start = new Date(startDate);
     const end = new Date(endDate);
@@ -106,7 +125,7 @@ function NewTrip() {
         setDay(parsed.daylist || []);
         settripitinerary(parsed.tripitineraryId || 0);
         setSelectedDay(parsed.selectedDay || []);
-      } catch (e) {}
+      } catch (e) { }
     }
     setHasLoadedFromStorage(true);
   }, []);
@@ -762,6 +781,12 @@ function NewTrip() {
                 >
                   Save
                 </button>
+                <button
+                  className="optimize-btn"
+                  onClick={handleOptimizeClick}
+                >
+                  Optimize
+                </button>
                 <AddLocationForm
                   visible={formState.visible && formState.mode === "add"}
                   mode="add"
@@ -791,6 +816,12 @@ function NewTrip() {
         onConfirm={handleDeleteConfirm}
         onCancel={handleDeleteCancel}
         message="Are you sure you want to delete this location?"
+      />
+      <OptimizeConfirm
+        isOpen={optimizeConfirm.isOpen}
+        onConfirm={handleOptimizeConfirm}
+        onCancel={handleOptimizeCancel}
+        message="Optimize this Itinerary?"
       />
     </div>
   );
