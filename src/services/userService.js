@@ -5,17 +5,46 @@ import { authService } from "./authService";
 const API_URL = `${BASE_URL}/users`;
 
 class UserService {
+  // Validate file type and size for uploads
+  static _validateFile(file, maxSizeMB = 2) {
+    if (!file) throw new Error("No file provided");
+    const validTypes = ["image/jpeg", "image/png", "image/gif"];
+    if (!validTypes.includes(file.type)) {
+      throw new Error("Only JPG, PNG, or GIF images are allowed");
+    }
+    if (file.size > maxSizeMB * 1024 * 1024) {
+      throw new Error(`Image must be less than ${maxSizeMB}MB`);
+    }
+  }
+
+  // Check for authenticated user
+  static _getAuthenticatedUserId() {
+    const currentUser = authService.getCurrentUser();
+    if (!currentUser?.user_id) {
+      throw new Error("User must be logged in");
+    }
+    return currentUser.user_id;
+  }
+
+  // Validate URL format
+  static _validateUrl(url, fieldName) {
+    const urlRegex = /^https?:\/\/[^\s/$.?#].[^\s]*$/;
+    if (url && !urlRegex.test(url)) {
+      throw new Error(`Invalid ${fieldName}: Must be a valid URL`);
+    }
+  }
+
   static async getUserById(userId) {
     if (!userId) throw new Error("User ID is required");
-    return this.apiRequest(`${API_URL}/${userId}`, "GET");
+    return this._apiRequest(`${API_URL}/${userId}`, "GET");
   }
 
   static async updateProfile(userId, profileData) {
     if (!userId) throw new Error("User ID is required");
     if (!profileData) throw new Error("Profile data is required");
 
-    const normalizedData = this.normalizeProfileData(profileData);
-    const response = await this.apiRequest(
+    const normalizedData = this._normalizeProfileData(profileData);
+    const response = await this._apiRequest(
       `${API_URL}/${userId}`,
       "PUT",
       normalizedData
@@ -25,7 +54,7 @@ class UserService {
     if (currentUser && currentUser.user_id === userId) {
       const updatedUser = {
         ...currentUser,
-        ...this.normalizeLocalProfileData(response),
+        ...this._normalizeLocalProfileData(response),
       };
       authService.setCurrentUser(updatedUser);
     }
@@ -34,29 +63,19 @@ class UserService {
   }
 
   static async uploadAvatar(file) {
-    if (!file) throw new Error("No file provided");
-    const currentUser = authService.getCurrentUser();
-    if (!currentUser?.user_id)
-      throw new Error("User must be logged in to upload avatar");
-
-    const validTypes = ["image/jpeg", "image/png", "image/gif"];
-    if (!validTypes.includes(file.type)) {
-      throw new Error("Only JPG, PNG, or GIF images are allowed");
-    }
-    if (file.size > 2 * 1024 * 1024) {
-      throw new Error("Avatar image must be less than 2MB");
-    }
+    this._validateFile(file);
+    const userId = this._getAuthenticatedUserId();
 
     try {
       const formData = new FormData();
       formData.append("avatar", file);
 
       const response = await axios.post(`${API_URL}/upload-avatar`, formData, {
-        headers: {},
+        headers: { "Content-Type": "multipart/form-data" },
         withCredentials: true,
       });
 
-      return response.data; // Đảm bảo trả về { avatarUrl: "url" }
+      return response.data; // { avatarUrl: "url" }
     } catch (error) {
       throw new Error(
         error.response?.data?.message || "Failed to upload avatar"
@@ -64,32 +83,50 @@ class UserService {
     }
   }
 
-  static normalizeProfileData(profileData) {
+  static async uploadCover(file) {
+    this._validateFile(file);
+    const userId = this._getAuthenticatedUserId();
+
+    try {
+      const formData = new FormData();
+      formData.append("cover", file);
+
+      const response = await axios.post(`${API_URL}/upload-cover`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+        withCredentials: true,
+      });
+
+      return response.data; // { coverUrl: "url" }
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message || "Failed to upload cover"
+      );
+    }
+  }
+
+  static _normalizeProfileData(profileData) {
     let bioString;
     try {
       bioString = JSON.stringify(profileData.bio || {});
-      JSON.parse(bioString);
+      JSON.parse(bioString); // Validate JSON
     } catch (error) {
-      console.error("Invalid bio data:", profileData.bio, error);
       throw new Error("Invalid bio format");
     }
 
-    const urlRegex = /^https?:\/\/[^\s/$.?#].[^\s]*$/;
-    if (profileData.avatar_url && !urlRegex.test(profileData.avatar_url)) {
-      console.error("Invalid avatar_url:", profileData.avatar_url);
-      throw new Error("Invalid avatar_url: Must be a valid URL");
-    }
+    this._validateUrl(profileData.avatar_url, "avatar_url");
+    this._validateUrl(profileData.cover_url, "cover_url");
 
     return {
-      user_id: profileData.user_id,
+      user_id: profileData.user_id || "",
       username: profileData.username || "",
       full_name: profileData.full_name || "",
       avatar_url: profileData.avatar_url || "",
+      cover_url: profileData.cover_url || "",
       bio: bioString,
     };
   }
 
-  static normalizeLocalProfileData(profileData) {
+  static _normalizeLocalProfileData(profileData) {
     let bio;
     try {
       bio =
@@ -97,38 +134,43 @@ class UserService {
           ? JSON.parse(profileData.bio || "{}")
           : profileData.bio || {};
     } catch (error) {
-      console.error("Error parsing bio:", profileData.bio, error);
       bio = {};
     }
 
     return {
-      user_id: profileData.user_id,
+      user_id: profileData.user_id || "",
       username: profileData.username || "",
       full_name: profileData.full_name || "",
       avatar_url: profileData.avatar_url || "",
+      cover_url: profileData.cover_url || "",
       bio,
     };
   }
 
-  static async apiRequest(url, method = "GET", data = null) {
+  static async _apiRequest(url, method = "GET", data = null) {
     try {
+      const token = localStorage.getItem("token");
       const config = {
         method,
         url,
         headers: {
-          "Content-Type": "application/json",
+          ...(data instanceof FormData
+            ? { "Content-Type": "multipart/form-data" }
+            : { "Content-Type": "application/json" }),
+          ...(token && { Authorization: `Bearer ${token}` }),
         },
         withCredentials: true,
       };
 
-      if (data) config.data = data;
+      if (data) {
+        config.data = data;
+      }
 
       const response = await axios(config);
       return response.data;
     } catch (error) {
       const errorMsg =
         error.response?.data?.message ||
-        error.message ||
         `Failed to ${
           method.toLowerCase() === "get" ? "fetch" : "update"
         } user data`;
