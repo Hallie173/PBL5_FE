@@ -4,6 +4,9 @@ import newtrippic from "../../assets/images/Cities/goldenbridge.png";
 import {
   faCalendarDay,
   faMountainSun,
+  faStar as regularStar,
+  faStar as solidStar,
+  faStarHalfAlt,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faClock } from "@fortawesome/free-solid-svg-icons";
@@ -456,7 +459,43 @@ function NewTrip() {
       }
     }
   };
+  const renderStars = (rating) => {
+    const numRating = typeof rating === "number" ? rating : parseFloat(rating);
 
+    if (isNaN(numRating) || numRating < 0 || numRating > 5) {
+      return <div className="stars-container">Invalid rating</div>;
+    }
+
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+      if (numRating >= i) {
+        stars.push(
+          <FontAwesomeIcon
+            key={i}
+            icon={solidStar}
+            className="star-icon filled"
+          />
+        );
+      } else if (numRating >= i - 0.5) {
+        stars.push(
+          <FontAwesomeIcon
+            key={i}
+            icon={faStarHalfAlt}
+            className="star-icon half"
+          />
+        );
+      } else {
+        stars.push(
+          <FontAwesomeIcon
+            key={i}
+            icon={regularStar}
+            className="star-icon empty"
+          />
+        );
+      }
+    }
+    return <span className="stars-container">{stars}</span>;
+  };
   const timeToMinutes = (time) => {
     const [h, m] = time.split(":").map(Number);
     return h * 60 + m;
@@ -755,7 +794,9 @@ function NewTrip() {
                               <strong>{item.departure_time}</strong>
                             </div>
                             <div className="item-rating">
-                              <span className="rating-dots">🟢🟢🟢🟢</span>
+                              <span className="rating-dots">
+                                {renderStars(Number(item.average_rating))}
+                              </span>
                               <span className="rating-number">
                                 {item.rating_total}
                               </span>

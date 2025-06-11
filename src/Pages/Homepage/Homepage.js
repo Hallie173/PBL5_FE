@@ -509,7 +509,7 @@ const HomePage = () => {
       <div className="featured-container">
         <img src={trendcast} alt="Featured" className="featured-image" />
         <div className="featured-overlay">
-          <h2>The 2025 Tripadvisor Trendcast</h2>
+          <h2>The 2025 TripGuide Trendcast</h2>
           <p>Forecasting the future of travel—now.</p>
           <button className="featured-button">Check it out</button>
         </div>

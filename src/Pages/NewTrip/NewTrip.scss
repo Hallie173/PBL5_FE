@@ -690,3 +690,16 @@ $card-border: #e0e0e0;
     }
   }
 }
+.stars-container {
+  .star-icon {
+    font-size: 18px;
+    margin-right: 4px;
+    &.filled,
+    &.half {
+      color: $primary-color;
+    }
+    &.empty {
+      color: #ddd;
+    }
+  }
+}
