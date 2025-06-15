@@ -4,6 +4,9 @@ import newtrippic from "../../assets/images/Cities/goldenbridge.png";
 import {
   faCalendarDay,
   faMountainSun,
+  faStar as regularStar,
+  faStar as solidStar,
+  faStarHalfAlt,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faClock } from "@fortawesome/free-solid-svg-icons";
@@ -92,6 +95,7 @@ function NewTrip() {
   };
 
   const handleOptimizeConfirm = () => {
+    console.log("OPTIMIZE");
     const optimized = [];
     let currentDay = null;
     let prevDepartureTimeInMin = 0;
@@ -105,7 +109,8 @@ function NewTrip() {
         prevDepartureTimeInMin = timeToMinutes(item.arrival_time); // giữ nguyên arrival_time
       } else {
         // Arrival time = previous departure + travel
-        const arrivalMin = prevDepartureTimeInMin + (item.travel_from_prev_minutes || 0);
+        const arrivalMin =
+          prevDepartureTimeInMin + (item.travel_from_prev_minutes || 0);
 
         // Nếu vượt quá 24h => chuyển sang ngày mới
         if (arrivalMin >= 1440) {
@@ -127,16 +132,20 @@ function NewTrip() {
         item.day += 1;
         item.arrival_time = "08:00";
         prevDepartureTimeInMin = timeToMinutes("08:00");
-        const newDepartureMin = prevDepartureTimeInMin + (item.duration_minutes || 0);
+        const newDepartureMin =
+          prevDepartureTimeInMin + (item.duration_minutes || 0);
         item.departure_time = minutesToTime(newDepartureMin);
         prevDepartureTimeInMin = newDepartureMin;
+        item.warning = "";
       } else {
         item.departure_time = minutesToTime(departureMin);
         prevDepartureTimeInMin = departureMin;
+        item.warning = "";
       }
 
       optimized.push(item);
     }
+    console.log(optimized);
     setitinararyData(optimized);
     setOptimizeConfirm({ isOpen: false });
   };
@@ -148,7 +157,7 @@ function NewTrip() {
 
   const handleOptimizeCancel = () => {
     setOptimizeConfirm({ isOpen: false });
-  }
+  };
 
   function generateDayList(startDate, endDate) {
     const start = new Date(startDate);
@@ -209,7 +218,7 @@ function NewTrip() {
           const tagParams = selectedTags.map((tag) => `${tag}`).join("&");
           const restagParams = selectedResTags.map((tag) => `${tag}`).join("&");
           const url = `${BASE_URL}/attractions/tags?city=${selectedCity}&tags=${tagParams}&startTime=${startTime}&endTime=${endTime}&res_tag=${restagParams}&startDate=${startDate}&endDate=${endDate}`;
-          console.log("url", url)
+          console.log("url", url);
           const Itiresponse = await axios.get(url);
           const cityResponse = await axios.get(
             `${BASE_URL}/cities/${selectedCity}`
@@ -450,7 +459,43 @@ function NewTrip() {
       }
     }
   };
+  const renderStars = (rating) => {
+    const numRating = typeof rating === "number" ? rating : parseFloat(rating);
 
+    if (isNaN(numRating) || numRating < 0 || numRating > 5) {
+      return <div className="stars-container">Invalid rating</div>;
+    }
+
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+      if (numRating >= i) {
+        stars.push(
+          <FontAwesomeIcon
+            key={i}
+            icon={solidStar}
+            className="star-icon filled"
+          />
+        );
+      } else if (numRating >= i - 0.5) {
+        stars.push(
+          <FontAwesomeIcon
+            key={i}
+            icon={faStarHalfAlt}
+            className="star-icon half"
+          />
+        );
+      } else {
+        stars.push(
+          <FontAwesomeIcon
+            key={i}
+            icon={regularStar}
+            className="star-icon empty"
+          />
+        );
+      }
+    }
+    return <span className="stars-container">{stars}</span>;
+  };
   const timeToMinutes = (time) => {
     const [h, m] = time.split(":").map(Number);
     return h * 60 + m;
@@ -501,7 +546,7 @@ function NewTrip() {
     }
 
     const newLocation = {
-      type: "attraction",
+      type: location.type ?? "restaurant",
       day: selectedDay,
       id: location.attraction_id ?? location.id,
       name: location.name,
@@ -565,7 +610,7 @@ function NewTrip() {
         curr.warning = "";
       }
     }
-
+    console.log("update: ", updatedItinerary);
     // ✅ Gọi setItineraryData duy nhất một lần sau khi xử lý xong
     setitinararyData(updatedItinerary);
 
@@ -749,7 +794,9 @@ function NewTrip() {
                               <strong>{item.departure_time}</strong>
                             </div>
                             <div className="item-rating">
-                              <span className="rating-dots">🟢🟢🟢🟢</span>
+                              <span className="rating-dots">
+                                {renderStars(Number(item.average_rating))}
+                              </span>
                               <span className="rating-number">
                                 {item.rating_total}
                               </span>
@@ -827,10 +874,7 @@ function NewTrip() {
                 >
                   Save
                 </button>
-                <button
-                  className="optimize-btn"
-                  onClick={handleOptimizeClick}
-                >
+                <button className="optimize-btn" onClick={handleOptimizeClick}>
                   Optimize
                 </button>
                 <AddLocationForm
