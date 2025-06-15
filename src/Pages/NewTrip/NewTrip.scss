@@ -272,9 +272,11 @@ $hover-color: #81c784;
               justify-content: flex-start;
               position: relative;
               margin: 5px 0 10px 0;
+              overflow: hidden;
 
               .location-img {
                 width: 30%;
+                height: 100%;
                 object-fit: cover;
                 border-radius: 8px 0 0 8px;
               }

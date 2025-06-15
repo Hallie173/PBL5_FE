@@ -93,50 +93,50 @@ function NewTrip() {
 
   const handleOptimizeConfirm = () => {
     const optimized = [];
-  let currentDay = null;
-  let prevDepartureTimeInMin = 0;
+    let currentDay = null;
+    let prevDepartureTimeInMin = 0;
 
-  for (let i = 0; i < itineraryData.length; i++) {
-    const item = { ...itineraryData[i] };
+    for (let i = 0; i < itineraryData.length; i++) {
+      const item = { ...itineraryData[i] };
 
-    // Khi bắt đầu ngày mới
-    if (item.day !== currentDay) {
-      currentDay = item.day;
-      prevDepartureTimeInMin = timeToMinutes(item.arrival_time); // giữ nguyên arrival_time
-    } else {
-      // Arrival time = previous departure + travel
-      const arrivalMin = prevDepartureTimeInMin + (item.travel_from_prev_minutes || 0);
+      // Khi bắt đầu ngày mới
+      if (item.day !== currentDay) {
+        currentDay = item.day;
+        prevDepartureTimeInMin = timeToMinutes(item.arrival_time); // giữ nguyên arrival_time
+      } else {
+        // Arrival time = previous departure + travel
+        const arrivalMin = prevDepartureTimeInMin + (item.travel_from_prev_minutes || 0);
 
-      // Nếu vượt quá 24h => chuyển sang ngày mới
-      if (arrivalMin >= 1440) {
+        // Nếu vượt quá 24h => chuyển sang ngày mới
+        if (arrivalMin >= 1440) {
+          item.day += 1;
+          item.arrival_time = "08:00";
+          prevDepartureTimeInMin = timeToMinutes("08:00");
+        } else {
+          item.arrival_time = minutesToTime(arrivalMin);
+          prevDepartureTimeInMin = arrivalMin;
+        }
+      }
+
+      // Departure time = arrival + duration
+      const arrivalMin = timeToMinutes(item.arrival_time);
+      const departureMin = arrivalMin + (item.duration_minutes || 0);
+
+      // Nếu departure vượt quá 24h => chuyển sang ngày mới
+      if (departureMin >= 1440) {
         item.day += 1;
         item.arrival_time = "08:00";
         prevDepartureTimeInMin = timeToMinutes("08:00");
+        const newDepartureMin = prevDepartureTimeInMin + (item.duration_minutes || 0);
+        item.departure_time = minutesToTime(newDepartureMin);
+        prevDepartureTimeInMin = newDepartureMin;
       } else {
-        item.arrival_time = minutesToTime(arrivalMin);
-        prevDepartureTimeInMin = arrivalMin;
+        item.departure_time = minutesToTime(departureMin);
+        prevDepartureTimeInMin = departureMin;
       }
+
+      optimized.push(item);
     }
-
-    // Departure time = arrival + duration
-    const arrivalMin = timeToMinutes(item.arrival_time);
-    const departureMin = arrivalMin + (item.duration_minutes || 0);
-
-    // Nếu departure vượt quá 24h => chuyển sang ngày mới
-    if (departureMin >= 1440) {
-      item.day += 1;
-      item.arrival_time = "08:00";
-      prevDepartureTimeInMin = timeToMinutes("08:00");
-      const newDepartureMin = prevDepartureTimeInMin + (item.duration_minutes || 0);
-      item.departure_time = minutesToTime(newDepartureMin);
-      prevDepartureTimeInMin = newDepartureMin;
-    } else {
-      item.departure_time = minutesToTime(departureMin);
-      prevDepartureTimeInMin = departureMin;
-    }
-
-    optimized.push(item);
-  }
     setitinararyData(optimized);
     setOptimizeConfirm({ isOpen: false });
   };
